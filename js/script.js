@@ -1,25 +1,17 @@
-api = "https://api.novelai.net/";
+let api = 'https://api.novelai.net';
 
 function apiCall() {
-	var xhr = new XMLHttpRequest();
-	xhr.open('POST', api, true);
-	
-	xhr.onload = function() {
-		if (this.status == 200) {
-			console.log(this.responseText);
+	// ajax call
+	$.ajax({
+		url: api,
+		type: 'GET',
+		dataType: 'text',
+		withCredentials: true,
+		success: function(data) {
+			console.log(data);
+		},
+		error: function(xhr, status, error) {
+			console.log(xhr);
 		}
-	}
-
-	const data = {
-		"prompt": "The quick brown fox jumps over the lazy dog.",
-		"length": 50,
-		"num_samples": 1,
-		"temperature": 0.7,
-		"top_p": 1,
-		"frequency_penalty": 0,
-		"presence_penalty": 0,
-		"stop_token": "EOS"
-	};
-	
-	xhr.send(data);
+	});
 }
