@@ -1,5 +1,5 @@
 var express = require('express');
-var { createProxyMiddleware } = require('http-proxy-middleware');
+var { createProxyMiddleware, responseInterceptor } = require('http-proxy-middleware');
 var app = express();
 
 app.use('/js', express.static(__dirname + '/js'));
