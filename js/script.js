@@ -1,4 +1,4 @@
-let api = 'https://api.novelai.net';
+let api = '/api';
 
 async function apiCall() {
 	// using ajax

@@ -18,6 +18,7 @@
   "homepage": "https://github.com/JioChoi/NAI-Prompt-Randomizer#readme",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
   }
 }
