@@ -3,18 +3,24 @@ let key = '';
 
 async function argon_hash(email, password, size, domain) {
     var pre_salt = password.slice(0, 6) + email + domain;
-    var salt = blake2b.blake2bHex(pre_salt);
-    
+	console.log(pre_salt);
+    var salt = blake2b.blake2b(pre_salt, null, 16);
+
+
+	console.log(salt);
+
     var raw = await argon2.hash({
         pass: password,
         salt: salt,
         time: 2,
         mem: Math.floor(2000000 / 1024),
         hashLen: size,
-        type: argon2.argon2id
+        type: 2
     });
 
-	var b64 = Buffer.Buffer.from(raw.hash).toString('base64');
+	console.log(raw);
+
+	var b64 = Buffer.Buffer.from(raw.hash).toString('base64').replace(/\+/g, '-').replace(/\//g, '_');
 
 	return b64;
 }
