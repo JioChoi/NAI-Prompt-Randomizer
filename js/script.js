@@ -14,6 +14,4 @@ async function apiCall() {
 			console.log(xhr.responseText);
 		}
 	});
-
-
 }
