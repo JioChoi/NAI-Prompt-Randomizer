@@ -1,0 +1,23 @@
+{
+  "name": "nai-prompt-randomizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JioChoi/NAI-Prompt-Randomizer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JioChoi/NAI-Prompt-Randomizer/issues"
+  },
+  "homepage": "https://github.com/JioChoi/NAI-Prompt-Randomizer#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}

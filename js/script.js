@@ -1,17 +1,19 @@
 let api = 'https://api.novelai.net';
 
-function apiCall() {
-	// ajax call
+async function apiCall() {
+	// using ajax
+	let url = api;
 	$.ajax({
-		url: api,
+		url: url,
 		type: 'GET',
 		dataType: 'text',
-		withCredentials: true,
 		success: function(data) {
 			console.log(data);
 		},
 		error: function(xhr, status, error) {
-			console.log(xhr);
+			console.log(xhr.responseText);
 		}
 	});
+
+
 }
