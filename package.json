@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/JioChoi/NAI-Prompt-Randomizer#readme",
   "dependencies": {
+    "argon2-browser": "^1.18.0",
+    "blakejs": "^1.2.1",
+    "bops": "^1.0.1",
+    "buffer": "^6.0.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "http-proxy-middleware": "^2.0.6"
