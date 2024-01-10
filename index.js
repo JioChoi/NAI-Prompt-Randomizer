@@ -24,7 +24,7 @@ app.use('/api', createProxyMiddleware({
 }));
 
 app.use('/js', express.static(__dirname + '/js'));
-app.use('/node_modules', express.static(__dirname + '/node_modules'));
+app.use('/js', express.static(__dirname + '/node_modules/argon2-browser/lib/'));
 
 app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
