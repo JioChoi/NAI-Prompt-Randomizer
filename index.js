@@ -9,3 +9,5 @@ app.use(express.static('js'));
 app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
 });
+
+module.exports = app;
