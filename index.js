@@ -17,15 +17,24 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-app.post('/api/*', jsonParser, function(req, res, next) {
+app.post('/api*', jsonParser, function(req, res, next) {
+	console.log(req.url);
 	request.post('https://api.novelai.net' + req.url.substring(4), {
-		json: req.body
+		json: req.body,
+		headers: {
+			'Authorization': req.headers.authorization
+		}
 	}).pipe(res);
 });
 
-app.get('/api/*', function(req, res, next) {
-	console.log(req.url.substring(4));
-	request('https://api.novelai.net' + req.url.substring(4)).pipe(res);
+app.get('/api*', function(req, res, next) {
+	console.log(req.url);
+	request({
+		url: 'https://api.novelai.net' + req.url.substring(4),
+		headers: {
+			'Authorization': req.headers.authorization
+		}
+	}).pipe(res);
 });
 
 app.use('/js', express.static(__dirname + '/js'));
@@ -38,15 +47,3 @@ app.get('/', function(req, res, next) {
 app.listen(3000, function() {
 	console.log('Example app listening on port 3000!');
 });
-
-
-// app.use('/api', createProxyMiddleware({
-// 	target: 'https://api.novelai.net',
-// 	changeOrigin: true,
-// 	pathRewrite: {
-// 		'^/api': ''
-// 	},
-// 	//followRedirects: false,
-// 	secure: true,
-// }));
-// //module.exports = app;
