@@ -4,10 +4,13 @@ var request = require('request');
 var bodyParser = require('body-parser');
 
 var app = express();
-var jsonParser = bodyParser.json()
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: false }));
+
+app.use('/js', express.static(__dirname + '/js'));
+app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
+app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
 app.use(cors({
 	origin: '*',
@@ -17,14 +20,24 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-app.post('/api*', jsonParser, function(req, res, next) {
+app.post('/api*', function(req, res, next) {
 	console.log(req.url);
-	request.post('https://api.novelai.net' + req.url.substring(4), {
+	console.log(req.headers);
+	console.log(req.body);
+
+	request('https://api.novelai.net' + req.url.substring(4), {
+		method: 'POST',
 		json: req.body,
 		headers: {
-			'Authorization': req.headers.authorization
+			'Authorization': req.headers.authorization,
+			'Content-Type': 'application/json',
 		}
-	}).pipe(res);
+
+	})
+	.on('error', function(err) {
+		console.log(err);
+	})
+	.pipe(res);
 });
 
 app.get('/api*', function(req, res, next) {
@@ -36,9 +49,6 @@ app.get('/api*', function(req, res, next) {
 		}
 	}).pipe(res);
 });
-
-app.use('/js', express.static(__dirname + '/js'));
-app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 
 app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
