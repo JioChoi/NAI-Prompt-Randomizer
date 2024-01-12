@@ -87,6 +87,8 @@ function css() {
 		if(widthElement.value.length > 4) {
 			widthElement.value = widthElement.value.substring(0, 4);
 		}
+
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = "Custom";
 	});
 
 	widthElement.addEventListener('blur', (e) => {
@@ -108,6 +110,17 @@ function css() {
 		if(heightElement.value.length > 4) {
 			heightElement.value = heightElement.value.substring(0, 4);
 		}
+
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = "Custom";
+	});
+
+	heightElement.addEventListener('blur', (e) => {
+		if(heightElement.value < 64) {
+			heightElement.value = 64;
+		}
+		else{
+			heightElement.value = Math.round(heightElement.value / 64) * 64;
+		}
 	});
 
 	const promptGuidanceElement = document.getElementById('pg');
@@ -126,6 +139,12 @@ function css() {
 	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
 	promptGuidanceRescaleElement.addEventListener('input', (e) => {
 		promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
+	});
+
+	const delayElement = document.getElementById('delay');
+	const delayTitleElement = document.getElementById('delayt');
+	delayElement.addEventListener('input', (e) => {
+		delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
 	});
 
 	const seedElement = document.getElementById('seed');
