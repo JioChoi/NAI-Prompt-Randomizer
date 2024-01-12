@@ -40,11 +40,6 @@ h2 {
 	background-color: transparent;
 
 	margin-top: 15px;
-
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
 }
 
 #sidebar {
