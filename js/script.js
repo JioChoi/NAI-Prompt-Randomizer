@@ -12,6 +12,154 @@ function css() {
 		textarea.style.minHeight = textarea.rows * 25 + 24 + 'px';
 	});
 
+	const sidebarItems = document.getElementById("items");
+
+	changeImageSize(document.getElementById('dropdown_imgsize').children[0].innerHTML);
+
+	const dropdowns = document.getElementsByClassName('dropdown');
+	Array.from(dropdowns).forEach((dropdown) => {
+		const id = dropdown.id.substring(9);
+		const option = document.getElementById("option_" + id);
+
+		moveDropdown(dropdown, option);
+
+		dropdown.addEventListener('click', (e) => {
+			if (option.style.visibility == 'visible') {
+				option.style.visibility = 'hidden';
+			}
+			else {
+				option.style.visibility = 'visible';
+				option.scrollTop = 0;
+				Array.from(option.children).forEach((child) => {
+					if(child.innerHTML === dropdown.children[0].innerHTML) {
+						child.classList.add('selected');
+					}
+					else {
+						child.classList.remove('selected');
+					}
+				});
+			}
+
+			e.stopPropagation();
+		});
+
+		sidebarItems.addEventListener('scroll', (e) => {
+			moveDropdown(dropdown, option);
+		});
+
+		Array.from(option.children).forEach((child) => {
+			if(!child.classList.contains('title')) {
+				child.addEventListener('click', (e) => {
+					const prv = dropdown.children[0].innerHTML;
+
+					dropdown.children[0].innerHTML = child.innerHTML;
+					option.style.visibility = 'hidden';
+
+
+					if(id === 'imgsize') {
+						if(child.innerHTML === 'Custom') {
+							dropdown.children[0].innerHTML = prv;
+						}
+						else {
+							changeImageSize(child.innerHTML);
+						}
+					}
+				});
+			}
+		});
+
+		option.addEventListener('click', (e) => {
+			e.stopPropagation();
+		});
+
+		window.addEventListener('click', (e) => {
+			option.style.visibility = 'hidden';
+		});
+	});
+
+	const widthElement = document.getElementById('width');
+	widthElement.addEventListener('click', (e) => {
+		widthElement.select();
+	});
+
+	widthElement.addEventListener('input', (e) => {
+		widthElement.value = widthElement.value.replace(/\D/g, '');
+		if(widthElement.value.length > 4) {
+			widthElement.value = widthElement.value.substring(0, 4);
+		}
+	});
+
+	widthElement.addEventListener('blur', (e) => {
+		if(widthElement.value < 64) {
+			widthElement.value = 64;
+		}
+		else{
+			widthElement.value = Math.round(widthElement.value / 64) * 64;
+		}
+	});
+
+	const heightElement = document.getElementById('height');
+	heightElement.addEventListener('click', (e) => {
+		heightElement.select();
+	});
+
+	heightElement.addEventListener('input', (e) => {
+		heightElement.value = heightElement.value.replace(/\D/g, '');
+		if(heightElement.value.length > 4) {
+			heightElement.value = heightElement.value.substring(0, 4);
+		}
+	});
+
+	const promptGuidanceElement = document.getElementById('pg');
+	const promptGuidanceTitleElement = document.getElementById('pgt');
+	promptGuidanceElement.addEventListener('input', (e) => {
+		promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
+	});
+
+	const stepElement = document.getElementById('step');
+	const stepTitleElement = document.getElementById('stept');
+	stepElement.addEventListener('input', (e) => {
+		stepTitleElement.innerHTML = "Steps: " + stepElement.value;
+	});
+
+	const promptGuidanceRescaleElement = document.getElementById('pgr');
+	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
+	promptGuidanceRescaleElement.addEventListener('input', (e) => {
+		promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
+	});
+
+	const seedElement = document.getElementById('seed');
+	seedElement.addEventListener('click', (e) => {
+		seedElement.select();
+	});
+
+	seedElement.addEventListener('input', (e) => {
+		seedElement.value = seedElement.value.replace(/\D/g, '');
+		if(seedElement.value.length > 10) {
+			seedElement.value = seedElement.value.substring(0, 10);
+		}
+	});
+
+}
+
+function changeImageSize(str) {
+	const size = /\(([^)]+)\)/.exec(str)[1].split('x');
+	document.getElementById('width').value = size[0];
+	document.getElementById('height').value = size[1];
+}
+
+function moveDropdown(dropdown, option) {
+	const rect = dropdown.getClientRects()[0];
+	const optionRect = option.getClientRects()[0];
+
+	let top = rect.top - optionRect.height;
+
+	if (top < 0) {
+		top = rect.top + rect.height;
+	}
+
+	option.style.top = top + 'px';
+	option.style.left = rect.left + 'px';
 }
 
 // Initialize
