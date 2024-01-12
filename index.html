@@ -12,8 +12,28 @@
 	<script src="node_modules/unzipit/dist/unzipit.min.js"></script>
 
 	<script src="js/script.js"></script>
+
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<h1>Pull Test</h1>
+	<div id="sidebar">
+		<h1>Prompt Randomizer</h1>
+
+		<h2>Beginning Prompt</h2>
+		<textarea id="begprompt" rows="3" placeholder="Prompt to put at the beginning."></textarea>
+
+		<h2>Prompt Search Options</h2>
+		<textarea id="search" rows="3" placeholder="Search for prompts including... (~ for excluding)"></textarea>
+
+		<h2>Ending Prompt</h2>
+		<textarea id="endprompt" rows="3" placeholder="Prompt to put at the end."></textarea>
+
+		<h2>Negative Prompt</h2>
+		<textarea id="negprompt" rows="5" placeholder="Prompt to not include."></textarea>
+	</div>
+	<div id="image">
+
+	</div>
 </body>
 </html>

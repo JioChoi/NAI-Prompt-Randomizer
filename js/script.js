@@ -1,8 +1,14 @@
 let api = '/api';
 let key = null;
 
-window.onload = function() {
-	init();
+window.onload = async function() {
+	await init();
+	css();
+}
+
+function css() {
+
+
 }
 
 // Initialize
