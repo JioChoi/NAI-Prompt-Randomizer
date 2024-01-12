@@ -7,7 +7,10 @@ window.onload = async function() {
 }
 
 function css() {
-
+	const textareas = document.getElementsByTagName('textarea');
+	Array.from(textareas).forEach((textarea) => {
+		textarea.style.minHeight = textarea.rows * 25 + 24 + 'px';
+	});
 
 }
 
