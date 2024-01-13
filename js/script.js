@@ -1,8 +1,18 @@
 let api = '/api';
 let key = null;
 
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+
 window.onload = async function() {
 	await init();
+	
+	const options = localStorage.getItem('options');
+	if(options == null) {
+		loadOptions(example);
+	}
+	else {
+		loadOptions(localStorage.getItem('options'));
+	}
 	css();
 }
 
@@ -13,9 +23,13 @@ function css() {
 	});
 
 	const sidebarItems = document.getElementById("items");
+	sidebarItems.addEventListener('change', (e) => {
+		const options = getOptions();
+		const optionsStr = JSON.stringify(options, null, 4);
 
-	changeImageSize(document.getElementById('dropdown_imgsize').children[0].innerHTML);
-
+		localStorage.setItem('options', optionsStr);
+	});
+	
 	const dropdowns = document.getElementsByClassName('dropdown');
 	Array.from(dropdowns).forEach((dropdown) => {
 		const id = dropdown.id.substring(9);
@@ -37,6 +51,15 @@ function css() {
 					else {
 						child.classList.remove('selected');
 					}
+
+					if(id === 'imgsize') {
+						const imgSize = findImageSize(widthElement.value, heightElement.value);
+						const imgSizeStr = imgSize[1] + " " + imgSize[2];
+
+						if(child.innerHTML === imgSizeStr) {
+							child.classList.add('selected');
+						}
+					}
 				});
 			}
 
@@ -44,6 +67,10 @@ function css() {
 		});
 
 		sidebarItems.addEventListener('scroll', (e) => {
+			moveDropdown(dropdown, option);
+		});
+
+		window.addEventListener('resize', (e) => {
 			moveDropdown(dropdown, option);
 		});
 
@@ -55,15 +82,38 @@ function css() {
 					dropdown.children[0].innerHTML = child.innerHTML;
 					option.style.visibility = 'hidden';
 
-
 					if(id === 'imgsize') {
 						if(child.innerHTML === 'Custom') {
 							dropdown.children[0].innerHTML = prv;
 						}
 						else {
 							changeImageSize(child.innerHTML);
+							const imgSize = findImageSize(widthElement.value, heightElement.value);
+							dropdown.children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 						}
 					}
+
+					if(id === 'preset') {
+						const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+
+						if(child.id === 'ex') {
+							loadOptions(example);
+						}
+						else if(child.id === 'add') {
+							dropdown.children[0].innerHTML = prv;
+							const name = window.prompt("Please enter the name of the preset.", "");
+							if(name != null && name != "") {
+								dropdown.children[0].innerHTML = name;
+								
+								let li = document.createElement('li');
+								li.innerHTML = name;
+
+								option.insertBefore(li, option.firstChild);
+							}
+						}
+					}
+
+					sidebarItems.dispatchEvent(new Event('change'));
 				});
 			}
 		});
@@ -88,7 +138,8 @@ function css() {
 			widthElement.value = widthElement.value.substring(0, 4);
 		}
 
-		document.getElementById('dropdown_imgsize').children[0].innerHTML = "Custom";
+		const imgSize = findImageSize(widthElement.value, heightElement.value);
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 	});
 
 	widthElement.addEventListener('blur', (e) => {
@@ -111,7 +162,8 @@ function css() {
 			heightElement.value = heightElement.value.substring(0, 4);
 		}
 
-		document.getElementById('dropdown_imgsize').children[0].innerHTML = "Custom";
+		const imgSize = findImageSize(widthElement.value, heightElement.value);
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 	});
 
 	heightElement.addEventListener('blur', (e) => {
@@ -128,24 +180,28 @@ function css() {
 	promptGuidanceElement.addEventListener('input', (e) => {
 		promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
 	});
+	promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
 
 	const stepElement = document.getElementById('step');
 	const stepTitleElement = document.getElementById('stept');
 	stepElement.addEventListener('input', (e) => {
 		stepTitleElement.innerHTML = "Steps: " + stepElement.value;
 	});
+	stepTitleElement.innerHTML = "Steps: " + stepElement.value;
 
 	const promptGuidanceRescaleElement = document.getElementById('pgr');
 	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
 	promptGuidanceRescaleElement.addEventListener('input', (e) => {
 		promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
 	});
+	promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
 
 	const delayElement = document.getElementById('delay');
 	const delayTitleElement = document.getElementById('delayt');
 	delayElement.addEventListener('input', (e) => {
 		delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
 	});
+	delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
 
 	const seedElement = document.getElementById('seed');
 	seedElement.addEventListener('click', (e) => {
@@ -159,12 +215,96 @@ function css() {
 		}
 	});
 
+	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
+		h2.setAttribute('draggable', 'false');
+	});
+}
+
+function loadOptions(options) {
+	options = JSON.parse(options);
+
+	document.getElementById('begprompt').value = options.begprompt;
+	document.getElementById('including').value = options.including;
+	document.getElementById('removeArtist').checked = options.removeArtist;
+	document.getElementById('removeCharacter').checked = options.removeCharacter;
+	document.getElementById('endprompt').value = options.endprompt;
+	document.getElementById('negprompt').value = options.negativePrompt;
+
+	document.getElementById('width').value = options.width;
+	document.getElementById('height').value = options.height;
+	document.getElementById('step').value = options.step;
+	document.getElementById('pg').value = options.promptGuidance;
+	document.getElementById('pgr').value = options.promptGuidanceRescale;
+	document.getElementById('seed').value = options.seed;
+	document.getElementById('dropdown_sampler').children[0].innerHTML = options.sampler;
+	document.getElementById('SMEA').checked = options.smea;
+	document.getElementById('DYN').checked = options.dyn;
+
+	document.getElementById('delay').value = options.delay;
+	document.getElementById('automation').checked = options.automation;
+	document.getElementById('autodown').checked = options.autodownload;
+
+	const imgSize = findImageSize(options.width, options.height);
+	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
+}
+
+function getOptions() {
+	var options = {};
+	options.begprompt = document.getElementById('begprompt').value;
+	options.including = document.getElementById('including').value;
+	options.removeArtist = document.getElementById('removeArtist').checked;
+	options.removeCharacter = document.getElementById('removeCharacter').checked;
+	options.endprompt = document.getElementById('endprompt').value;
+	options.negativePrompt = document.getElementById('negprompt').value;
+
+	options.width = document.getElementById('width').value;
+	options.height = document.getElementById('height').value;
+	options.step = document.getElementById('step').value;
+	options.promptGuidance = document.getElementById('pg').value;
+	options.promptGuidanceRescale = document.getElementById('pgr').value;
+	options.seed = document.getElementById('seed').value;
+	options.sampler = document.getElementById('dropdown_sampler').children[0].innerHTML;
+	options.smea = document.getElementById('SMEA').checked;
+	options.dyn = document.getElementById('DYN').checked;
+
+	options.delay = document.getElementById('delay').value;
+	options.automation = document.getElementById('automation').checked;
+	options.autodownload = document.getElementById('autodown').checked;
+
+	return options;
 }
 
 function changeImageSize(str) {
 	const size = /\(([^)]+)\)/.exec(str)[1].split('x');
 	document.getElementById('width').value = size[0];
 	document.getElementById('height').value = size[1];
+}
+
+function findImageSize(width, height) {
+	const dict = {
+		"832x1216": ["Normal", "Portrait", "(832x1216)"],
+		"1216x832": ["Normal", "Landscape", "(1216x832)"],
+		"1024x1024": ["Normal", "Square", "(1024x1024)"],
+
+		"1024x1536": ["Large", "Portrait", "(1024x1536)"],
+		"1536x1024": ["Large", "Landscape", "(1536x1024)"],
+		"1472x1472": ["Large", "Square", "(1472x1472)"],
+
+		"1088x1920": ["Wallpaper", "Portrait", "(1088x1920)"],
+		"1920x1088": ["Wallpaper", "Landscape", "(1920x1088)"],
+
+		"512x768": ["Small", "Portrait", "(512x768)"],
+		"768x512": ["Small", "Landscape", "(768x512)"],
+		"640x640": ["Small", "Square", "(640x640)"]
+	};
+
+	const key = width + "x" + height;
+	if(key in dict) {
+		return dict[key];
+	}
+	else {
+		return ["Custom", "", ""];
+	}
 }
 
 function moveDropdown(dropdown, option) {
@@ -357,27 +497,6 @@ async function post(url, data, authorization = null, resultType = 'json') {
 		})
 		.catch((err) => {
 			reject(err);
-		});
-	});
-
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: url,
-			type: 'POST',
-			dataType: dataType,
-			data: JSON.stringify(data),
-			beforeSend: function(request) {
-				request.setRequestHeader("Authorization", authorization);
-				request.setRequestHeader("Content-Type", "application/json");
-			},
-			success: function(data) {
-				console.log("Success");
-				resolve(data);
-			},
-			error: function(err) {
-				console.log("Error");
-				reject(err);
-			}
 		});
 	});
 }

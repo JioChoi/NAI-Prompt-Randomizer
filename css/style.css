@@ -40,6 +40,11 @@ h2 {
 	background-color: transparent;
 
 	margin-top: 15px;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 #sidebar {
@@ -54,6 +59,8 @@ h2 {
 	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
 
 	border-right: 2px solid #131313;
+
+	overflow: hidden;
 }
 
 #image {
@@ -99,6 +106,8 @@ textarea:focus {
 	height: 100%;
 
 	overflow-y: scroll;
+
+	padding-bottom: 35px;
 }
 
 ::-webkit-scrollbar {
@@ -129,6 +138,8 @@ textarea:focus {
 
 	width: 100%;
 	height: 150px;
+
+	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
 }
 
 #generate {
@@ -197,7 +208,9 @@ input[type="checkbox"]:hover {
 
 	width: 250px;
 	font-size: 18px;
-
+	
+	white-space: nowrap;
+	text-overflow: ellipsis;
 	text-align: left;
 
 	background-color: #313131;
@@ -236,6 +249,7 @@ input[type="checkbox"]:hover {
 	max-height: 300px;
 
 	overflow-y: scroll;
+	overflow-x: hidden;
 
 	font-size: 18px;
 
@@ -254,6 +268,9 @@ input[type="checkbox"]:hover {
 	align-items: center;
 
 	width: 100%;
+
+	white-space: nowrap;
+	text-overflow: ellipsis;
 
 	padding: 5px 10px;
 
@@ -351,15 +368,40 @@ input[type="range"]::-webkit-slider-thumb {
 	-moz-appearance: none;
 	appearance: none;
 
-	width: 12px;
+	width: 11px;
 	height: 18px;
 
 	background-color: #949494;
 	border: none;
-	outline: none;
+
+	outline: 2px solid #949494;
+	border-radius: 2px;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+	background-color: #0078d4;
+	outline: 2px solid #0078d4;
 }
 
 input[type="text"] {
+	width: 150px;
+
+	font-size: 18px;
+	text-align: left;
+
+	background-color: #313131;
+	color: #f9f9f9;
+
+	border: 2px solid #3c3c3c;
+	outline: none;
+
+	margin: 0px 30px;
+
+	padding: 5px 10px;
+}
+
+
+input[type="password"] {
 	width: 150px;
 
 	font-size: 18px;
@@ -398,4 +440,96 @@ input[type="text"] {
 
 #option_sampler {
 	width: 220px;
+}
+
+#preset {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+
+	margin: 10px;
+}
+
+#dropdown_preset {
+	width: 160px;
+}
+
+#option_preset {
+	width: 160px;
+	max-height: 120px;
+}
+
+.plus {
+	content: url('https://api.iconify.design/mdi-plus.svg?width=50&height=50&color=%23f9f9f9');
+	width: 22px;
+	height: 22px;
+}
+
+#login {
+	display: flex;
+	position: fixed;
+
+	flex-direction: column;
+
+	justify-content: center;
+	align-items: center;
+
+	top: 50%;
+	left: 50%;
+
+	width: 450px;
+	height: 350px;
+
+	background-color: #1f1f1f;
+	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+
+	border-radius: 5px;
+
+	transform: translate(-50%, -50%);
+}
+
+#login h1 {
+	padding: 0;
+	margin: 0;
+}
+
+#login h2 {
+	padding: 0;
+	margin: 0;
+	margin-top: 20px;
+}
+
+#id {
+	width: 300px;
+	margin: 0;
+	margin-top: 15px;
+}
+
+#password {
+	width: 300px;
+	margin: 0;
+	margin-top: 15px;
+}
+
+#loginBtn {
+	width: 300px;
+	height: 40px;
+
+	margin-top: 15px;
+
+	border: none;
+	border-radius: 5px;
+
+	color: #f9f9f9;
+	font-size: 18px;
+	background-color: #0078d4;
+}
+
+#loginBtn:hover {
+	background-color: #026ec1;
+	cursor: pointer;
+}
+
+.hidden {
+	display: none !important;
 }

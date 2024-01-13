@@ -17,7 +17,26 @@
 	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<div id="sidebar">
+	<!-- <div id="preset">
+		<button class="dropdown" id="dropdown_preset">
+			<div>Select Preset</div>
+			<div class="arrow"></div>
+		</button>
+		<ul class="option" id="option_preset">
+			<li id="ex">Example</li>
+			<li id="add"><span class="plus"></span>&nbsp;Add Preset</li>
+		</ul>
+	</div> -->
+
+	<div id="login">
+		<h1>Welcome</h1>
+		<h2>Please login with your Novel AI account.</h2>
+		<input type="text" id="id" placeholder="Email">
+		<input type="password" id="password" placeholder="Password">
+		<button id="loginBtn">Sign in</button>
+	</div>
+
+	<div class="hidden" id="sidebar">
 		<div id="items">
 			<h1>Prompt Randomizer</h1>
 
@@ -25,7 +44,7 @@
 			<textarea id="begprompt" rows="3" placeholder="Prompt to put at the beginning."></textarea>
 	
 			<h2>Prompt Search Options</h2>
-			<textarea id="search" rows="3" placeholder="Search for prompts including... (~ for excluding)"></textarea>
+			<textarea id="including" rows="3" placeholder="Search for prompts including... (~ for excluding)"></textarea>
 
 			<div class="twoCB">
 				<input type="checkbox" id="removeArtist">
@@ -47,7 +66,7 @@
 
 			<div id="imgSize">
 				<button class="dropdown" id="dropdown_imgsize">
-					<div>Portrait (832x1216)</div>
+					<div>Normal Portrait</div>
 					<div class="arrow"></div>
 				</button>
 				<ul class="option" id="option_imgsize">
@@ -75,9 +94,9 @@
 				</ul>
 
 				<div class="size">
-					<input id="width">
+					<input id="width" value="832">
 					<div class="x"></div>
-					<input id="height">
+					<input id="height" value="1216">
 				</div>
 			</div>
 			
@@ -127,9 +146,10 @@
 			<div class="twoCB">
 				<input type="checkbox" id="automation">
 				<label for="automation">Enable Automation</label>
-			</div>
-			
 
+				<input type="checkbox" id="autodown">
+				<label for="autodown">Automatically Download</label>
+			</div>
 		</div>		
 		<div id="footer">
 			<button id="generate">Generate</button>
