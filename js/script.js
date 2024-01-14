@@ -218,6 +218,51 @@ function css() {
 	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
 		h2.setAttribute('draggable', 'false');
 	});
+
+	let button = document.getElementById('loginBtn');
+	button.addEventListener('click', async (e) => {
+		let id = document.getElementById('id');
+		let pw = document.getElementById('password');
+
+		id.disabled = true;
+		pw.disabled = true;
+				
+		button.disabled = true;
+
+		if(id.value == "" || pw.value == "" || id.value == null || pw.value == null) {
+			id.disabled = false;
+			pw.disabled = false;
+			button.disabled = false;
+
+			document.getElementById('text').innerHTML = "Please enter your ID and password.";
+			document.getElementById('text').classList.add('warning');
+			document.getElementById('text').classList.add('shake');
+			document.addEventListener('animationend', () => {
+				document.getElementById('text').classList.remove('shake');
+			});
+			return;
+		}
+
+		const res = await login(id.value, pw.value);
+		if(!res) {
+			id.disabled = false;
+			pw.disabled = false;
+			button.disabled = false;
+
+			document.getElementById('text').innerHTML = "Failed to login: please check your ID and password.";
+			document.getElementById('text').classList.add('warning');
+			document.getElementById('text').classList.add('shake');
+			document.addEventListener('animationend', () => {
+				document.getElementById('text').classList.remove('shake');
+			});
+		}
+		else {
+			document.getElementById('login').style.display = 'none';
+			document.getElementById('login').style.visibility = 'hidden';
+
+			document.getElementById('sidebar').style.visibility = 'visible';
+		}
+	});
 }
 
 function loadOptions(options) {
@@ -334,10 +379,16 @@ async function init() {
 			await testAccessToken(accessToken);
 			// Successfully auto logged in.
 			console.log("Logged in");
+			document.getElementById('login').style.display = 'none';
+			document.getElementById('login').style.visibility = 'hidden';
+
+			document.getElementById('sidebar').style.visibility = 'visible';
 		} catch (err) {
 			// Failed to auto login.
 			console.log("Failed to login");
 		}
+
+		document.getElementById('loading').style.display = 'none';
 	}
 }
 
@@ -415,15 +466,17 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 // Login function
 async function login(id, pw) {
 	key = await connect(id, pw);
-	localStorage.setItem("key", key);
 
 	if (key == null) {
 		// Failed to login.
 		console.log("Failed to login");
+		return false;
 	}
 	else {
 		// Successfully logged in.
+		localStorage.setItem("key", key);
 		console.log("Logged in");
+		return true;
 	}
 }
 

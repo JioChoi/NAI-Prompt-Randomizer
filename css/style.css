@@ -511,6 +511,18 @@ input[type="password"] {
 	margin-top: 15px;
 }
 
+#id:disabled {
+	border: 2px solid #5a5a5a;
+	background-color: #3c3c3c;
+	color: #868686;
+}
+
+#password:disabled {
+	border: 2px solid #5a5a5a;
+	background-color: #3c3c3c;
+	color: #868686;
+}
+
 #loginBtn {
 	width: 300px;
 	height: 40px;
@@ -530,6 +542,70 @@ input[type="password"] {
 	cursor: pointer;
 }
 
-.hidden {
-	display: none !important;
+#loginBtn:disabled {
+	background-color: #5291c2;
+	cursor: default;
 }
+
+.hidden {
+	visibility: hidden;
+}
+
+.warning {
+	color: #ff3636;
+}
+
+.shake {
+	animation: shake 150ms 2 linear;
+}
+
+@keyframes shake {
+	0% {
+		transform: translate(3px, 0);
+	}
+	50% {
+		transform: translate(-3px, 0);
+	}
+	100% {
+		transform: translate(0px, 0);
+	}
+}
+
+#loading {
+	display: flex;
+	position: fixed;
+
+	justify-content: center;
+	align-items: center;
+
+	top: 0px;
+	left: 0px;
+
+	z-index: 9999;
+
+	width: 100vw;
+	height: 100vh;
+
+	background-color: #181818;
+
+	animation: loading 1s infinite;
+}
+
+@keyframes spinner {
+	to {transform: rotate(360deg); }
+  }
+   
+  .spinner:before {
+	content: '';
+	box-sizing: border-box;
+	display: block;
+
+	width: 35px;
+	height: 35px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border-radius: 50%;
+	border: 6px solid #222222;
+	border-top-color: #7a7a7a;
+	animation: spinner .6s linear infinite;
+  }
