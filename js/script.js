@@ -3,6 +3,7 @@ let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
+// On page load
 window.onload = async function() {
 	await init();
 	
@@ -16,12 +17,31 @@ window.onload = async function() {
 	css();
 }
 
+// Init css elements
 function css() {
+	const image = document.getElementById('image');
+
+	// Move maid
+	let maid = document.getElementById('maid');
+	setInterval(() => {
+		if(maid.style.visibility == 'visible') {
+			let maidPos = Number(maid.style.right.substring(0, maid.style.right.length - 2));
+			maidPos += 1;
+			maid.style.right = maidPos + 'px';
+	
+			if(maidPos > image.clientWidth + 200) {
+				maid.style.right = '-100px';
+			}
+		}
+	}, 10);
+
+	// Set minimum height for textareas
 	const textareas = document.getElementsByTagName('textarea');
 	Array.from(textareas).forEach((textarea) => {
 		textarea.style.minHeight = textarea.rows * 25 + 24 + 'px';
 	});
 
+	// Sidebar event listener for auto saving parameter changes
 	const sidebarItems = document.getElementById("items");
 	sidebarItems.addEventListener('change', (e) => {
 		const options = getOptions();
@@ -30,6 +50,7 @@ function css() {
 		localStorage.setItem('options', optionsStr);
 	});
 	
+	// Init dropdown menus
 	const dropdowns = document.getElementsByClassName('dropdown');
 	Array.from(dropdowns).forEach((dropdown) => {
 		const id = dropdown.id.substring(9);
@@ -37,6 +58,7 @@ function css() {
 
 		moveDropdown(dropdown, option);
 
+		// When dropdown menu is clicked
 		dropdown.addEventListener('click', (e) => {
 			if (option.style.visibility == 'visible') {
 				option.style.visibility = 'hidden';
@@ -66,14 +88,17 @@ function css() {
 			e.stopPropagation();
 		});
 
+		// Move dropdown menu when scrolling
 		sidebarItems.addEventListener('scroll', (e) => {
 			moveDropdown(dropdown, option);
 		});
 
 		window.addEventListener('resize', (e) => {
+			// Move dropdown menu when resizing
 			moveDropdown(dropdown, option);
 		});
 
+		// When dropdown menu options are clicked
 		Array.from(option.children).forEach((child) => {
 			if(!child.classList.contains('title')) {
 				child.addEventListener('click', (e) => {
@@ -82,6 +107,7 @@ function css() {
 					dropdown.children[0].innerHTML = child.innerHTML;
 					option.style.visibility = 'hidden';
 
+					// Image size dropdown menu
 					if(id === 'imgsize') {
 						if(child.innerHTML === 'Custom') {
 							dropdown.children[0].innerHTML = prv;
@@ -93,6 +119,7 @@ function css() {
 						}
 					}
 
+					// Preset dropdown menu -- Deprecated
 					if(id === 'preset') {
 						const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
@@ -113,25 +140,36 @@ function css() {
 						}
 					}
 
+					// Fire change event to trigger auto saving
 					sidebarItems.dispatchEvent(new Event('change'));
 				});
 			}
 		});
 
+		// Prevent dropdown options from hiding when clicked
 		option.addEventListener('click', (e) => {
 			e.stopPropagation();
 		});
 
+		// Hide dropdown menus when clicked outside
 		window.addEventListener('click', (e) => {
 			option.style.visibility = 'hidden';
 		});
 	});
 
+	// Init size input fields
 	const widthElement = document.getElementById('width');
+	const heightElement = document.getElementById('height');
+
+	// Select all text when clicked
 	widthElement.addEventListener('click', (e) => {
 		widthElement.select();
 	});
+	heightElement.addEventListener('click', (e) => {
+		heightElement.select();
+	});
 
+	// Only allow numbers
 	widthElement.addEventListener('input', (e) => {
 		widthElement.value = widthElement.value.replace(/\D/g, '');
 		if(widthElement.value.length > 4) {
@@ -141,21 +179,6 @@ function css() {
 		const imgSize = findImageSize(widthElement.value, heightElement.value);
 		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 	});
-
-	widthElement.addEventListener('blur', (e) => {
-		if(widthElement.value < 64) {
-			widthElement.value = 64;
-		}
-		else{
-			widthElement.value = Math.round(widthElement.value / 64) * 64;
-		}
-	});
-
-	const heightElement = document.getElementById('height');
-	heightElement.addEventListener('click', (e) => {
-		heightElement.select();
-	});
-
 	heightElement.addEventListener('input', (e) => {
 		heightElement.value = heightElement.value.replace(/\D/g, '');
 		if(heightElement.value.length > 4) {
@@ -166,6 +189,15 @@ function css() {
 		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 	});
 
+	// Round to nearest multiple of 64
+	widthElement.addEventListener('blur', (e) => {
+		if(widthElement.value < 64) {
+			widthElement.value = 64;
+		}
+		else{
+			widthElement.value = Math.round(widthElement.value / 64) * 64;
+		}
+	});
 	heightElement.addEventListener('blur', (e) => {
 		if(heightElement.value < 64) {
 			heightElement.value = 64;
@@ -175,39 +207,15 @@ function css() {
 		}
 	});
 
-	const promptGuidanceElement = document.getElementById('pg');
-	const promptGuidanceTitleElement = document.getElementById('pgt');
-	promptGuidanceElement.addEventListener('input', (e) => {
-		promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
-	});
-	promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
-
-	const stepElement = document.getElementById('step');
-	const stepTitleElement = document.getElementById('stept');
-	stepElement.addEventListener('input', (e) => {
-		stepTitleElement.innerHTML = "Steps: " + stepElement.value;
-	});
-	stepTitleElement.innerHTML = "Steps: " + stepElement.value;
-
-	const promptGuidanceRescaleElement = document.getElementById('pgr');
-	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
-	promptGuidanceRescaleElement.addEventListener('input', (e) => {
-		promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
-	});
-	promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
-
-	const delayElement = document.getElementById('delay');
-	const delayTitleElement = document.getElementById('delayt');
-	delayElement.addEventListener('input', (e) => {
-		delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
-	});
-	delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
-
+	// Init input fields
 	const seedElement = document.getElementById('seed');
+
+	// Select all text when clicked
 	seedElement.addEventListener('click', (e) => {
 		seedElement.select();
 	});
 
+	// Only allow numbers
 	seedElement.addEventListener('input', (e) => {
 		seedElement.value = seedElement.value.replace(/\D/g, '');
 		if(seedElement.value.length > 10) {
@@ -215,20 +223,60 @@ function css() {
 		}
 	});
 
+
+	// Init slider input fields
+	const promptGuidanceElement = document.getElementById('pg');
+	const promptGuidanceTitleElement = document.getElementById('pgt');
+
+	const stepElement = document.getElementById('step');
+	const stepTitleElement = document.getElementById('stept');
+
+	const promptGuidanceRescaleElement = document.getElementById('pgr');
+	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
+
+	const delayElement = document.getElementById('delay');
+	const delayTitleElement = document.getElementById('delayt');
+
+	// Show slider value on title when moved
+	promptGuidanceElement.addEventListener('input', (e) => {
+		promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
+	});
+	promptGuidanceTitleElement.innerHTML = "Prompt Guidance: " + promptGuidanceElement.value;
+
+	stepElement.addEventListener('input', (e) => {
+		stepTitleElement.innerHTML = "Steps: " + stepElement.value;
+	});
+	stepTitleElement.innerHTML = "Steps: " + stepElement.value;
+
+	promptGuidanceRescaleElement.addEventListener('input', (e) => {
+		promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
+	});
+	promptGuidanceRescaleTitleElement.innerHTML = "Prompt Guidance Rescale: " + promptGuidanceRescaleElement.value;
+
+	delayElement.addEventListener('input', (e) => {
+		delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
+	});
+	delayTitleElement.innerHTML = "Delay: " + delayElement.value + " seconds";
+
+
+	// Disable dragging for h2 elements
 	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
 		h2.setAttribute('draggable', 'false');
 	});
 
+
+	// Init login button
 	let button = document.getElementById('loginBtn');
 	button.addEventListener('click', async (e) => {
 		let id = document.getElementById('id');
 		let pw = document.getElementById('password');
 
+		// Disable fields and button
 		id.disabled = true;
 		pw.disabled = true;
-				
 		button.disabled = true;
 
+		// Check if ID and password are empty
 		if(id.value == "" || pw.value == "" || id.value == null || pw.value == null) {
 			id.disabled = false;
 			pw.disabled = false;
@@ -243,8 +291,9 @@ function css() {
 			return;
 		}
 
+		// Login
 		const res = await login(id.value, pw.value);
-		if(!res) {
+		if(!res) { // Failed to login
 			id.disabled = false;
 			pw.disabled = false;
 			button.disabled = false;
@@ -256,15 +305,16 @@ function css() {
 				document.getElementById('text').classList.remove('shake');
 			});
 		}
-		else {
+		else { // Successfully logged in
 			document.getElementById('login').style.display = 'none';
 			document.getElementById('login').style.visibility = 'hidden';
 
-			document.getElementById('sidebar').style.visibility = 'visible';
+			document.getElementById('sidebar').classList.remove('hidden');
 		}
 	});
 }
 
+/* load user options */
 function loadOptions(options) {
 	options = JSON.parse(options);
 
@@ -293,6 +343,7 @@ function loadOptions(options) {
 	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
 }
 
+// Get user options
 function getOptions() {
 	var options = {};
 	options.begprompt = document.getElementById('begprompt').value;
@@ -319,12 +370,14 @@ function getOptions() {
 	return options;
 }
 
+// Change image size field based on string
 function changeImageSize(str) {
 	const size = /\(([^)]+)\)/.exec(str)[1].split('x');
 	document.getElementById('width').value = size[0];
 	document.getElementById('height').value = size[1];
 }
 
+// Find image size based on width and height
 function findImageSize(width, height) {
 	const dict = {
 		"832x1216": ["Normal", "Portrait", "(832x1216)"],
@@ -352,6 +405,7 @@ function findImageSize(width, height) {
 	}
 }
 
+// Move dropdown menu
 function moveDropdown(dropdown, option) {
 	const rect = dropdown.getClientRects()[0];
 	const optionRect = option.getClientRects()[0];
@@ -366,7 +420,29 @@ function moveDropdown(dropdown, option) {
 	option.style.left = rect.left + 'px';
 }
 
-// Initialize
+function showHistory() {
+	document.getElementById('history').classList.add('shown');
+	const ele = document.getElementById('image');
+	ele.style.transition = 'width 0.3s ease-in-out';
+	ele.classList.add('shown');
+
+	setTimeout(() => {
+		ele.style.transition = 'none';
+	}, 300);
+}
+
+function hideHistory() {
+	document.getElementById('history').classList.remove('shown');
+	const ele = document.getElementById('image');
+	ele.style.transition = 'width 0.3s ease-in-out';
+	ele.classList.remove('shown');
+
+	setTimeout(() => {
+		ele.style.transition = 'none';
+	}, 300);
+}
+
+// init server connection
 async function init() {
 	// Auto login.
 	let accessToken = localStorage.getItem("key");
@@ -382,7 +458,7 @@ async function init() {
 			document.getElementById('login').style.display = 'none';
 			document.getElementById('login').style.visibility = 'hidden';
 
-			document.getElementById('sidebar').style.visibility = 'visible';
+			document.getElementById('sidebar').classList.remove('hidden');
 		} catch (err) {
 			// Failed to auto login.
 			console.log("Failed to login");
@@ -392,9 +468,16 @@ async function init() {
 	}
 }
 
+// Generate button click
 async function generate() {
-	let prompt = "1girl, {{kirisame_marisa, touhou_project}}, kahlua, clothing, {{{volumetric lighting, depth of field, shiny skin, humid skin,oiled,skindentation,best quality,amazing quality,very aesthetic,highres,incredibly absurdres}}}";
-	let negativePrompt = "NSFW, bad quality, low quality, worst quality, lowres, displeasing, very displeasing, bad anatomy, bad perspective, bad proportions, bad aspect ratio, bad face, long face, bad teeth, bad neck, long neck, bad arm, bad hands, bad ass, bad leg, bad feet, bad reflection, bad shadow, bad link, bad source, wrong hand, wrong feet, missing limb, missing eye, missing tooth, missing ear, missing finger, extra faces, extra eyes, extra eyebrows, extra mouth, extra tongue, extra teeth, extra ears, extra breasts, extra arms, extra hands, extra legs, extra digits, fewer digits, cropped head, cropped torso, cropped shoulders, cropped arms, cropped legs, mutation, deformed, disfigured, unfinished, chromatic aberration";
+	document.getElementById('generate').disabled = true;
+	document.getElementById('maid').style.visibility = 'visible';
+	document.getElementById('maid').style.right = '-100px';
+
+	document.getElementById('image').classList.add('generating');
+
+	let prompt = "1girl, {{kirisame_marisa, touhou_project}}, kahlua, clothing, upper body, {{{volumetric lighting, depth of field, shiny skin, humid skin,oiled,skindentation,best quality,amazing quality,very aesthetic,highres,incredibly absurdres}}}";
+	let negativePrompt = "{{{NSFW, uncensored, censored, nipples, pussy, holding objects}}}, bad quality, low quality, worst quality, lowres, displeasing, very displeasing, bad anatomy, bad perspective, bad proportions, bad aspect ratio, bad face, long face, bad teeth, bad neck, long neck, bad arm, bad hands, bad ass, bad leg, bad feet, bad reflection, bad shadow, bad link, bad source, wrong hand, wrong feet, missing limb, missing eye, missing tooth, missing ear, missing finger, extra faces, extra eyes, extra eyebrows, extra mouth, extra tongue, extra teeth, extra ears, extra breasts, extra arms, extra hands, extra legs, extra digits, fewer digits, cropped head, cropped torso, cropped shoulders, cropped arms, cropped legs, mutation, deformed, disfigured, unfinished, chromatic aberration";
 
 	let width = 832;
 	let height = 1216;
@@ -432,11 +515,47 @@ async function generate() {
 		"cfg_rescale": promptGuidanceRescale,
 		"noise_schedule": "native",
 	};
+	let result = null;
 
-	let result = await generateImage(key, prompt, "nai-diffusion-3", "generate", params);
+	try {
+		result = await generateImage(key, prompt, "nai-diffusion-3", "generate", params);
+	} catch {
+		console.log("Failed to generate image");
+	}
+
+	document.getElementById('result').src = result;
+	document.getElementById('maid').style.visibility = 'hidden';
+
+	document.getElementById('generate').disabled = false;
+	document.getElementById('image').classList.remove('generating');
+
+	// Add to history
+	let ele = document.createElement('img');
+	ele.src = result;
+	ele.addEventListener('click', (e) => {
+		document.getElementById('result').src = ele.src;
+		
+		const child = document.getElementById('historyItem').children;
+		Array.from(child).forEach((child) => {
+			child.classList.remove('selected');
+		});
+
+		ele.classList.add('selected');
+	});
+
+	const child = document.getElementById('historyItem').children;
+	Array.from(child).forEach((child) => {
+		child.classList.remove('selected');
+	});
+	ele.classList.add('selected');
+
+	const history = document.getElementById('historyItem');
+	history.insertBefore(ele, history.firstChild);
+
 	return result;
 }
 
+// Generate image
 async function generateImage(accessToken, prompt, model, action, parameters) {
 	let url = api + "/ai/generate-image";
 
@@ -455,15 +574,10 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 	const imgName = Object.keys(entries)[0];
 	await entries[imgName].blob('image/png').then((data) => { blob = data });
 
-	const img = document.createElement('img');
-	img.src = window.URL.createObjectURL(blob);
-
-	document.body.appendChild(img);
-
 	return window.URL.createObjectURL(blob);
 }
 
-// Login function
+// Login to server
 async function login(id, pw) {
 	key = await connect(id, pw);
 
@@ -480,6 +594,7 @@ async function login(id, pw) {
 	}
 }
 
+// Directly connect to server
 async function connect(id, pw) {
 	try {
 		let accessToken = await getAccessToken(id, pw);
@@ -490,16 +605,19 @@ async function connect(id, pw) {
 	}
 }
 
+// Test access token validity
 async function testAccessToken(accessToken) {
 	let url = api + "/user/information";
 	let result = await get(url, accessToken);
 	return result;
 }
 
+// Reformat access token
 function reformatAccessToken(accessToken) {
 	return "Bearer " + accessToken;
 }
 
+// Get access token
 async function getAccessToken(id, pw) {
 	let key = await getAccessKey(id, pw);
 	let url = api + "/user/login";
@@ -507,11 +625,13 @@ async function getAccessToken(id, pw) {
 	return reformatAccessToken(accessToken);
 }
 
+// Get access key
 async function getAccessKey(id, pw) {
 	let key = await argon_hash(id, pw, 64, "novelai_data_access_key");
 	return key.substring(0, 64);
 }
 
+// Hash for login information
 async function argon_hash(email, password, size, domain) {
 	var pre_salt = password.slice(0, 6) + email + domain;
 	var salt = blake2b.blake2b(pre_salt, null, 16);
@@ -530,6 +650,7 @@ async function argon_hash(email, password, size, domain) {
 	return b64;
 }
 
+// Post request
 async function post(url, data, authorization = null, resultType = 'json') {
 	return new Promise((resolve, reject) => {
 		fetch(url, {
@@ -554,6 +675,7 @@ async function post(url, data, authorization = null, resultType = 'json') {
 	});
 }
 
+// Get request
 async function get(url, authorization = null) {
 	return new Promise((resolve, reject) => {
 		$.ajax({

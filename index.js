@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/js', express.static(__dirname + '/js'));
+app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
