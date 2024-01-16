@@ -10,6 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/assets', express.static(__dirname + '/assets'));
+app.use('/dataset', express.static(__dirname + '/dataset'));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
@@ -57,5 +58,5 @@ app.get('/', function(req, res, next) {
 });
 
 app.listen(80, function() {
-	console.log('Example app listening on port 3000!');
+	console.log('Example app listening on port 80!');
 });

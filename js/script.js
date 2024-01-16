@@ -3,6 +3,8 @@ let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
+let tagData;
+
 // On page load
 window.onload = async function() {
 	await init();
@@ -15,6 +17,8 @@ window.onload = async function() {
 		loadOptions(localStorage.getItem('options'));
 	}
 	css();
+
+	document.getElementById('loading').style.display = 'none';
 }
 
 // Init css elements
@@ -457,19 +461,134 @@ async function init() {
 			console.log("Logged in");
 			document.getElementById('login').style.display = 'none';
 			document.getElementById('login').style.visibility = 'hidden';
+			document.getElementById('background').style.display = 'none';
 
 			document.getElementById('sidebar').classList.remove('hidden');
 		} catch (err) {
 			// Failed to auto login.
 			console.log("Failed to login");
 		}
-
-		document.getElementById('loading').style.display = 'none';
 	}
+}
+
+function randomizePrompt() {
+	options = getOptions();
+	let begprompt = strToList(options.begprompt);
+	let including = strToList(options.including);
+
+	let removeArtist = options.removeArtist;
+	let removeCharacter = options.removeCharacter;
+
+	let endprompt = strToList(options.endprompt);
+
+	let negative = strToList(options.negativePrompt);
+	
+	let prompt = findPrompt(including);
+
+	console.log(prompt);
+}
+
+function findPrompt(including) {
+	let excluding = [];
+	for (var i = 0; i < including.length; i++) {
+		if (including[i].startsWith("~")) {
+			excluding.push(including[i].substring(1));
+			including.splice(i, 1);
+			i--;
+		}
+	}
+
+	including = removeEmptyElements(including);
+	excluding = removeEmptyElements(excluding);
+
+	for(var i = 0; i < 10000; i++) {
+		let prompt = getRandomPrompt();
+		if (including.length == 0 || listInList(including, strToList(prompt))) {
+			if (excluding.length != 0 && listInList(excluding, strToList(prompt))) {
+				continue;
+			}
+
+			console.log("found " + i);
+			return prompt;
+		}
+	}
+
+	return null;
+}
+
+function listInList(list1, list2) {
+	for (var i = 0; i < list1.length; i++) {
+		if (!list2.includes(list1[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function removeEmptyElements(list) {
+	for (var i = 0; i < list.length; i++) {
+		if (list[i].trim() == "") {
+			list.splice(i, 1);
+			i--;
+		}
+	}
+
+	return list;
+}
+
+function getRandomPrompt() {
+	if (tagData == null) {
+		console.log("tagData is null");
+		return;
+	}
+
+	let prompt = "";
+
+	let randomIndex = Math.floor(Math.random() * tagData.length);
+	let value = tagData[randomIndex];
+	let startPoint = randomIndex;
+	let endPoint = randomIndex;
+
+	// Unlucky indexing
+	if(value == 13 || value == 10) {
+		return getRandomPrompt();
+	}
+
+	// Find start point
+	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
+		startPoint--;
+	}
+	startPoint += 2;
+
+	// Find end point
+	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
+		endPoint++;
+	}
+	endPoint--;
+
+	// Get prompt
+	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
+
+	return prompt;
+}
+
+function strToList(str) {
+	str = str.trim();
+	if(str == "") return [];
+
+	let list = str.split(",");
+	for (let i = 0; i < list.length; i++) {
+		list[i] = list[i].trim();
+	}
+
+	return list;
 }
 
 // Generate button click
 async function generate() {
+	randomizePrompt();
+
 	document.getElementById('generate').disabled = true;
 	document.getElementById('maid').style.visibility = 'visible';
 	document.getElementById('maid').style.right = '-100px';
@@ -590,6 +709,7 @@ async function login(id, pw) {
 		// Successfully logged in.
 		localStorage.setItem("key", key);
 		console.log("Logged in");
+		document.getElementById('background').style.display = 'none';
 		return true;
 	}
 }
