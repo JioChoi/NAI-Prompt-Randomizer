@@ -635,7 +635,7 @@ async function generate() {
 	document.getElementById('image').classList.add('generating');
 
 	let options = getOptions();
-
+	
 	let prompt = await randomizePrompt();
 	let negativePrompt = options.negativePrompt;
 
