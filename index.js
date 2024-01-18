@@ -25,22 +25,87 @@ app.use(cors({
 }));
 
 async function loadCSV() {
+	console.log("Loading CSV");
 	const response = await fetch('https://huggingface.co/Jio7/NAI-RPG/resolve/main/tags.csv');
 	let buffer = await response.arrayBuffer();
 	tagData = new Uint8Array(buffer);
+	console.log("Loaded CSV");
 }
-loadCSV();
 
-app.get('/tags', function (req, res, next) {
+app.post('/tags', function (req, res, next) {
+	console.log(req.body.including);
+
 	if (tagData == null) {
 		console.log("tagData is null");
 		res.send("tagData is null");
 		return;
 	}
 
-	let prompt = getRandomPrompt();
+	let including = req.body.including;
+	let prompt = findPrompt(including);
 	res.send(prompt);
 });
+
+function findPrompt(including) {
+	let excluding = [];
+	for (var i = 0; i < including.length; i++) {
+		if (including[i].startsWith("~")) {
+			excluding.push(including[i].substring(1));
+			including.splice(i, 1);
+			i--;
+		}
+	}
+
+	including = removeEmptyElements(including);
+	excluding = removeEmptyElements(excluding);
+
+	for(var i = 0; i < 10000; i++) {
+		let prompt = getRandomPrompt();
+		if (including.length == 0 || listInList(including, strToList(prompt))) {
+			if (excluding.length != 0 && listInList(excluding, strToList(prompt))) {
+				continue;
+			}
+
+			console.log("found " + i);
+			return prompt;
+		}
+	}
+
+	return null;
+}
+
+function removeEmptyElements(list) {
+	for (var i = 0; i < list.length; i++) {
+		if (list[i].trim() == "") {
+			list.splice(i, 1);
+			i--;
+		}
+	}
+
+	return list;
+}
+
+function listInList(list1, list2) {
+	for (var i = 0; i < list1.length; i++) {
+		if (!list2.includes(list1[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function strToList(str) {
+	str = str.trim();
+	if(str == "") return [];
+
+	let list = str.split(",");
+	for (let i = 0; i < list.length; i++) {
+		list[i] = list[i].trim();
+	}
+
+	return list;
+}
 
 function getRandomPrompt() {
 	let prompt = "";
@@ -109,4 +174,5 @@ app.get('/', function(req, res, next) {
 
 app.listen(80, function() {
 	console.log('Example app listening on port 80!');
+	loadCSV();
 });

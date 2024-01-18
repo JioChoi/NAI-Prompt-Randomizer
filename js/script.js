@@ -3,8 +3,51 @@ let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
+let artistList;
+let characterList;
+let whitelist;
+
+function downloadLists() {
+	let req = new XMLHttpRequest();
+	req.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", true);
+	req.responseType = "text";
+
+	req.onload = function (e) {
+		artistList = req.response.split("\n");
+		console.log("download complete");
+		console.log(artistList.length);
+	}
+
+	req.send(null);
+
+	let req2 = new XMLHttpRequest();
+	req2.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", true);
+	req2.responseType = "text";
+
+	req2.onload = function (e) {
+		characterList = req2.response.split("\n");
+		console.log("download complete");
+		console.log(characterList.length);
+	}
+
+	req2.send(null);
+
+	let req3 = new XMLHttpRequest();
+	req3.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", true);
+	req3.responseType = "text";
+
+	req3.onload = function (e) {
+		whitelist = req3.response.split("\n");
+		console.log("download complete");
+		console.log(whitelist.length);
+	}
+
+	req3.send(null);
+}
+
 // On page load
-window.onload = async function() {
+window.onload = async function () {
+	downloadLists();
 	await init();
 	
 	const options = localStorage.getItem('options');
@@ -469,49 +512,76 @@ async function init() {
 	}
 }
 
-function randomizePrompt() {
+async function randomizePrompt() {
 	options = getOptions();
-	let begprompt = strToList(options.begprompt);
-	let including = strToList(options.including);
+	let begprompt = removeEmptyElements(strToList(options.begprompt));
+	let including = removeEmptyElements(strToList(options.including));
 
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
 
-	let endprompt = strToList(options.endprompt);
+	let endprompt = removeEmptyElements(strToList(options.endprompt));
 
-	let negative = strToList(options.negativePrompt);
-	
-	let prompt = findPrompt(including);
+	let negative = removeEmptyElements(strToList(options.negativePrompt));
 
-	console.log(prompt);
+	let prompt = await post('/tags', { 'including': including }, null, 'text');
+
+
+	prompt = strToList(prompt);
+	prompt = removeEmptyElements(prompt);
+
+	prompt = removeListFromList(negative, prompt);
+	prompt = removeListFromList(begprompt, prompt);
+	prompt = removeListFromList(endprompt, prompt);
+
+	if (removeArtist) {
+		prompt = removeListFromList(artistList, prompt);
+	}
+
+	if (removeCharacter) {
+		prompt = removeListFromList(characterList, prompt);
+	}
+
+	prompt = onlyInLists(prompt, whitelist, artistList, characterList);
+	prompt = combinePrompt(begprompt, prompt, endprompt);
+
+	return prompt;
 }
 
-function findPrompt(including) {
-	let excluding = [];
-	for (var i = 0; i < including.length; i++) {
-		if (including[i].startsWith("~")) {
-			excluding.push(including[i].substring(1));
-			including.splice(i, 1);
-			i--;
+function combinePrompt(beg, mid, end) {
+	let prompt = beg.concat(mid).concat(end).join(", ");
+
+	prompt = beg.concat(mid).concat(end).join(", ");
+	return prompt;
+	
+	while (prompt.length > 225 && mid.length > 0) {
+		mid.pop();
+		prompt = beg.concat(mid).concat(end).join(", ");
+	}
+
+	if(prompt.length > 225) {
+		return beg.concat(end).join(", ").substring(0, 225);
+	}
+
+	return prompt;
+}
+
+function onlyInLists(list1, list2, list3, list4) {
+	let list = [];
+
+	for (var i = 0; i < list1.length; i++) {
+		if (list2.includes(list1[i])) {
+			list.push(list1[i]);
+		}
+		else if (list3.includes(list1[i])) {
+			list.push(list1[i]);
+		}
+		else if (list4.includes(list1[i])) {
+			list.push(list1[i]);
 		}
 	}
 
-	including = removeEmptyElements(including);
-	excluding = removeEmptyElements(excluding);
-
-	for(var i = 0; i < 10000; i++) {
-		let prompt = getRandomPrompt();
-		if (including.length == 0 || listInList(including, strToList(prompt))) {
-			if (excluding.length != 0 && listInList(excluding, strToList(prompt))) {
-				continue;
-			}
-
-			console.log("found " + i);
-			return prompt;
-		}
-	}
-
-	return null;
+	return list;
 }
 
 function listInList(list1, list2) {
@@ -535,42 +605,6 @@ function removeEmptyElements(list) {
 	return list;
 }
 
-function getRandomPrompt() {
-	if (tagData == null) {
-		console.log("tagData is null");
-		return;
-	}
-
-	let prompt = "";
-
-	let randomIndex = Math.floor(Math.random() * tagData.length);
-	let value = tagData[randomIndex];
-	let startPoint = randomIndex;
-	let endPoint = randomIndex;
-
-	// Unlucky indexing
-	if(value == 13 || value == 10) {
-		return getRandomPrompt();
-	}
-
-	// Find start point
-	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
-		startPoint--;
-	}
-	startPoint += 2;
-
-	// Find end point
-	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
-		endPoint++;
-	}
-	endPoint--;
-
-	// Get prompt
-	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
-
-	return prompt;
-}
-
 function strToList(str) {
 	str = str.trim();
 	if(str == "") return [];
@@ -583,31 +617,63 @@ function strToList(str) {
 	return list;
 }
 
+function removeListFromList(list1, list2) {
+	for (var i = 0; i < list1.length; i++) {
+		if (list2.includes(list1[i])) {
+			list2.splice(list2.indexOf(list1[i]), 1);
+		}
+	}
+
+	return list2;
+}
+
 // Generate button click
 async function generate() {
-	randomizePrompt();
-
 	document.getElementById('generate').disabled = true;
 	document.getElementById('maid').style.visibility = 'visible';
 	document.getElementById('maid').style.right = '-100px';
-
 	document.getElementById('image').classList.add('generating');
 
-	let prompt = "1girl, {{kirisame_marisa, touhou_project}}, kahlua, clothing, upper body, {{{volumetric lighting, depth of field, shiny skin, humid skin,oiled,skindentation,best quality,amazing quality,very aesthetic,highres,incredibly absurdres}}}";
-	let negativePrompt = "{{{NSFW, uncensored, censored, nipples, pussy, holding objects}}}, bad quality, low quality, worst quality, lowres, displeasing, very displeasing, bad anatomy, bad perspective, bad proportions, bad aspect ratio, bad face, long face, bad teeth, bad neck, long neck, bad arm, bad hands, bad ass, bad leg, bad feet, bad reflection, bad shadow, bad link, bad source, wrong hand, wrong feet, missing limb, missing eye, missing tooth, missing ear, missing finger, extra faces, extra eyes, extra eyebrows, extra mouth, extra tongue, extra teeth, extra ears, extra breasts, extra arms, extra hands, extra legs, extra digits, fewer digits, cropped head, cropped torso, cropped shoulders, cropped arms, cropped legs, mutation, deformed, disfigured, unfinished, chromatic aberration";
+	let options = getOptions();
 
-	let width = 832;
-	let height = 1216;
+	let prompt = await randomizePrompt();
+	let negativePrompt = options.negativePrompt;
+
+	let width = Number(options.width);
+	let height = Number(options.height);
 	
-	let promptGuidance = 5;
-	let promptGuidanceRescale = 0;
+	let promptGuidance = Number(options.promptGuidance);
+	let promptGuidanceRescale = Number(options.promptGuidanceRescale);
 
-	let sampler = "k_dpmpp_2s_ancestral";
+	let sampler;
 
-	let SMEA = true;
-	let DYN = false;
+	switch (options.sampler) {
+		case "Euler":
+			sampler = "k_euler";
+			break;
+		case "Euler Ancestral":
+			sampler = "k_euler_ancestral";
+			break;
+		case "DPM++ 2S Ancestral":
+			sampler = "k_dpmpp_2s_ancestral";
+			break;
+		case "DPM++ SDE":
+			sampler = "k_dpmpp_sde";
+			break;
+	}
 
-	let seed = Math.floor(Math.random() * 9999999999);
+	let SMEA = options.smea;
+	let DYN = options.dyn;
+
+	let seed = 0;
+
+	if (options.seed === "") {
+		seed = Math.floor(Math.random() * 9999999999);
+	}
+	else {
+		seed = Number(options.seed);
+	}
+
 	let noiseSeed = Math.floor(Math.random() * 9999999999);
 
 	let params = {
@@ -783,8 +849,11 @@ async function post(url, data, authorization = null, resultType = 'json') {
 			if(resultType == 'json') {
 				resolve(response.json());
 			}
-			else {
+			else if (resultType == 'blob') {
 				resolve(response.blob());
+			}
+			else {
+				resolve(response.text());
 			}
 		})
 		.catch((err) => {
