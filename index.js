@@ -1,7 +1,7 @@
-var express = require('express');
-var cors = require('cors');
-var request = require('request');
-var bodyParser = require('body-parser');
+const express = require('express');
+const cors = require('cors');
+const request = require('request');
+const fs = require('fs');
 
 var app = express();
 let tagData = null;
@@ -26,9 +26,8 @@ app.use(cors({
 
 async function loadCSV() {
 	console.log("Loading CSV");
-	const response = await fetch('https://huggingface.co/Jio7/NAI-RPG/resolve/main/tags.csv');
-	let buffer = await response.arrayBuffer();
-	tagData = new Uint8Array(buffer);
+	let data = fs.readFileSync("../tags.csv");
+	tagData = new Uint8Array(data);
 	console.log("Loaded CSV");
 }
 
