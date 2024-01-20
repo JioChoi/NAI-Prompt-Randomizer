@@ -1,0 +1,396 @@
+/*
+ * Default
+ * Set the default styles for the page
+ */
+
+* {
+	font-family: 'Source Sans 3', sans-serif;
+	font-weight: 400;
+}
+
+body {
+	overflow: hidden;
+}
+
+h1 {
+	font-size: 24px;
+	font-weight: 700;
+	color: #f9f9f9;
+
+	margin: 40px 30px;
+	margin-bottom: 10px;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+h2 {
+	font-size: 16px;
+	font-weight: 500;
+	color: #f9f9f9;
+	padding: 10px 30px;
+	background-color: transparent;
+
+	margin-top: 15px;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+	width: 16px;
+}
+::-webkit-scrollbar-thumb  {
+	background-color: #2e2e2e;
+
+	background-clip: content-box;
+    border: 5px solid transparent;
+
+	border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+/* Textarea */
+textarea {
+	resize: none;
+
+	width: -moz-available;
+	width: -webkit-fill-available;
+	width: fill-available;
+
+	font-size: 18px;
+		
+	color: #f9f9f9;
+
+	border: 2px solid #3c3c3c;
+	border-radius: 5px;
+
+	background-color: transparent;
+	background-color: #313131;
+	padding: 10px;
+	margin: 0px 30px;
+}
+textarea::placeholder {
+	color: #868686;
+}
+textarea:focus {
+	outline: none;
+	border: 2px solid #535353;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+	width: 14px;
+	height: 14px;
+	margin-right: 5px;
+}
+input[type="checkbox"]:hover {
+	cursor: pointer;
+}
+label {
+	font-size: 16px;
+	color: #f9f9f9;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+label:hover {
+	cursor: pointer;
+}
+
+/* Dropdown */
+.dropdown {
+	display: flex;
+
+	justify-content: space-between;
+
+	width: 250px;
+	font-size: 18px;
+	
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: left;
+
+	background-color: #313131;
+	color: #f9f9f9;
+
+	outline:none;
+	border: 2px solid #3c3c3c;
+
+	padding: 5px 8px;
+}
+.dropdown:hover {
+	cursor: pointer;
+}
+
+.dropdown .arrow {
+	content: url('https://api.iconify.design/mingcute/down-fill.svg?width=25&height=25&color=%23f9f9f9');
+
+	width: 25px;
+	height: 25px;
+
+	color: #f9f9f9;
+
+	margin-left: 10px;
+}
+
+.option {
+	visibility: hidden;
+
+	display: flex;
+	position: fixed;
+
+	flex-direction: column;
+
+	width: 250px;
+	max-height: 300px;
+
+	overflow-y: scroll;
+	overflow-x: hidden;
+
+	font-size: 18px;
+
+	text-align: left;
+
+	background-color: #313131;
+	color: #f9f9f9;
+
+	outline:2px solid #3c3c3c;
+	/*border: 2px solid #3c3c3c;*/
+}
+
+.option li {
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	white-space: nowrap;
+	text-overflow: ellipsis;
+
+	padding: 5px 10px;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.option li:hover {
+	background-color: #3c3c3c;
+	cursor: pointer;
+}
+.option li.title {
+	font-size: 14px;
+	color: #999999;
+}
+.option li.title:not(:first-child) {
+	margin-top: 10px;
+}
+.option li.title:hover {
+	background-color: transparent;
+	cursor: default;
+}
+.option li.selected {
+	color: #ffffff;
+	background-color: #2c2c2c;
+}
+.option::-webkit-scrollbar-thumb  {
+	background-color: #414141;
+}
+
+/* Size Input */
+.size {
+	display: flex;
+
+	align-items: center;
+
+	padding: 5px;
+
+	background-color: #313131;
+	border: 2px solid #3c3c3c;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.size input {
+	width: 60px;
+
+	font-size: 16px;
+	text-align: center;
+
+	background-color: transparent;
+	color: #f9f9f9;
+
+	border: none;
+	outline: none;
+}
+
+.x {
+	content: url('https://api.iconify.design/ph/x.svg?width=50&height=50&color=%23f9f9f9');
+	width: 15px;
+	height: 15px;
+}
+
+/* Slider */
+input[type="range"] {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	margin: 0px 30px;
+
+	border: 2px solid #3c3c3c;
+	outline: none;
+
+	background-color: #313131;
+}
+input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	width: 11px;
+	height: 18px;
+
+	background-color: #949494;
+	border: none;
+
+	outline: 2px solid #949494;
+	border-radius: 2px;
+}
+input[type="range"]:focus::-webkit-slider-thumb {
+	background-color: #0078d4;
+	outline: 2px solid #0078d4;
+}
+
+/* Text Input */
+input[type="text"] {
+	width: 150px;
+
+	font-size: 18px;
+	text-align: left;
+
+	background-color: #313131;
+	color: #f9f9f9;
+
+	border: 2px solid #3c3c3c;
+	outline: none;
+
+	margin: 0px 30px;
+
+	padding: 5px 10px;
+}
+
+/* Password Input */
+input[type="password"] {
+	width: 150px;
+
+	font-size: 18px;
+	text-align: left;
+
+	background-color: #313131;
+	color: #f9f9f9;
+
+	border: 2px solid #3c3c3c;
+	outline: none;
+
+	margin: 0px 30px;
+
+	padding: 5px 10px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+
+	margin: 0px 30px;
+}
+
+.plus {
+	content: url('https://api.iconify.design/mdi-plus.svg?width=50&height=50&color=%23f9f9f9');
+	width: 22px;
+	height: 22px;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+.warning {
+	color: #ff3636;
+}
+
+.shake {
+	animation: shake 150ms 2 linear;
+}
+
+@keyframes shake {
+	0% {
+		transform: translate(3px, 0);
+	}
+	50% {
+		transform: translate(-3px, 0);
+	}
+	100% {
+		transform: translate(0px, 0);
+	}
+}
+
+#loading {
+	display: flex;
+	position: fixed;
+
+	justify-content: center;
+	align-items: center;
+
+	top: 0px;
+	left: 0px;
+
+	z-index: 9999;
+
+	width: 100vw;
+	height: 100vh;
+
+	background-color: #181818;
+
+	animation: loading 1s infinite;
+}
+
+@keyframes spinner {
+	to {transform: rotate(360deg); }
+}
+   
+.spinner:before {
+	content: '';
+	box-sizing: border-box;
+	display: block;
+
+	width: 35px;
+	height: 35px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border-radius: 50%;
+	border: 6px solid #222222;
+	border-top-color: #7a7a7a;
+	animation: spinner .6s linear infinite;
+}
+
+.right {
+	content: url('https://api.iconify.design/mingcute/right-small-fill.svg?color=%23f9f9f9');
+	width: 50px;
+	height: 50px;
+}

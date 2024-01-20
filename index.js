@@ -32,8 +32,6 @@ async function loadCSV() {
 }
 
 app.post('/tags', function (req, res, next) {
-	console.log(req.body.including);
-
 	if (tagData == null) {
 		console.log("tagData is null");
 		res.send("tagData is null");
@@ -138,10 +136,6 @@ function getRandomPrompt() {
 }
 
 app.post('/api*', function(req, res, next) {
-	console.log(req.url);
-	console.log(req.headers);
-	console.log(req.body);
-
 	request('https://api.novelai.net' + req.url.substring(4), {
 		method: 'POST',
 		json: req.body,
@@ -158,7 +152,6 @@ app.post('/api*', function(req, res, next) {
 });
 
 app.get('/api*', function(req, res, next) {
-	console.log(req.url);
 	request({
 		url: 'https://api.novelai.net' + req.url.substring(4),
 		headers: {
@@ -172,6 +165,6 @@ app.get('/', function(req, res, next) {
 });
 
 app.listen(80, function() {
-	console.log('Example app listening on port 80!');
+	console.log('Listening on port 80!');
 	loadCSV();
 });

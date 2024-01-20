@@ -141,6 +141,7 @@ function css() {
 		window.addEventListener('resize', (e) => {
 			// Move dropdown menu when resizing
 			moveDropdown(dropdown, option);
+			resizeInfo();
 		});
 
 		// When dropdown menu options are clicked
@@ -309,6 +310,26 @@ function css() {
 		h2.setAttribute('draggable', 'false');
 	});
 
+	// Init image info
+	const result = document.getElementById('result');
+	const info = document.getElementById('info');
+
+	result.addEventListener('mouseenter', (e) => {
+		resizeInfo();
+		info.classList.add('shown');
+	});
+	info.addEventListener('mouseenter', (e) => {
+		resizeInfo();
+		info.classList.add('shown');
+	});
+
+	result.addEventListener('mouseleave', (e) => {
+		info.classList.remove('shown');
+	});
+	info.addEventListener('mouseleave', (e) => {
+		info.classList.remove('shown');
+	});
+
 
 	// Init login button
 	let button = document.getElementById('loginBtn');
@@ -413,6 +434,24 @@ function getOptions() {
 	options.autodownload = document.getElementById('autodown').checked;
 
 	return options;
+}
+
+function resizeInfo() {
+	const result = document.getElementById('result');
+	const info = document.getElementById('info');
+
+	const rect = result.getBoundingClientRect();
+
+	info.style.top = rect.bottom - info.getBoundingClientRect().height + 'px';
+	info.style.left = rect.left + 'px';
+
+	info.style.width = result.clientWidth + 'px';
+}
+
+function initInfo(url) {
+	getExif(url).then((data) => {
+		document.getElementById('info').innerHTML = data.prompt;
+	});
 }
 
 // Change image size field based on string
@@ -525,7 +564,9 @@ async function randomizePrompt() {
 	let negative = removeEmptyElements(strToList(options.negativePrompt));
 
 	let prompt = await post('/tags', { 'including': including }, null, 'text');
-
+	if(prompt == null || prompt === "") {
+		return null;
+	}
 
 	prompt = strToList(prompt);
 	prompt = removeEmptyElements(prompt);
@@ -552,17 +593,6 @@ function combinePrompt(beg, mid, end) {
 	let prompt = beg.concat(mid).concat(end).join(", ");
 
 	prompt = beg.concat(mid).concat(end).join(", ");
-	return prompt;
-	
-	while (prompt.length > 225 && mid.length > 0) {
-		mid.pop();
-		prompt = beg.concat(mid).concat(end).join(", ");
-	}
-
-	if(prompt.length > 225) {
-		return beg.concat(end).join(", ").substring(0, 225);
-	}
-
 	return prompt;
 }
 
@@ -637,6 +667,14 @@ async function generate() {
 	let options = getOptions();
 	
 	let prompt = await randomizePrompt();
+	if(prompt == null) {
+		alert("Failed to get prompt");
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('generate').disabled = false;
+		document.getElementById('image').classList.remove('generating');
+		return;
+	}
+
 	let negativePrompt = options.negativePrompt;
 
 	let width = Number(options.width);
@@ -707,8 +745,8 @@ async function generate() {
 	}
 
 	document.getElementById('result').src = result;
-	document.getElementById('maid').style.visibility = 'hidden';
 
+	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('generate').disabled = false;
 	document.getElementById('image').classList.remove('generating');
 
@@ -758,6 +796,30 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 	await entries[imgName].blob('image/png').then((data) => { blob = data });
 
 	return window.URL.createObjectURL(blob);
+}
+
+async function getExif(url) {
+	const blob = await $.ajax({
+		url: url,
+		type: 'GET',
+		xhrFields: {
+			responseType: 'blob'
+		}
+	});
+
+	let data = await blob.arrayBuffer();
+	data = new Uint8Array(data);
+
+	let string = new TextDecoder("utf-8").decode(data);
+	let pos = string.search('tEXtComment');
+
+	string = string.substring(pos + 13);
+	pos = string.search('"request_type"');
+	string = string.substring(0, pos - 2);
+
+	string = "{" + string + "}";
+
+	return JSON.parse(string);
 }
 
 // Login to server

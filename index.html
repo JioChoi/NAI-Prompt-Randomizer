@@ -10,6 +10,7 @@
 	<script src="node_modules/argon2-browser/dist/argon2-bundled.min.js"></script>
 	<script src="js/buffer.js"></script>
 	<script src="node_modules/unzipit/dist/unzipit.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
 	<script src="js/script.js"></script>
 
@@ -41,8 +42,7 @@
 		<button id="loginBtn">Sign in</button>
 	</div>
 
-
-	<div id="pc">
+	<div class="container">
 		<div class="hidden" id="sidebar">
 			<div id="items">
 				<h1>Prompt Randomizer</h1>
@@ -53,7 +53,7 @@
 				<h2>Prompt Search Options</h2>
 				<textarea id="including" rows="3" placeholder="Search for prompts including... (~ for excluding)"></textarea>
 	
-				<div class="twoCB">
+				<div class="rowcb">
 					<input type="checkbox" id="removeArtist">
 					<label for="removeArtist">Remove Artist</label>
 	
@@ -71,7 +71,7 @@
 	
 				<h2>Image Size</h2>
 	
-				<div id="imgSize">
+				<div class="row">
 					<button class="dropdown" id="dropdown_imgsize">
 						<div>Normal Portrait</div>
 						<div class="arrow"></div>
@@ -135,7 +135,7 @@
 							<li>DPM++ SDE</li>
 						</ul>
 			
-						<div class="twoCB noleft">
+						<div class="rowcb noleft">
 							<input type="checkbox" id="SMEA">
 							<label for="SMEA">SMEA</label>
 			
@@ -150,7 +150,7 @@
 				<h2 id="delayt">Delay: 8 seconds</h2>
 				<input type="range" id="delay" min="0" max="30" step="1" value="8">
 	
-				<div class="twoCB">
+				<div class="rowcb">
 					<input type="checkbox" id="automation">
 					<label for="automation">Enable Automation</label>
 	
@@ -158,7 +158,7 @@
 					<label for="autodown">Automatically Download</label>
 				</div>
 			</div>		
-			<div id="footer">
+			<div class="footer">
 				<button id="generate" onclick='generate()'>Generate</button>
 			</div>
 		</div>
@@ -166,10 +166,11 @@
 		<img id="maid" src="assets/maid.png"></img>
 	
 		<div id="image">
-			<img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'"></img>
+			<img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'" src="assets/temp.png">
+			<div id="info"></div>
 		</div>
 	
-		<div class="history" onclick="showHistory()"></div>
+		<div id="historyBtn" onclick="showHistory()"></div>
 
 		<div id="history">
 			<div id="title">
