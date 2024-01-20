@@ -433,6 +433,11 @@ function getOptions() {
 	options.automation = document.getElementById('automation').checked;
 	options.autodownload = document.getElementById('autodown').checked;
 
+	if (!options.automation) {
+		document.getElementById('generate').disabled = false;
+		document.getElementById('generate').innerHTML = "Generate";
+	}
+
 	return options;
 }
 
@@ -452,6 +457,8 @@ function initInfo(url) {
 	getExif(url).then((data) => {
 		document.getElementById('info').innerHTML = data.prompt;
 	});
+
+	document.getElementById('info').scrollTop = 0;
 }
 
 // Change image size field based on string
@@ -742,12 +749,18 @@ async function generate() {
 		result = await generateImage(key, prompt, "nai-diffusion-3", "generate", params);
 	} catch {
 		console.log("Failed to generate image");
+		alert("NovelAI server error: please try again later.");
+		
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('image').classList.remove('generating');
+
+		return;
 	}
 
 	document.getElementById('result').src = result;
+	initInfo(result);
 
 	document.getElementById('maid').style.visibility = 'hidden';
-	document.getElementById('generate').disabled = false;
 	document.getElementById('image').classList.remove('generating');
 
 	// Add to history
@@ -755,6 +768,7 @@ async function generate() {
 	ele.src = result;
 	ele.addEventListener('click', (e) => {
 		document.getElementById('result').src = ele.src;
+		initInfo(ele.src);
 		
 		const child = document.getElementById('historyItem').children;
 		Array.from(child).forEach((child) => {
@@ -773,6 +787,31 @@ async function generate() {
 	const history = document.getElementById('historyItem');
 	history.insertBefore(ele, history.firstChild);
 
+	if (options.automation) {
+		let time = 0;
+
+		const interval = setInterval(() => {
+			options = getOptions();
+			time += 100;
+			document.getElementById('generate').innerHTML = time / 1000 + "s / " + options.delay + "s";
+			
+			if (!options.automation) {
+				document.getElementById('generate').disabled = false;
+				document.getElementById('generate').innerHTML = "Generate";
+				clearInterval(interval);
+			}
+
+			if (time >= options.delay * 1000) {
+				generate();
+				document.getElementById('generate').innerHTML = "Generate";
+				clearInterval(interval);
+			}
+		}, 100);
+	}
+	else {
+		document.getElementById('generate').disabled = false;
+	}
+ 
 	return result;
 }
 
@@ -799,16 +838,15 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 }
 
 async function getExif(url) {
-	const blob = await $.ajax({
+	const arrayBuffer = await $.ajax({
 		url: url,
 		type: 'GET',
 		xhrFields: {
-			responseType: 'blob'
+			responseType: 'arraybuffer'
 		}
 	});
-
-	let data = await blob.arrayBuffer();
-	data = new Uint8Array(data);
+	
+	let data = new Uint8Array(arrayBuffer);
 
 	let string = new TextDecoder("utf-8").decode(data);
 	let pos = string.search('tEXtComment');

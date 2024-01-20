@@ -51,15 +51,29 @@
 #info {
 	position: absolute;
 
-	display: flex;
-	flex-direction: column;
+	display: block;
 
-	background-color: #000000ab;
+	background-color: #000000c3;
 
 	height: 150px;
 
+	overflow-y: scroll;
+
+	color: #f9f9f9;
+	font-size: 17px;
+
+	word-break: normal;
+
+	padding: 15px 25px;
+
 	opacity: 0;
 	transition: opacity 0.2s ease-in-out;
+
+	user-select: text;
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	-o-user-select: text;
 }
 
 #info.shown {
@@ -76,6 +90,8 @@
 
 	width: 80px;
 	height: auto;
+
+	z-index: 99;
 
 	filter: drop-shadow(5px 5px 5px #00000030);
 }
@@ -166,11 +182,6 @@
 	object-fit: contain;
 
 	border: 2px solid #3c3c3c;
-
-	user-select: none;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 }
 #historyItem img:hover {
 	cursor: pointer;
