@@ -44,9 +44,10 @@
 
 	<div class="container">
 		<div class="hidden" id="sidebar">
+			<div id="expand" onclick="expand()"><span class="up"></span></div>
 			<div id="items">
-				<h1>Prompt Randomizer</h1>
-	
+				<h1 id="firstTitle">Prompt Randomizer</h1>
+
 				<h2>Beginning Prompt</h2>
 				<textarea id="begprompt" rows="3" placeholder="Prompt to put at the beginning."></textarea>
 		
@@ -166,7 +167,7 @@
 		<img id="maid" src="assets/maid.png"></img>
 	
 		<div id="image">
-			<img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'">
+			<img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'" src="assets/temp.png">
 			<div id="info"></div>
 		</div>
 	

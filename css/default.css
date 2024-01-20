@@ -30,7 +30,7 @@ h2 {
 	font-size: 16px;
 	font-weight: 500;
 	color: #f9f9f9;
-	padding: 10px 30px;
+	margin: 10px 30px;
 	background-color: transparent;
 
 	margin-top: 15px;
@@ -226,7 +226,7 @@ label:hover {
 }
 
 .size input {
-	width: 60px;
+	width: 50px;
 
 	font-size: 16px;
 	text-align: center;
@@ -278,7 +278,7 @@ input[type="range"]:focus::-webkit-slider-thumb {
 
 /* Text Input */
 input[type="text"] {
-	width: 150px;
+	width: 130px;
 
 	font-size: 18px;
 	text-align: left;

@@ -9,7 +9,7 @@
 
 	flex-direction: column;
 
-	width: 500px;
+	width: 450px;
 	height: 100vh;
 	float: left;
 	background-color: #1f1f1f;
@@ -78,9 +78,7 @@
 	display: flex;
 	align-items: center;
 
-	width: 100%;
-
-	padding: 10px 30px;
+	margin: 10px 30px;
 }
 .rowcb label {
 	margin-right: 20px;
@@ -91,7 +89,14 @@
 }
 
 .noleft {
-	padding-left: 0px;
+	margin-left: 0px;
+}
+
+#dropdown_imgsize {
+	width: 220px;
+}
+#option_imgsize {
+	width: 220px;
 }
 
 #dropdown_sampler {

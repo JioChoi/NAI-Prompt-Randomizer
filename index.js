@@ -59,7 +59,7 @@ function findPrompt(including) {
 	for(var i = 0; i < 10000; i++) {
 		let prompt = getRandomPrompt();
 
-		if (including.length == 0 || listInList(including, strToList(prompt))) {
+		if (including.length == 0 || allInList(including, strToList(prompt))) {
 			if (excluding.length != 0 && listInList(excluding, strToList(prompt))) {
 				continue;
 			}
@@ -91,6 +91,16 @@ function listInList(list1, list2) {
 	}
 
 	return false;
+}
+
+function allInList(list1, list2) {
+	for (var i = 0; i < list1.length; i++) {
+		if (!list2.includes(list1[i])) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 function strToList(str) {

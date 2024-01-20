@@ -1,7 +1,7 @@
 let api = '/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"bad quality, low quality, worst quality, lowres, displeasing, very displeasing, bad anatomy, bad perspective, bad proportions, bad aspect ratio, bad face, long face, bad teeth, bad neck, long neck, bad arm, bad hands, bad ass, bad leg, bad feet, bad reflection, bad shadow, bad link, bad source, wrong hand, wrong feet, missing limb, missing eye, missing tooth, missing ear, missing finger, extra faces, extra eyes, extra eyebrows, extra mouth, extra tongue, extra teeth, extra ears, extra breasts, extra arms, extra hands, extra legs, extra digits, fewer digits, cropped head, cropped torso, cropped shoulders, cropped arms, cropped legs, mutation, deformed, disfigured, unfinished, chromatic aberration","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
 let artistList;
 let characterList;
@@ -43,6 +43,8 @@ function downloadLists() {
 	}
 
 	req3.send(null);
+
+	document.getElementById("generate").disabled = false;
 }
 
 // On page load
@@ -433,11 +435,6 @@ function getOptions() {
 	options.automation = document.getElementById('automation').checked;
 	options.autodownload = document.getElementById('autodown').checked;
 
-	if (!options.automation) {
-		document.getElementById('generate').disabled = false;
-		document.getElementById('generate').innerHTML = "Generate";
-	}
-
 	return options;
 }
 
@@ -560,6 +557,7 @@ async function init() {
 
 async function randomizePrompt() {
 	options = getOptions();
+
 	let begprompt = removeEmptyElements(strToList(options.begprompt));
 	let including = removeEmptyElements(strToList(options.including));
 
@@ -567,7 +565,6 @@ async function randomizePrompt() {
 	let removeCharacter = options.removeCharacter;
 
 	let endprompt = removeEmptyElements(strToList(options.endprompt));
-
 	let negative = removeEmptyElements(strToList(options.negativePrompt));
 
 	let prompt = await post('/tags', { 'including': including }, null, 'text');
@@ -656,8 +653,8 @@ function strToList(str) {
 
 function removeListFromList(list1, list2) {
 	for (var i = 0; i < list1.length; i++) {
-		if (list2.includes(list1[i])) {
-			list2.splice(list2.indexOf(list1[i]), 1);
+		while(list2.includes(list1[i].replace(/{{/g, "").replace(/}}/g, ""))) {
+			list2.splice(list2.indexOf(list1[i].replace(/{{/g, "").replace(/}}/g, "")), 1);
 		}
 	}
 
@@ -738,10 +735,12 @@ async function generate() {
 		"sm" : SMEA,
 		"sm_dyn" : DYN,
 		"dynamic_thresholding": false,
-		"controlnet_strength": 1.0,
-		"add_original_image": false,
+		"controlnet_strength": 1,
+		"add_original_image": true,
 		"cfg_rescale": promptGuidanceRescale,
 		"noise_schedule": "native",
+		"ucPreset": 3,
+		"params_version": 1
 	};
 	let result = null;
 
@@ -759,6 +758,10 @@ async function generate() {
 
 	document.getElementById('result').src = result;
 	initInfo(result);
+
+	if (options.autodownload) {
+		download(result, prompt.substring(0, 80) + "_" + seed + ".png");
+	}
 
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
@@ -813,6 +816,32 @@ async function generate() {
 	}
  
 	return result;
+}
+
+function download(dataurl, filename) {
+	const link = document.createElement("a");
+	link.href = dataurl;
+	link.download = filename;
+	link.click();
+}
+
+function searchTags(str) {
+	let list = [];
+	for(let i = 0; i < whitelist.length; i++) {
+		if (whitelist[i].includes(str)) {
+			list.push(whitelist[i]);
+		}
+
+		if (list.length >= 5) {
+			break;
+		}
+	}
+
+	return list;
+}
+	
+function expand() {
+	document.getElementById('sidebar').classList.toggle('expanded');
 }
 
 // Generate image
