@@ -844,6 +844,8 @@ async function generate() {
 		
 		document.getElementById('maid').style.visibility = 'hidden';
 		document.getElementById('image').classList.remove('generating');
+		document.getElementById('generate').disabled = false;
+		document.getElementById('generate').innerHTML = "Generate";
 
 		return;
 	}
