@@ -7,16 +7,28 @@ const { randomBytes } = require('crypto');
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 
 const https = require('https');
+const { resolve } = require('path');
 
-var privateKey = fs.readFileSync("/etc/letsencrypt/live/prombot.net/privkey.pem")
-var certificate = fs.readFileSync("/etc/letsencrypt/live/prombot.net/cert.pem")
-var ca = fs.readFileSync("/etc/letsencrypt/live/prombot.net/chain.pem")
-const credentials = { key: privateKey, cert: certificate, ca: ca }
+var privateKey;
+var certificate;
+var ca;
+var credentials;
+
+var production = false;
+
+if (fs.existsSync("/etc/letsencrypt/live/prombot.net/privkey.pem")) {
+	production = true;
+}
+
+if(production) {
+	privateKey = fs.readFileSync("/etc/letsencrypt/live/prombot.net/privkey.pem")
+	certificate = fs.readFileSync("/etc/letsencrypt/live/prombot.net/cert.pem")
+	ca = fs.readFileSync("/etc/letsencrypt/live/prombot.net/chain.pem")
+	credentials = { key: privateKey, cert: certificate, ca: ca }
+}
 
 var app = express();
-let tagData = null;
-let posDict = null;
-let tagPosDict = null;
+var tagDataLength = 0;
 
 const opts = {
 	points: 20, // 6 points
@@ -56,130 +68,26 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-async function loadCSV() {
-	console.log("Loading CSV");
-	tagData = new Uint8Array(fs.readFileSync("../tags.csv"));
-	console.log("Loaded tags.csv");
-
-	// posDict = new Uint8Array(fs.readFileSync("../posdict.csv"));
-	// console.log("Loaded posdict.csv");
-
-	// tagPosDict = new Uint8Array(fs.readFileSync("../tagdict.csv"));
-	// tagPosDict = new TextDecoder("utf-8").decode(tagPosDict).split("\n");
-
-	// for(var i = 0; i < tagPosDict.length; i++) {
-	// 	tagPosDict[i] = tagPosDict[i].split("|");
-	// }
-	// tagPosDict = tagPosDict.reverse();
-
-	// console.log("Loaded tagdict.csv");
-
-	console.log("Loaded CSV");
-	// Log memory usage out of total in GB
-	const used = process.memoryUsage().heapUsed;
-	const total = os.totalmem();
-	const free = os.freemem();
-
-	console.log(`Memory usage: ${Math.round(used / 1024 / 1024 * 100) / 100} MB out of ${Math.round(total / 1024 / 1024 * 100) / 100} MB`);
-	console.log(`Free memory: ${Math.round(free / 1024 / 1024 * 100) / 100} MB`);
+function init() {
+	tagDataLength = fs.statSync("../tags.csv").size;
 }
 
-function getTagPos(including) {
-	let pos = -1;
-
-	for (var i = 0; i < tagPosDict.length; i++) {
-		let temp = tagPosDict[i];
-
-		for (var tag of including) {
-			if (temp[0] === tag || temp[0] === tag.replace(/_/g, " ")) {
-				pos = i;
-				break;
-			}
-		}
-
-		if (pos != -1) {
-			break;
-		}
-	}
-
-	if (pos == -1) {
-		console.log("pos not found");
-		return null;
-	}
-
-	return pos;
+async function readTagData(start, end) {
+	const stream = fs.createReadStream("../tags.csv", {start: start, end: end});
+	return new Promise(function(resolve, reject) {
+		stream.on('data', function(chunk) {
+			resolve(new Uint8Array(chunk.buffer));
+		});
+	});
 }
 
-function getRandomTagDataPos(pos) {
-	let startPos = parseInt(tagPosDict[pos][1]);
-	let endPos = posDict.length - 1;
-
-	if (pos != 0) {
-		endPos = parseInt(tagPosDict[pos - 1][1]);
-	}
-
-	let randomIndex;
-	do {
-		randomIndex = Math.floor(Math.random() * (endPos - startPos) + startPos);
-	} while(posDict[randomIndex] == 0x2C);
-
-	return randomIndex;
-}
-
-function getPromptFromIndex(index) {
-	let endIndex = index;
-	while(tagData[endIndex] != 0x0A) {
-		endIndex++;
-	}
-
-	let prompt = new TextDecoder("utf-8").decode(tagData.slice(index, endIndex));
-
-	return prompt;
-}
-
-// function getRandomPrompt(including, excluding) {
-// 	let pos = getTagPos(including);
-
-// 	if (pos == null) {
-// 		return null;
-// 	}
-
-// 	let randomIndex = getRandomTagDataPos(pos);
-// 	let index = findBetween(randomIndex);
-// 	let prompt = getPromptFromIndex(index);
-
-// 	return prompt;
-// }
-
-function findBetween(pos) {
-	let startPos = pos;
-	let endPos = pos;
-
-	while(!(posDict[startPos] == 0x2C || startPos == -1 || posDict[startPos] == 0x0A)) {
-		startPos--;
-	}
-
-	while(!(posDict[endPos] == 0x2C || endPos == posDict.length - 1 || posDict[endPos] == 0x0A)) {
-		endPos++;
-	}
-
-	let position = new TextDecoder("utf-8").decode(posDict.slice(startPos + 1, endPos));
-	return position;
-}
-
-app.post('/tags', function (req, res, next) {
-	if (tagData == null) {
-		console.log("tagData is null");
-		res.send("tagData is null");
-		return;
-	}
-
+app.post('/tags', async function (req, res, next) {
 	let including = req.body.including;
-	let prompt = findPrompt(including);
+	let prompt = await findPrompt(including);
 	res.send(prompt);
 });
 
-function findPrompt(including) {
+async function findPrompt(including) {
 	let excluding = [];
 	for (var i = 0; i < including.length; i++) {
 		if (including[i].startsWith("~")) {
@@ -203,7 +111,7 @@ function findPrompt(including) {
 	}
 
 	for(var i = 0; i < 10000; i++) {
-		let prompt = getRandomPrompt(including);
+		let prompt = await getRandomPrompt(including);
 		if(prompt == null) {
 			return null;
 		}
@@ -275,11 +183,13 @@ function strToList(str) {
 	return list;
 }
 
-function getRandomPrompt() {
+async function getRandomPrompt() {
 	let prompt = "";
 
-	let randomIndex = Math.floor(Math.random() * tagData.length);
-	let value = tagData[randomIndex];
+	let randomIndex = Math.floor(Math.random() * tagDataLength);
+	let value = await readTagData(randomIndex, randomIndex);
+	value = value[0];
+
 	let startPoint = randomIndex;
 	let endPoint = randomIndex;
 
@@ -289,19 +199,22 @@ function getRandomPrompt() {
 	}
 
 	// Find start point
-	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
+	let startValue;
+	do {
+		startValue = await readTagData(startPoint, startPoint);
 		startPoint--;
-	}
+	} while(startValue != 13 && startValue != 10);
 	startPoint += 2;
 
-	// Find end point
-	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
+	let endValue;
+	do {
+		endValue = await readTagData(endPoint, endPoint);
 		endPoint++;
-	}
+	} while(endValue != 13 && endValue != 10);
 	endPoint--;
 
 	// Get prompt
-	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
+	prompt = new TextDecoder("utf-8").decode(await readTagData(startPoint, endPoint));
 
 	return prompt;
 }
@@ -335,7 +248,16 @@ app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
 });
 
-https.createServer(credentials, app).listen(80, function() {
-	console.log('Listening on port 80!');
-	loadCSV();
-});
+if(production) {
+	https.createServer(credentials, app).listen(80, function() {
+		console.log('Listening on port 80!');
+		init();
+		//loadCSV();
+	});
+}
+else {
+	app.listen(80, function() {
+		console.log('Listening on port 80! (dev)');
+		init();
+	});
+}
