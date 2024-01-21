@@ -6,6 +6,13 @@ const os = require('os');
 const { randomBytes } = require('crypto');
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 
+const https = require('https');
+
+var privateKey = fs.readFileSync("/etc/letsencrypt/live/prombot.net/privkey.pem")
+var certificate = fs.readFileSync("/etc/letsencrypt/live/prombot.net/cert.pem")
+var ca = fs.readFileSync("/etc/letsencrypt/live/prombot.net/chain.pem")
+const credentials = { key: privateKey, cert: certificate, ca: ca }
+
 var app = express();
 let tagData = null;
 let posDict = null;
@@ -328,7 +335,7 @@ app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
 });
 
-app.listen(80, function() {
+https.createServer(credentials, app).listen(80, function() {
 	console.log('Listening on port 80!');
 	loadCSV();
 });
