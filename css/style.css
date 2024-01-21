@@ -67,7 +67,8 @@ body {
 		transition: height 0.4s ease;
 	}
 	#sidebar.expanded {
-		height: 80vh;
+		height: 70vh;
+		bottom: 70px;
 	}
 
 	#dropdown_imgsize {
@@ -78,9 +79,11 @@ body {
 		margin-left: 20px;
 		margin-right: 20px;
 	}
+
 	#generate {
 		margin: 0px 20px;
 	}
+	
 	#maid {
 		display: none;
 	}

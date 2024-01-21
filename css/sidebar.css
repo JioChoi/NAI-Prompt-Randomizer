@@ -84,6 +84,14 @@
 	margin-right: 20px;
 }
 
+.nobottom {
+	margin-bottom: 0px;
+}
+
+.noright {
+	margin-right: 0px;
+}
+
 #seed {
 	margin: 0px;
 }

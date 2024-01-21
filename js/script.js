@@ -6,6 +6,7 @@ const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbo
 let artistList;
 let characterList;
 let whitelist;
+let censorList;
 
 function downloadLists() {
 	let req = new XMLHttpRequest();
@@ -44,6 +45,18 @@ function downloadLists() {
 
 	req3.send(null);
 
+	let req4 = new XMLHttpRequest();
+	req4.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", true);
+	req4.responseType = "text";
+
+	req4.onload = function (e) {
+		censorList = req4.response.split("\n");
+		console.log("download complete");
+		console.log(censorList.length);
+	}
+
+	req4.send(null);
+	
 	document.getElementById("generate").disabled = false;
 }
 
@@ -585,6 +598,10 @@ async function randomizePrompt() {
 
 	if (removeCharacter) {
 		prompt = removeListFromList(characterList, prompt);
+	}
+
+	if (begprompt.includes("uncensored") || endprompt.includes("uncensored")) {
+		prompt = removeListFromList(censorList, prompt);
 	}
 
 	prompt = onlyInLists(prompt, whitelist, artistList, characterList);

@@ -56,16 +56,34 @@ function findPrompt(including) {
 	including = removeEmptyElements(including);
 	excluding = removeEmptyElements(excluding);
 
+	let minScore = -1;
+
+	for (item of including) {
+		if (item.substring(0, 6) === 'score>') {
+			let score = parseInt(item.substring(6));
+			including.splice(including.indexOf(item), 1);
+			minScore = score;
+		}
+	}
+
 	for(var i = 0; i < 10000; i++) {
 		let prompt = getRandomPrompt();
+		const data = prompt.split("|");
+		const score = data[0];
+		const rating = data[1];
+		const prom = data[2];
 
-		if (including.length == 0 || allInList(including, strToList(prompt))) {
-			if (excluding.length != 0 && listInList(excluding, strToList(prompt))) {
+		if (score <= minScore) {
+			continue;
+		}
+
+		if (including.length == 0 || allInList(including, strToList(prom))) {
+			if (excluding.length != 0 && listInList(excluding, strToList(prom))) {
 				continue;
 			}
 
 			console.log("found " + i);
-			return prompt;
+			return prom;
 		}
 	}
 
