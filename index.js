@@ -249,8 +249,8 @@ app.get('/', function(req, res, next) {
 });
 
 if(production) {
-	https.createServer(credentials, app).listen(80, function() {
-		console.log('Listening on port 80!');
+	https.createServer(credentials, app).listen(443, function() {
+		console.log('Listening on port 443!');
 		init();
 		//loadCSV();
 	});
