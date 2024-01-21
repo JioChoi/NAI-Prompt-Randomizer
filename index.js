@@ -9,6 +9,8 @@ const { RateLimiterMemory } = require("rate-limiter-flexible");
 const https = require('https');
 const { resolve } = require('path');
 
+const path = require("path");
+
 var privateKey;
 var certificate;
 var ca;
@@ -69,11 +71,12 @@ app.use(cors({
 }));
 
 function init() {
-	tagDataLength = fs.statSync("../tags.csv").size;
+	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
+	console.log("Tag data length: " + tagDataLength);
 }
 
 async function readTagData(start, end) {
-	const stream = fs.createReadStream("../tags.csv", {start: start, end: end});
+	const stream = fs.createReadStream(path.join(__dirname, '..', 'tags.csv'), {start: start, end: end});
 	return new Promise(function(resolve, reject) {
 		stream.on('data', function(chunk) {
 			resolve(new Uint8Array(chunk.buffer));
