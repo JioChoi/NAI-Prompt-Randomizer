@@ -2,9 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const request = require('request');
 const fs = require('fs');
+const os = require('os');
+const { randomBytes } = require('crypto');
 
 var app = express();
 let tagData = null;
+let posDict = null;
+let tagPosDict = null;
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: false }));
@@ -26,9 +30,113 @@ app.use(cors({
 
 async function loadCSV() {
 	console.log("Loading CSV");
-	let data = fs.readFileSync("../tags.csv");
-	tagData = new Uint8Array(data);
+	tagData = new Uint8Array(fs.readFileSync("../tags.csv"));
+	console.log("Loaded tags.csv");
+
+	posDict = new Uint8Array(fs.readFileSync("../posdict.csv"));
+	console.log("Loaded posdict.csv");
+
+	tagPosDict = new Uint8Array(fs.readFileSync("../tagdict.csv"));
+	tagPosDict = new TextDecoder("utf-8").decode(tagPosDict).split("\n");
+
+	for(var i = 0; i < tagPosDict.length; i++) {
+		tagPosDict[i] = tagPosDict[i].split("|");
+	}
+	tagPosDict = tagPosDict.reverse();
+
+	console.log("Loaded tagdict.csv");
+
 	console.log("Loaded CSV");
+	// Log memory usage out of total in GB
+	const used = process.memoryUsage().heapUsed;
+	const total = os.totalmem();
+	const free = os.freemem();
+
+	console.log(`Memory usage: ${Math.round(used / 1024 / 1024 * 100) / 100} MB out of ${Math.round(total / 1024 / 1024 * 100) / 100} MB`);
+	console.log(`Free memory: ${Math.round(free / 1024 / 1024 * 100) / 100} MB`);
+}
+
+function getTagPos(including) {
+	let pos = -1;
+
+	for (var i = 0; i < tagPosDict.length; i++) {
+		let temp = tagPosDict[i];
+
+		for (var tag of including) {
+			if (temp[0] === tag || temp[0] === tag.replace(/_/g, " ")) {
+				pos = i;
+				break;
+			}
+		}
+
+		if (pos != -1) {
+			break;
+		}
+	}
+
+	if (pos == -1) {
+		console.log("pos not found");
+		return null;
+	}
+
+	return pos;
+}
+
+function getRandomTagDataPos(pos) {
+	let startPos = parseInt(tagPosDict[pos][1]);
+	let endPos = posDict.length - 1;
+
+	if (pos != 0) {
+		endPos = parseInt(tagPosDict[pos - 1][1]);
+	}
+
+	let randomIndex;
+	do {
+		randomIndex = Math.floor(Math.random() * (endPos - startPos) + startPos);
+	} while(posDict[randomIndex] == 0x2C);
+
+	return randomIndex;
+}
+
+function getPromptFromIndex(index) {
+	let endIndex = index;
+	while(tagData[endIndex] != 0x0A) {
+		endIndex++;
+	}
+
+	let prompt = new TextDecoder("utf-8").decode(tagData.slice(index, endIndex));
+
+	return prompt;
+}
+
+function getRandomPrompt(including, excluding) {
+	let pos = getTagPos(including);
+
+	if (pos == null) {
+		return null;
+	}
+
+	let randomIndex = getRandomTagDataPos(pos);
+	let index = findBetween(randomIndex);
+	let prompt = getPromptFromIndex(index);
+
+	return prompt;
+}
+
+function findBetween(pos) {
+	let startPos = pos;
+	let endPos = pos;
+
+	while(!(posDict[startPos] == 0x2C || startPos == -1 || posDict[startPos] == 0x0A)) {
+		startPos--;
+	}
+
+	while(!(posDict[endPos] == 0x2C || endPos == posDict.length - 1 || posDict[endPos] == 0x0A)) {
+		endPos++;
+	}
+
+	let position = new TextDecoder("utf-8").decode(posDict.slice(startPos + 1, endPos));
+	return position;
 }
 
 app.post('/tags', function (req, res, next) {
@@ -66,8 +174,12 @@ function findPrompt(including) {
 		}
 	}
 
-	for(var i = 0; i < 10000; i++) {
-		let prompt = getRandomPrompt();
+	for(var i = 0; i < 1000; i++) {
+		let prompt = getRandomPrompt(including);
+		if(prompt == null) {
+			return null;
+		}
+
 		const data = prompt.split("|");
 		const score = data[0];
 		const rating = data[1];
@@ -86,6 +198,8 @@ function findPrompt(including) {
 			return prom;
 		}
 	}
+
+	console.log("not found");
 
 	return null;
 }
@@ -133,36 +247,36 @@ function strToList(str) {
 	return list;
 }
 
-function getRandomPrompt() {
-	let prompt = "";
+// function getRandomPrompt() {
+// 	let prompt = "";
 
-	let randomIndex = Math.floor(Math.random() * tagData.length);
-	let value = tagData[randomIndex];
-	let startPoint = randomIndex;
-	let endPoint = randomIndex;
+// 	let randomIndex = Math.floor(Math.random() * tagData.length);
+// 	let value = tagData[randomIndex];
+// 	let startPoint = randomIndex;
+// 	let endPoint = randomIndex;
 
-	// Unlucky indexing
-	if(value == 13 || value == 10) {
-		return getRandomPrompt();
-	}
+// 	// Unlucky indexing
+// 	if(value == 13 || value == 10) {
+// 		return getRandomPrompt();
+// 	}
 
-	// Find start point
-	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
-		startPoint--;
-	}
-	startPoint += 2;
+// 	// Find start point
+// 	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
+// 		startPoint--;
+// 	}
+// 	startPoint += 2;
 
-	// Find end point
-	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
-		endPoint++;
-	}
-	endPoint--;
+// 	// Find end point
+// 	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
+// 		endPoint++;
+// 	}
+// 	endPoint--;
 
-	// Get prompt
-	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
+// 	// Get prompt
+// 	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
 
-	return prompt;
-}
+// 	return prompt;
+// }
 
 app.post('/api*', function(req, res, next) {
 	request('https://api.novelai.net' + req.url.substring(4), {
