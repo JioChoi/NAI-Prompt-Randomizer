@@ -4,11 +4,32 @@ const request = require('request');
 const fs = require('fs');
 const os = require('os');
 const { randomBytes } = require('crypto');
+const { RateLimiterMemory } = require("rate-limiter-flexible");
 
 var app = express();
 let tagData = null;
 let posDict = null;
 let tagPosDict = null;
+
+const opts = {
+	points: 20, // 6 points
+	duration: 1, // Per second
+};
+
+const rateLimiter = new RateLimiterMemory(opts);
+
+app.use((req, res, next) => {
+	rateLimiter.consume(req.ip)
+	.then(() => {
+		next();
+	})
+	.catch(() => {
+		res.status(429).send('Too Many Requests');
+	});
+});
+
+
+app.use(require('express-status-monitor')());
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: false }));
@@ -33,18 +54,18 @@ async function loadCSV() {
 	tagData = new Uint8Array(fs.readFileSync("../tags.csv"));
 	console.log("Loaded tags.csv");
 
-	posDict = new Uint8Array(fs.readFileSync("../posdict.csv"));
-	console.log("Loaded posdict.csv");
+	// posDict = new Uint8Array(fs.readFileSync("../posdict.csv"));
+	// console.log("Loaded posdict.csv");
 
-	tagPosDict = new Uint8Array(fs.readFileSync("../tagdict.csv"));
-	tagPosDict = new TextDecoder("utf-8").decode(tagPosDict).split("\n");
+	// tagPosDict = new Uint8Array(fs.readFileSync("../tagdict.csv"));
+	// tagPosDict = new TextDecoder("utf-8").decode(tagPosDict).split("\n");
 
-	for(var i = 0; i < tagPosDict.length; i++) {
-		tagPosDict[i] = tagPosDict[i].split("|");
-	}
-	tagPosDict = tagPosDict.reverse();
+	// for(var i = 0; i < tagPosDict.length; i++) {
+	// 	tagPosDict[i] = tagPosDict[i].split("|");
+	// }
+	// tagPosDict = tagPosDict.reverse();
 
-	console.log("Loaded tagdict.csv");
+	// console.log("Loaded tagdict.csv");
 
 	console.log("Loaded CSV");
 	// Log memory usage out of total in GB
@@ -109,19 +130,19 @@ function getPromptFromIndex(index) {
 	return prompt;
 }
 
-function getRandomPrompt(including, excluding) {
-	let pos = getTagPos(including);
+// function getRandomPrompt(including, excluding) {
+// 	let pos = getTagPos(including);
 
-	if (pos == null) {
-		return null;
-	}
+// 	if (pos == null) {
+// 		return null;
+// 	}
 
-	let randomIndex = getRandomTagDataPos(pos);
-	let index = findBetween(randomIndex);
-	let prompt = getPromptFromIndex(index);
+// 	let randomIndex = getRandomTagDataPos(pos);
+// 	let index = findBetween(randomIndex);
+// 	let prompt = getPromptFromIndex(index);
 
-	return prompt;
-}
+// 	return prompt;
+// }
 
 function findBetween(pos) {
 	let startPos = pos;
@@ -174,7 +195,7 @@ function findPrompt(including) {
 		}
 	}
 
-	for(var i = 0; i < 1000; i++) {
+	for(var i = 0; i < 10000; i++) {
 		let prompt = getRandomPrompt(including);
 		if(prompt == null) {
 			return null;
@@ -247,36 +268,36 @@ function strToList(str) {
 	return list;
 }
 
-// function getRandomPrompt() {
-// 	let prompt = "";
+function getRandomPrompt() {
+	let prompt = "";
 
-// 	let randomIndex = Math.floor(Math.random() * tagData.length);
-// 	let value = tagData[randomIndex];
-// 	let startPoint = randomIndex;
-// 	let endPoint = randomIndex;
+	let randomIndex = Math.floor(Math.random() * tagData.length);
+	let value = tagData[randomIndex];
+	let startPoint = randomIndex;
+	let endPoint = randomIndex;
 
-// 	// Unlucky indexing
-// 	if(value == 13 || value == 10) {
-// 		return getRandomPrompt();
-// 	}
+	// Unlucky indexing
+	if(value == 13 || value == 10) {
+		return getRandomPrompt();
+	}
 
-// 	// Find start point
-// 	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
-// 		startPoint--;
-// 	}
-// 	startPoint += 2;
+	// Find start point
+	while (tagData[startPoint] != 13 && tagData[startPoint] != 10) {
+		startPoint--;
+	}
+	startPoint += 2;
 
-// 	// Find end point
-// 	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
-// 		endPoint++;
-// 	}
-// 	endPoint--;
+	// Find end point
+	while (tagData[endPoint] != 13 && tagData[endPoint] != 10) {
+		endPoint++;
+	}
+	endPoint--;
 
-// 	// Get prompt
-// 	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
+	// Get prompt
+	prompt = new TextDecoder("utf-8").decode(tagData.slice(startPoint, endPoint));
 
-// 	return prompt;
-// }
+	return prompt;
+}
 
 app.post('/api*', function(req, res, next) {
 	request('https://api.novelai.net' + req.url.substring(4), {

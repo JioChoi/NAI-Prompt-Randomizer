@@ -115,8 +115,12 @@ body {
 		top: 0px;
 		left: 0px;
 		
-		width: 100vw;
+		width: 100vw !important;
 		height: calc(100vh - 120px);
+	}
+
+	#info {
+		padding: 10px;
 	}
 }
 

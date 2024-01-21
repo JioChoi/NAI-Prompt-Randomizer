@@ -7,6 +7,9 @@ let artistList;
 let characterList;
 let whitelist;
 let censorList;
+let whitelistSeparated = [];
+
+let tagSuggestElement;
 
 function downloadLists() {
 	let req = new XMLHttpRequest();
@@ -41,6 +44,10 @@ function downloadLists() {
 		whitelist = req3.response.split("\n");
 		console.log("download complete");
 		console.log(whitelist.length);
+
+		for(let temp of whitelist) {
+			whitelistSeparated.push(temp.split(" "));
+		}
 	}
 
 	req3.send(null);
@@ -73,6 +80,7 @@ window.onload = async function () {
 		loadOptions(localStorage.getItem('options'));
 	}
 	css();
+	checkDYN();
 
 	document.getElementById('loading').style.display = 'none';
 }
@@ -106,7 +114,7 @@ function css() {
 	sidebarItems.addEventListener('change', (e) => {
 		const options = getOptions();
 		const optionsStr = JSON.stringify(options, null, 4);
-
+		checkDYN();
 		localStorage.setItem('options', optionsStr);
 	});
 	
@@ -393,6 +401,55 @@ function css() {
 			document.getElementById('sidebar').classList.remove('hidden');
 		}
 	});
+
+	// Init tag autocomplete
+	const begprompt = document.getElementById('begprompt');
+	const including = document.getElementById('including');
+	const endprompt = document.getElementById('endprompt');
+	const negprompt = document.getElementById('negprompt');
+
+	begprompt.addEventListener('input', (e) => {
+		if(e.data == "{") {hideTagSuggest(); return;}
+		if(e.data == "}") {hideTagSuggest(); return;}
+
+		suggestTags(begprompt.value.substring(0, begprompt.selectionStart), begprompt);
+	});
+	begprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	begprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	including.addEventListener('input', (e) => {
+		suggestTags(including.value.substring(0, including.selectionStart), including);
+	});
+	including.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	including.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	endprompt.addEventListener('input', (e) => {
+		suggestTags(endprompt.value.substring(0, endprompt.selectionStart), endprompt);
+	});
+	endprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	endprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	negprompt.addEventListener('input', (e) => {
+		suggestTags(negprompt.value.substring(0, negprompt.selectionStart), negprompt);
+	});
+	negprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	negprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
 }
 
 /* load user options */
@@ -635,9 +692,17 @@ function onlyInLists(list1, list2, list3, list4) {
 	return list;
 }
 
-function listInList(list1, list2) {
+function allInList(list1, list2) {
 	for (var i = 0; i < list1.length; i++) {
-		if (!list2.includes(list1[i])) {
+		let found = false;
+		for (var j = 0; j < list2.length; j++) {
+			if ((list2[j].substring(0, list1[i].length) === list1[i])) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
 			return false;
 		}
 	}
@@ -670,8 +735,8 @@ function strToList(str) {
 
 function removeListFromList(list1, list2) {
 	for (var i = 0; i < list1.length; i++) {
-		while(list2.includes(list1[i].replace(/{{/g, "").replace(/}}/g, ""))) {
-			list2.splice(list2.indexOf(list1[i].replace(/{{/g, "").replace(/}}/g, "")), 1);
+		while(list2.includes(list1[i].replace(/{/g, "").replace(/}/g, ""))) {
+			list2.splice(list2.indexOf(list1[i].replace(/{/g, "").replace(/}/g, "")), 1);
 		}
 	}
 
@@ -859,6 +924,101 @@ function searchTags(str) {
 	
 function expand() {
 	document.getElementById('sidebar').classList.toggle('expanded');
+}
+
+function hideTagSuggest() {
+	document.getElementById('tagSuggest').style.visibility = 'hidden';
+}
+
+function suggestTags(str, element) {
+	tagSuggestElement = element;
+	const tags = findTags(str);
+
+	if(tags.length == 0) {
+		hideTagSuggest();
+		return;
+	}
+
+	const suggest = document.getElementById('tagSuggest');
+	suggest.innerHTML = "";
+
+	suggest.addEventListener('mousedown', (e) => {
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	for(let i = 0; i < tags.length; i++) {
+		const item = document.createElement('div');
+		item.classList.add('item');
+		item.innerHTML = tags[i];
+
+		item.addEventListener('mouseup', (e) => {
+			const tag = tags[i];
+			const str = tagSuggestElement.value;
+			const cursorStr = str.substring(0, tagSuggestElement.selectionStart);
+			let start = 0;
+			let end = tagSuggestElement.selectionStart;
+
+			start = Math.max(cursorStr.lastIndexOf(",") + 1, cursorStr.lastIndexOf(", ") + 2, cursorStr.lastIndexOf("{") + 1, cursorStr.lastIndexOf("~") + 1);
+
+			tagSuggestElement.value = str.substring(0, start) + tag + str.substring(end);
+			tagSuggestElement.selectionStart = start + tag.length;
+			tagSuggestElement.selectionEnd = start + tag.length;
+
+			hideTagSuggest();
+
+			e.preventDefault();
+		});
+
+		suggest.appendChild(item);
+	}
+
+	moveTagSuggest();
+
+	suggest.style.visibility = 'visible';
+}
+
+function moveTagSuggest() {
+	const suggest = document.getElementById('tagSuggest');
+	const rect = tagSuggestElement.getBoundingClientRect();
+
+	suggest.style.top = rect.bottom - 2 + 'px';
+	suggest.style.left = rect.left + 'px';
+}
+
+function findTags(str) {
+	str = str.substring(str.lastIndexOf(",") + 1);
+	str = str.toLowerCase().trim().replace(/_/g, " ").replace(/{/g, "").replace(/}/g, "").replace(/~/g, "");
+
+	if(str == "") return [];
+	
+	tags = [];
+	strSeparated = removeEmptyElements(str.split(" "));
+
+	for (let i = 0; i < whitelistSeparated.length; i++) {
+		if (allInList(strSeparated, whitelistSeparated[i])) {
+			tags.push(whitelist[i]);
+		}
+
+
+		if(tags.length >= 5) {
+			return tags;
+		}
+	}
+
+	return tags;
+}
+
+function checkDYN() {
+	const SMEA = document.getElementById('SMEA');
+	const DYN = document.getElementById('DYN');
+
+	if(SMEA.checked) {
+		DYN.disabled = false;
+	}
+	else {
+		DYN.disabled = true;
+	}
 }
 
 // Generate image
