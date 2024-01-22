@@ -16,7 +16,7 @@ var certificate;
 var ca;
 var credentials;
 
-var tagPosPos;
+var key = [];
 
 var production = false;
 
@@ -71,39 +71,63 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-async function findTagsPos(tags) {
-	
-}
+async function getRandomPrompt(including, excluding) {
+	let pos;
 
-async function findTagPos(tag) {
-	let start = -1;
-	let end = 0;
-
-	for (let i = 0; i < tagPosPos.length; i++) {
-		if (tagPosPos[i][0] == tag) {
-			start = tagPosPos[i][1];
-			if (i + 1 == tagPosPos.length) {
-				end = tagDataLength;
-			}
-			else {
-				end = tagPosPos[i + 1][1];
-			}
-			break;
+	for (i = 0; i < including.length; i++) {
+		if (i == 0) {
+			pos = new Set(await getPositions(including[i]));
+		}
+		else {
+			temp = new Set(await getPositions(including[i]));
+			pos = new Set([...pos].filter(x => temp.has(x)));
 		}
 	}
 
-	if (start == -1) {
-		return null;
+	pos = Array.from(pos);
+
+	pos = pos[Math.floor(Math.random() * pos.length)];
+	console.log(pos);
+}
+
+async function getPositions(tag) {
+	let index = key.findIndex(function (element) {
+		return element[0] == tag;
+	}, tag);
+
+	if (index == -1) {
+		return [];
 	}
 
-	let tagDict = await readTagDict(start, end);
-	tagDict = new TextDecoder("utf-8").decode(tagDict);
-	tagDict = tagDict.split(",");
-	for (let i = 0; i < tagDict.length; i++) {
-		tagDict[i] = Number(tagDict[i].trim());
+	let start = key[index][1];
+	let end = 0;
+
+	if(index == key.length - 1) {
+		end = tagDataLength;
+	}
+	else {
+		end = key[index + 1][1];
 	}
 
-	return tagDict;
+	let pos = [];
+
+	let data = await read("pos.csv", start * 4, end * 4);
+	var view = new DataView(data.buffer, 0);
+
+	for (let i = 0; i < data.length / 4; i++) {
+		pos.push(view.getUint32(i * 4));
+	}
+
+	data = null;
+
+	return pos;
+}
+
+async function readHex(fileName, start, end) {
+	let data = await read(fileName, start, end);
+
+	var view = new DataView(data.buffer, 0);
+	return view.getUint32(0);
 }
 
 function init() {
@@ -111,27 +135,20 @@ function init() {
 	console.log("Tag data length: " + tagDataLength);
 
 	// Load tagPosPos
-	tagPosPos = fs.readFileSync(path.join(__dirname, '..', 'tagdict.csv'), 'utf8');
-	tagPosPos = tagPosPos.split("\n");
-	for (let i = 0; i < tagPosPos.length; i++) {
-		tagPosPos[i] = tagPosPos[i].split("|");
-		tagPosPos[i][1] = parseInt(tagPosPos[i][1]);
+	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
+	key = key.split("\n");
+	for (let i = 0; i < key.length; i++) {
+		key[i] = key[i].split("|");
+		key[i][1] = parseInt(key[i][1]);
 	}
 
-	findTagPos("1girl");
+	getRandomPrompt(["1girl", "loli", "uncensored", "pussy"], ["censored"]);
+	
+	//getPositions("1girl");
 }
 
-async function readTagData(start, end) {
-	const stream = fs.createReadStream(path.join(__dirname, '..', 'tags.csv'), {start: start, end: end});
-	return new Promise(function(resolve, reject) {
-		stream.on('data', function(chunk) {
-			resolve(new Uint8Array(chunk.buffer));
-		});
-	});
-}
-
-async function readTagDict(start, end) {
-	const stream = fs.createReadStream(path.join(__dirname, '..', 'posdict.csv'), {start: start, end: end});
+async function read(fileName, start, end) {
+	const stream = fs.createReadStream(path.join(__dirname, '..', fileName), {start: start, end: end, highWaterMark:end - start});
 	return new Promise(function(resolve, reject) {
 		stream.on('data', function(chunk) {
 			resolve(new Uint8Array(chunk.buffer));
@@ -239,42 +256,6 @@ function strToList(str) {
 	}
 
 	return list;
-}
-
-async function getRandomPrompt() {
-	let prompt = "";
-
-	let randomIndex = Math.floor(Math.random() * tagDataLength);
-	let value = await readTagData(randomIndex, randomIndex);
-	value = value[0];
-
-	let startPoint = randomIndex;
-	let endPoint = randomIndex;
-
-	// Unlucky indexing
-	if(value == 13 || value == 10) {
-		return getRandomPrompt();
-	}
-
-	// Find start point
-	let startValue;
-	do {
-		startValue = await readTagData(startPoint, startPoint);
-		startPoint--;
-	} while(startValue != 13 && startValue != 10);
-	startPoint += 2;
-
-	let endValue;
-	do {
-		endValue = await readTagData(endPoint, endPoint);
-		endPoint++;
-	} while(endValue != 13 && endValue != 10);
-	endPoint--;
-
-	// Get prompt
-	prompt = new TextDecoder("utf-8").decode(await readTagData(startPoint, endPoint));
-
-	return prompt;
 }
 
 app.post('/api*', function(req, res, next) {
