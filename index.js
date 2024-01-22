@@ -72,6 +72,20 @@ app.use(cors({
 }));
 
 async function getRandomPrompt(including, excluding) {
+	if (including.length == 0) {
+		return null;
+	}
+
+	for (var i = 0; i < including.length; i++) {
+		let index = key.findIndex(function (element) {
+			return element[0] == including[i];
+		}, including[i]);
+
+		if (index == -1) {
+			return null;
+		}
+	}
+
 	let pos;
 
 	for (i = 0; i < including.length; i++) {
@@ -84,13 +98,15 @@ async function getRandomPrompt(including, excluding) {
 		}
 	}
 
-	pos = Array.from(pos);
+	for (i = 0; i < excluding.length; i++) {
+		temp = new Set(await getPositions(excluding[i]));
+		pos = new Set([...pos].filter(x => !temp.has(x)));
+	}
 
+	pos = Array.from(pos);
 	pos = pos[Math.floor(Math.random() * pos.length)];
 
-	console.log(pos);
-
-	await getPromptFromPos(pos);
+	return await getPromptFromPos(pos);
 }
 
 async function getPromptFromPos(pos) {
@@ -103,11 +119,10 @@ async function getPromptFromPos(pos) {
 		}
 	}
 
-	console.log(start, end);
-
 	let data = await read("tags.csv", start, end);
 	let str = new TextDecoder("utf-8").decode(data);
-	console.log(str);
+
+	return str;
 }
 
 async function getPositions(tag) {
@@ -161,8 +176,6 @@ function init() {
 		key[i] = key[i].split("|");
 		key[i][1] = parseInt(key[i][1]);
 	}
-
-	getRandomPrompt(["1girl", "loli", "uncensored", "pussy"], ["censored"]);
 }
 
 async function read(fileName, start, end) {
@@ -193,44 +206,7 @@ async function findPrompt(including) {
 	including = removeEmptyElements(including);
 	excluding = removeEmptyElements(excluding);
 
-	let minScore = -1;
-
-	for (item of including) {
-		if (item.substring(0, 6) === 'score>') {
-			let score = parseInt(item.substring(6));
-			including.splice(including.indexOf(item), 1);
-			minScore = score;
-		}
-	}
-
-	for(var i = 0; i < 10000; i++) {
-		let prompt = await getRandomPrompt(including);
-		if(prompt == null) {
-			return null;
-		}
-
-		const data = prompt.split("|");
-		const score = data[0];
-		const rating = data[1];
-		const prom = data[2];
-
-		if (score <= minScore) {
-			continue;
-		}
-
-		if (including.length == 0 || allInList(including, strToList(prom))) {
-			if (excluding.length != 0 && listInList(excluding, strToList(prom))) {
-				continue;
-			}
-
-			console.log("found " + i);
-			return prom;
-		}
-	}
-
-	console.log("not found");
-
-	return null;
+	return await getRandomPrompt(including, excluding);
 }
 
 function removeEmptyElements(list) {
