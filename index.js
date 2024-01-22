@@ -87,7 +87,27 @@ async function getRandomPrompt(including, excluding) {
 	pos = Array.from(pos);
 
 	pos = pos[Math.floor(Math.random() * pos.length)];
+
 	console.log(pos);
+
+	await getPromptFromPos(pos);
+}
+
+async function getPromptFromPos(pos) {
+	let start = pos;
+	let end = pos;
+
+	for (end = pos; end < tagDataLength; end++) {
+		if (await read("tags.csv", end, end + 1) == 0x0A) {
+			break;
+		}
+	}
+
+	console.log(start, end);
+
+	let data = await read("tags.csv", start, end);
+	let str = new TextDecoder("utf-8").decode(data);
+	console.log(str);
 }
 
 async function getPositions(tag) {
@@ -143,8 +163,6 @@ function init() {
 	}
 
 	getRandomPrompt(["1girl", "loli", "uncensored", "pussy"], ["censored"]);
-	
-	//getPositions("1girl");
 }
 
 async function read(fileName, start, end) {
