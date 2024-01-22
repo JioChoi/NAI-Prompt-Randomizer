@@ -16,6 +16,8 @@ var certificate;
 var ca;
 var credentials;
 
+var tagPosPos;
+
 var production = false;
 
 if (fs.existsSync("/etc/letsencrypt/live/prombot.net/privkey.pem")) {
@@ -49,7 +51,6 @@ app.use((req, res, next) => {
 	});
 });
 
-
 app.use(require('express-status-monitor')());
 
 app.use(express.json()); 
@@ -70,13 +71,67 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
+async function findTagsPos(tags) {
+	
+}
+
+async function findTagPos(tag) {
+	let start = -1;
+	let end = 0;
+
+	for (let i = 0; i < tagPosPos.length; i++) {
+		if (tagPosPos[i][0] == tag) {
+			start = tagPosPos[i][1];
+			if (i + 1 == tagPosPos.length) {
+				end = tagDataLength;
+			}
+			else {
+				end = tagPosPos[i + 1][1];
+			}
+			break;
+		}
+	}
+
+	if (start == -1) {
+		return null;
+	}
+
+	let tagDict = await readTagDict(start, end);
+	tagDict = new TextDecoder("utf-8").decode(tagDict);
+	tagDict = tagDict.split(",");
+	for (let i = 0; i < tagDict.length; i++) {
+		tagDict[i] = Number(tagDict[i].trim());
+	}
+
+	return tagDict;
+}
+
 function init() {
 	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
 	console.log("Tag data length: " + tagDataLength);
+
+	// Load tagPosPos
+	tagPosPos = fs.readFileSync(path.join(__dirname, '..', 'tagdict.csv'), 'utf8');
+	tagPosPos = tagPosPos.split("\n");
+	for (let i = 0; i < tagPosPos.length; i++) {
+		tagPosPos[i] = tagPosPos[i].split("|");
+		tagPosPos[i][1] = parseInt(tagPosPos[i][1]);
+	}
+
+	findTagPos("1girl");
 }
 
 async function readTagData(start, end) {
 	const stream = fs.createReadStream(path.join(__dirname, '..', 'tags.csv'), {start: start, end: end});
+	return new Promise(function(resolve, reject) {
+		stream.on('data', function(chunk) {
+			resolve(new Uint8Array(chunk.buffer));
+		});
+	});
+}
+
+async function readTagDict(start, end) {
+	const stream = fs.createReadStream(path.join(__dirname, '..', 'posdict.csv'), {start: start, end: end});
 	return new Promise(function(resolve, reject) {
 		stream.on('data', function(chunk) {
 			resolve(new Uint8Array(chunk.buffer));
