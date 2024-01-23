@@ -7,6 +7,7 @@ const { randomBytes } = require('crypto');
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 
 const https = require('https');
+const http = require('http');
 const { resolve } = require('path');
 
 const path = require("path");
@@ -69,17 +70,6 @@ app.use(cors({
 	credentials: true,
 	optionsSuccessStatus: 200
 }));
-
-const domain = "prombot.net";
-if (production) {
-	app.use(function (req, res, next) {
-		if (!req.secure) {
-			res.redirect(`https://${domain}${req.url}`);
-		} else {
-			next();
-		}
-	});
-}
 
 // TODO: THIS IS ONLY CODE FOR THE SERVER SIDE
 async function getPromptFromPos(pos) {
@@ -237,11 +227,16 @@ app.get('/', function(req, res, next) {
 });
 
 if(production) {
-	https.createServer(credentials, app).listen(8080, function() {
-		console.log('Listening on port 8080!');
+	https.createServer(credentials, app).listen(443, function() {
+		console.log('Listening on port 443!');
 		init();
 		//loadCSV();
 	});
+	var http = require('http');
+	http.createServer(function (req, res) {
+		res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+		res.end();
+	}).listen(80);
 }
 else {
 	app.listen(80, function() {
