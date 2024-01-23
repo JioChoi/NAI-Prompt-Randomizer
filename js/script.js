@@ -170,7 +170,7 @@ function css() {
 			moveTagSuggest();
 
 			if (tagSuggestElement != null) {
-				if (sidebarItems.getBoundingClientRect().top > tagSuggestElement.getBoundingClientRect().bottom) {
+				if (sidebarItems.getBoundingClientRect().top + window.pageYOffset > tagSuggestElement.getBoundingClientRect().bottom + window.pageYOffset) {
 					hideTagSuggest();
 				}
 			}
@@ -540,10 +540,10 @@ function resizeInfo() {
 
 	const rect = result.getBoundingClientRect();
 
-	info.style.top = rect.bottom - info.getBoundingClientRect().height + 'px';
-	info.style.left = rect.left + 'px';
+	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset + 'px';
+	info.style.left = rect.left + window.pageXOffset + 'px';
 
-	info.style.width = result.clientWidth + 'px';
+	info.style.width = result.clientWidth - window.pageXOffset + 'px';
 }
 
 function initInfo(url) {
@@ -1128,8 +1128,8 @@ function moveTagSuggest() {
 		const suggest = document.getElementById('tagSuggest');
 		const rect = tagSuggestElement.getBoundingClientRect();
 
-		suggest.style.top = rect.bottom - 2 + 'px';
-		suggest.style.left = rect.left + 'px';
+		suggest.style.top = rect.bottom - 2 + window.pageYOffset + 'px';
+		suggest.style.left = rect.left + window.pageXOffset + 'px';
 	}
 }
 
