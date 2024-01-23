@@ -73,6 +73,7 @@ function downloadLists() {
 		keys = req5.response.split("\n");
 		for (let i = 0; i < keys.length; i++) {
 			keys[i] = keys[i].split("|");
+			keys[i][1] = parseInt(keys[i][1]);
 		}
 		console.log("download complete");
 		console.log(keys.length);
@@ -771,7 +772,7 @@ async function getRandomPrompt(including, excluding) {
 }
 
 async function getPromptFromPos(pos) {
-	return await post('/read', { 'file': "tags.csv", 'pos': pos }, null, 'text');
+	return await post('/readTags', { 'pos': pos }, null, 'text');
 }
 
 async function getPositions(tag) {
@@ -793,13 +794,9 @@ async function getPositions(tag) {
 		end = keys[index + 1][1];
 	}
 
-	let data = await read("pos.csv", start, end);
+	let data = await post('/readPos', { 'start': start, 'end': end }, null, 'json');
 
 	return data;
-}
-
-async function read(file, start, end) {
-	return await post('/read', { 'file': file, 'start': start, 'end': end }, null, 'json');
 }
 
 function combinePrompt(beg, mid, end) {

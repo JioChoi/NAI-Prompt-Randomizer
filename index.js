@@ -31,6 +31,7 @@ if(production) {
 
 var app = express();
 var tagDataLength = 0;
+var posDataLength = 0;
 
 const opts = {
 	points: 20, // 6 points
@@ -98,7 +99,9 @@ function init() {
 	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
 	console.log("Tag data length: " + tagDataLength);
 
-	// Load tagPosPos
+	posDataLength = fs.statSync(path.join(__dirname, '..', 'pos.csv')).size;
+
+	// Load key.csv
 	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
 	key = key.split("\n");
 	for (let i = 0; i < key.length; i++) {
@@ -122,30 +125,36 @@ app.post('/tags', async function (req, res, next) {
 	res.send(prompt);
 });
 
-app.post('/read', async function (req, res, next) {
-	let file = req.body.file;
+app.post('/readPos', async function (req, res, next) {
+	let start = req.body.start;
+	let end = req.body.end;
 
-	let data = null;
-
-	if (file == "pos.csv") {
-		let start = req.body.start;
-		let end = req.body.end;
-
-		let pos = [];
-		let data = await read("pos.csv", start * 4, end * 4);
-		var view = new DataView(data.buffer, 0);
-
-		for (let i = 0; i < data.length / 4; i++) {
-			pos.push(view.getUint32(i * 4));
-		}
-
-		res.send(pos);
+	if (start == undefined || end == undefined || typeof start != "number" || typeof end != "number" || start >= end || start < 0 || end > posDataLength) {
+		res.send([]);
+		return;
 	}
-	else if (file == "tags.csv") {
-		let pos = req.body.pos;
-		let prompt = await getPromptFromPos(pos);
-		res.send(prompt);
+
+	let pos = [];
+	let data = await read("pos.csv", start * 4, end * 4);
+	var view = new DataView(data.buffer, 0);
+
+	for (let i = 0; i < data.length / 4; i++) {
+		pos.push(view.getUint32(i * 4));
 	}
+
+	res.send(pos);
+});
+
+app.post('/readTags', async function (req, res, next) {
+	let pos = req.body.pos;
+
+	if (pos == undefined || typeof pos != "number" || pos < 0 || pos > tagDataLength) {
+		res.send([]);
+		return;
+	}
+
+	let prompt = await getPromptFromPos(pos);
+	res.send(prompt);
 });
 
 async function findPrompt(including) {
