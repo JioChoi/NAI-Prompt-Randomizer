@@ -19,21 +19,21 @@ let previousIncluding = "";
 
 async function downloadLists() {
 	let downloaded = 0;
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
 		artistList = data.split("\n");
 		console.log("downloaded artist_list.txt");
 		console.log(artistList.length);
 		downloaded++;
 	});
 
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", null, "text").then((data) => {
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", null, "text").then((data) => {
 		characterList = data.split("\n");
 		console.log("downloaded character_list.txt");
 		console.log(characterList.length);
 		downloaded++;
 	});
 
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", null, "text").then((data) => {
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", null, "text").then((data) => {
 		whitelist = data.split("\n");
 		for (let temp of whitelist) {
 			whitelistSeparated.push(temp.split(" "));
@@ -43,14 +43,14 @@ async function downloadLists() {
 		downloaded++;
 	});
 
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", null, "text").then((data) => {
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", null, "text").then((data) => {
 		censorList = data.split("\n");
 		console.log("downloaded censor_list.txt");
 		console.log(censorList.length);
 		downloaded++;
 	});
 
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv", null, "text").then((data) => {
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv", null, "text").then((data) => {
 		keys = data.split("\n");
 		for (let i = 0; i < keys.length; i++) {
 			keys[i] = keys[i].split("|");
@@ -1316,12 +1316,11 @@ async function post(url, data, authorization = null, resultType = 'json') {
 }
 
 // Get request
-async function get(url, authorization = null, responseType = 'json') {
+async function get(url, authorization = null) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
 			url: url,
 			type: 'GET',
-			dataType: responseType,
 			beforeSend: function(request) {
 				request.setRequestHeader("Authorization", authorization);
 			},
@@ -1331,6 +1330,21 @@ async function get(url, authorization = null, responseType = 'json') {
 			error: function(err) {
 				reject(err);
 			}
+		});
+	});
+}
+
+// Download file
+async function downloadFile(url) {
+	return new Promise((resolve, reject) => {
+		fetch(url, {
+			method: 'GET'
+		})
+		.then((response) => {
+			resolve(response.text());
+		})
+		.catch((err) => {
+			reject(err);
 		});
 	});
 }
