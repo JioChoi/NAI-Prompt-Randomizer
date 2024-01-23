@@ -8,6 +8,7 @@ let characterList;
 let whitelist;
 let censorList;
 let whitelistSeparated = [];
+let tagDataLength = 0;
 
 let tagSuggestElement = null;
 let keys = [];
@@ -16,7 +17,7 @@ let progress = 0;
 let previousPos = null;
 let previousIncluding = "";
 
-function downloadLists() {
+async function downloadLists() {
 	let req = new XMLHttpRequest();
 	req.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", true);
 	req.responseType = "text";
@@ -79,7 +80,9 @@ function downloadLists() {
 		console.log(keys.length);
 	}
 	req5.send(null);
-	
+
+	tagDataLength = 1911906176;
+
 	document.getElementById("generate").disabled = false;
 }
 
@@ -775,6 +778,14 @@ async function getPromptFromPos(pos) {
 	return await post('/readTags', { 'pos': pos }, null, 'text');
 }
 
+async function readTagData(start, end) {
+	let data = await fetch("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/tags.csv", { headers: { Range: `bytes=${start}-${end - 1}` } });
+	data = await data.arrayBuffer();
+	data = new Uint8Array(data);
+
+	return data;
+}
+
 async function getPositions(tag) {
 	let index = keys.findIndex(function (element) {
 		return element[0] == tag;
@@ -794,9 +805,17 @@ async function getPositions(tag) {
 		end = keys[index + 1][1];
 	}
 
-	let data = await post('/readPos', { 'start': start, 'end': end }, null, 'json');
+	let data = await fetch("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/pos.csv", { headers: { Range: `bytes=${start*4}-${end*4 - 1}` } });
+	data = await data.arrayBuffer();
 
-	return data;
+	let pos = [];
+	var view = new DataView(data, 0);
+
+	for (let i = 0; i < data.byteLength / 4; i++) {
+		pos.push(view.getUint32(i * 4));
+	}
+
+	return pos;
 }
 
 function combinePrompt(beg, mid, end) {

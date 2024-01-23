@@ -125,26 +125,6 @@ app.post('/tags', async function (req, res, next) {
 	res.send(prompt);
 });
 
-app.post('/readPos', async function (req, res, next) {
-	let start = req.body.start;
-	let end = req.body.end;
-
-	if (start == undefined || end == undefined || typeof start != "number" || typeof end != "number" || start >= end || start < 0 || end > posDataLength) {
-		res.send([]);
-		return;
-	}
-
-	let pos = [];
-	let data = await read("pos.csv", start * 4, end * 4);
-	var view = new DataView(data.buffer, 0);
-
-	for (let i = 0; i < data.length / 4; i++) {
-		pos.push(view.getUint32(i * 4));
-	}
-
-	res.send(pos);
-});
-
 app.post('/readTags', async function (req, res, next) {
 	let pos = req.body.pos;
 
