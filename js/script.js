@@ -177,6 +177,7 @@ function css() {
 			// Move dropdown menu when resizing
 			moveDropdown(dropdown, option);
 			resizeInfo();
+			moveTagSuggest();
 		});
 
 		// When dropdown menu options are clicked
