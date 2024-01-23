@@ -9,7 +9,12 @@ let whitelist;
 let censorList;
 let whitelistSeparated = [];
 
-let tagSuggestElement;
+let tagSuggestElement = null;
+let keys = [];
+let progress = 0;
+
+let previousPos = null;
+let previousIncluding = "";
 
 function downloadLists() {
 	let req = new XMLHttpRequest();
@@ -21,7 +26,6 @@ function downloadLists() {
 		console.log("download complete");
 		console.log(artistList.length);
 	}
-
 	req.send(null);
 
 	let req2 = new XMLHttpRequest();
@@ -33,7 +37,6 @@ function downloadLists() {
 		console.log("download complete");
 		console.log(characterList.length);
 	}
-
 	req2.send(null);
 
 	let req3 = new XMLHttpRequest();
@@ -49,7 +52,6 @@ function downloadLists() {
 			whitelistSeparated.push(temp.split(" "));
 		}
 	}
-
 	req3.send(null);
 
 	let req4 = new XMLHttpRequest();
@@ -61,8 +63,21 @@ function downloadLists() {
 		console.log("download complete");
 		console.log(censorList.length);
 	}
-
 	req4.send(null);
+
+	let req5 = new XMLHttpRequest();
+	req5.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv?download=true", true);
+	req5.responseType = "text";
+
+	req5.onload = function (e) {
+		keys = req5.response.split("\n");
+		for (let i = 0; i < keys.length; i++) {
+			keys[i] = keys[i].split("|");
+		}
+		console.log("download complete");
+		console.log(keys.length);
+	}
+	req5.send(null);
 	
 	document.getElementById("generate").disabled = false;
 }
@@ -159,6 +174,13 @@ function css() {
 		// Move dropdown menu when scrolling
 		sidebarItems.addEventListener('scroll', (e) => {
 			moveDropdown(dropdown, option);
+			moveTagSuggest();
+
+			if (tagSuggestElement != null) {
+				if (sidebarItems.getBoundingClientRect().top > tagSuggestElement.getBoundingClientRect().bottom) {
+					hideTagSuggest();
+				}
+			}
 		});
 
 		window.addEventListener('resize', (e) => {
@@ -640,6 +662,17 @@ async function randomizePrompt() {
 
 	let begprompt = removeEmptyElements(strToList(options.begprompt));
 	let including = removeEmptyElements(strToList(options.including));
+	let excluding = [];
+	for (var i = 0; i < including.length; i++) {
+		if (including[i].startsWith("~")) {
+			excluding.push(including[i].substring(1));
+			including.splice(i, 1);
+			i--;
+		}
+	}
+
+	including = removeEmptyElements(including);
+	excluding = removeEmptyElements(excluding);
 
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
@@ -647,7 +680,8 @@ async function randomizePrompt() {
 	let endprompt = removeEmptyElements(strToList(options.endprompt));
 	let negative = removeEmptyElements(strToList(options.negativePrompt));
 
-	let prompt = await post('/tags', { 'including': including }, null, 'text');
+	let prompt = await getRandomPrompt(including, excluding);
+
 	if(prompt == null || prompt === "") {
 		return null;
 	}
@@ -675,6 +709,97 @@ async function randomizePrompt() {
 	prompt = combinePrompt(begprompt, prompt, endprompt);
 
 	return prompt;
+}
+
+async function getRandomPrompt(including, excluding) {
+	process = 0;
+
+	if (including.length == 0) {
+		return null;
+	}
+
+	for (var i = 0; i < including.length; i++) {
+		let index = keys.findIndex(function (element) {
+			return element[0] == including[i];
+		}, including[i]);
+
+		if (index == -1) {
+			return null;
+		}
+	}
+
+	let pos;
+
+	let inc = including.concat(excluding).join(", ");
+	if (previousIncluding === inc) {
+		pos = previousPos;
+	}
+	else {
+		for (i = 0; i < including.length; i++) {
+			if (i == 0) {
+				pos = new Set(await getPositions(including[i]));
+			}
+			else {
+				var temp = new Set(await getPositions(including[i]));
+				pos = new Set([...pos].filter(x => temp.has(x)));
+				delete temp;
+			}
+	
+			process = i / (including.length + excluding.length);
+			document.getElementById('generate').innerHTML = "Searching... " + Math.round(process * 100) + "%";
+		}
+	
+		for (i = 0; i < excluding.length; i++) {
+			temp = new Set(await getPositions(excluding[i]));
+			pos = new Set([...pos].filter(x => !temp.has(x)));
+	
+			process = (i + including.length) / (including.length + excluding.length);
+			document.getElementById('generate').innerHTML = "Searching... " + Math.round(process * 100) + "%";
+		}
+	
+		pos = Array.from(pos);
+	}
+
+	previousIncluding = inc;
+	previousPos = pos;
+
+	pos = pos[Math.floor(Math.random() * pos.length)];
+
+	document.getElementById('generate').innerHTML = "Generate";
+
+	return await getPromptFromPos(pos);
+}
+
+async function getPromptFromPos(pos) {
+	return await post('/read', { 'file': "tags.csv", 'pos': pos }, null, 'text');
+}
+
+async function getPositions(tag) {
+	let index = keys.findIndex(function (element) {
+		return element[0] == tag;
+	}, tag);
+
+	if (index == -1) {
+		return [];
+	}
+
+	let start = keys[index][1];
+	let end = 0;
+
+	if(index == keys.length - 1) {
+		end = tagDataLength;
+	}
+	else {
+		end = keys[index + 1][1];
+	}
+
+	let data = await read("pos.csv", start, end);
+
+	return data;
+}
+
+async function read(file, start, end) {
+	return await post('/read', { 'file': file, 'start': start, 'end': end }, null, 'json');
 }
 
 function combinePrompt(beg, mid, end) {
@@ -756,9 +881,7 @@ function removeListFromList(list1, list2) {
 // Generate button click
 async function generate() {
 	document.getElementById('generate').disabled = true;
-	document.getElementById('maid').style.visibility = 'visible';
-	document.getElementById('maid').style.right = '-100px';
-	document.getElementById('image').classList.add('generating');
+	document.getElementById('generate').innerHTML = "Searching... 0%";
 
 	let options = getOptions();
 	
@@ -770,6 +893,10 @@ async function generate() {
 		document.getElementById('image').classList.remove('generating');
 		return;
 	}
+
+	document.getElementById('maid').style.visibility = 'visible';
+	document.getElementById('maid').style.right = '-100px';
+	document.getElementById('image').classList.add('generating');
 
 	let negativePrompt = options.negativePrompt;
 
@@ -991,11 +1118,13 @@ function suggestTags(str, element) {
 }
 
 function moveTagSuggest() {
-	const suggest = document.getElementById('tagSuggest');
-	const rect = tagSuggestElement.getBoundingClientRect();
+	if (tagSuggestElement != null) {
+		const suggest = document.getElementById('tagSuggest');
+		const rect = tagSuggestElement.getBoundingClientRect();
 
-	suggest.style.top = rect.bottom - 2 + 'px';
-	suggest.style.left = rect.left + 'px';
+		suggest.style.top = rect.bottom - 2 + 'px';
+		suggest.style.left = rect.left + 'px';
+	}
 }
 
 function findTags(str) {

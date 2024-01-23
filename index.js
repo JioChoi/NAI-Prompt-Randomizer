@@ -16,8 +16,6 @@ var certificate;
 var ca;
 var credentials;
 
-var key = [];
-
 var production = false;
 
 if (fs.existsSync("/etc/letsencrypt/live/prombot.net/privkey.pem")) {
@@ -71,44 +69,7 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-async function getRandomPrompt(including, excluding) {
-	if (including.length == 0) {
-		return null;
-	}
-
-	for (var i = 0; i < including.length; i++) {
-		let index = key.findIndex(function (element) {
-			return element[0] == including[i];
-		}, including[i]);
-
-		if (index == -1) {
-			return null;
-		}
-	}
-
-	let pos;
-
-	for (i = 0; i < including.length; i++) {
-		if (i == 0) {
-			pos = new Set(await getPositions(including[i]));
-		}
-		else {
-			temp = new Set(await getPositions(including[i]));
-			pos = new Set([...pos].filter(x => temp.has(x)));
-		}
-	}
-
-	for (i = 0; i < excluding.length; i++) {
-		temp = new Set(await getPositions(excluding[i]));
-		pos = new Set([...pos].filter(x => !temp.has(x)));
-	}
-
-	pos = Array.from(pos);
-	pos = pos[Math.floor(Math.random() * pos.length)];
-
-	return await getPromptFromPos(pos);
-}
-
+// TODO: THIS IS ONLY CODE FOR THE SERVER SIDE
 async function getPromptFromPos(pos) {
 	let start = pos;
 	let end = pos;
@@ -125,38 +86,6 @@ async function getPromptFromPos(pos) {
 	return str;
 }
 
-async function getPositions(tag) {
-	let index = key.findIndex(function (element) {
-		return element[0] == tag;
-	}, tag);
-
-	if (index == -1) {
-		return [];
-	}
-
-	let start = key[index][1];
-	let end = 0;
-
-	if(index == key.length - 1) {
-		end = tagDataLength;
-	}
-	else {
-		end = key[index + 1][1];
-	}
-
-	let pos = [];
-
-	let data = await read("pos.csv", start * 4, end * 4);
-	var view = new DataView(data.buffer, 0);
-
-	for (let i = 0; i < data.length / 4; i++) {
-		pos.push(view.getUint32(i * 4));
-	}
-
-	data = null;
-
-	return pos;
-}
 
 async function readHex(fileName, start, end) {
 	let data = await read(fileName, start, end);
@@ -191,6 +120,32 @@ app.post('/tags', async function (req, res, next) {
 	let including = req.body.including;
 	let prompt = await findPrompt(including);
 	res.send(prompt);
+});
+
+app.post('/read', async function (req, res, next) {
+	let file = req.body.file;
+
+	let data = null;
+
+	if (file == "pos.csv") {
+		let start = req.body.start;
+		let end = req.body.end;
+
+		let pos = [];
+		let data = await read("pos.csv", start * 4, end * 4);
+		var view = new DataView(data.buffer, 0);
+
+		for (let i = 0; i < data.length / 4; i++) {
+			pos.push(view.getUint32(i * 4));
+		}
+
+		res.send(pos);
+	}
+	else if (file == "tags.csv") {
+		let pos = req.body.pos;
+		let prompt = await getPromptFromPos(pos);
+		res.send(prompt);
+	}
 });
 
 async function findPrompt(including) {
