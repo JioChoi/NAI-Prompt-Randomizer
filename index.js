@@ -70,6 +70,17 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
+const domain = "prombot.net";
+if (production) {
+	app.use(function (req, res, next) {
+		if (!req.secure) {
+			res.redirect(`https://${domain}${req.url}`);
+		} else {
+			next();
+		}
+	});
+}
+
 // TODO: THIS IS ONLY CODE FOR THE SERVER SIDE
 async function getPromptFromPos(pos) {
 	let start = pos;
@@ -226,8 +237,8 @@ app.get('/', function(req, res, next) {
 });
 
 if(production) {
-	https.createServer(credentials, app).listen(443, function() {
-		console.log('Listening on port 443!');
+	https.createServer(credentials, app).listen(8080, function() {
+		console.log('Listening on port 8080!');
 		init();
 		//loadCSV();
 	});
