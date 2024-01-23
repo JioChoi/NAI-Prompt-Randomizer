@@ -64,9 +64,12 @@ async function downloadLists() {
 	tagDataLength = 1911906176;
 
 	let interval = setInterval(() => {
+		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / 5 * 100) + "%";
+
 		if (downloaded == 5) {
 			clearInterval(interval);
 			console.log("downloaded all lists");
+			document.getElementById('generate').innerHTML = "Generate";
 			document.getElementById("generate").disabled = false;
 		}
 	}, 100);
