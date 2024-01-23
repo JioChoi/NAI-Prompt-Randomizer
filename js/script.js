@@ -18,72 +18,58 @@ let previousPos = null;
 let previousIncluding = "";
 
 async function downloadLists() {
-	let req = new XMLHttpRequest();
-	req.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", true);
-	req.responseType = "text";
-
-	req.onload = function (e) {
-		artistList = req.response.split("\n");
-		console.log("download complete");
+	let downloaded = 0;
+	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
+		artistList = data.split("\n");
+		console.log("downloaded artist_list.txt");
 		console.log(artistList.length);
-	}
-	req.send(null);
+		downloaded++;
+	});
 
-	let req2 = new XMLHttpRequest();
-	req2.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", true);
-	req2.responseType = "text";
-
-	req2.onload = function (e) {
-		characterList = req2.response.split("\n");
-		console.log("download complete");
+	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", null, "text").then((data) => {
+		characterList = data.split("\n");
+		console.log("downloaded character_list.txt");
 		console.log(characterList.length);
-	}
-	req2.send(null);
+		downloaded++;
+	});
 
-	let req3 = new XMLHttpRequest();
-	req3.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", true);
-	req3.responseType = "text";
-
-	req3.onload = function (e) {
-		whitelist = req3.response.split("\n");
-		console.log("download complete");
-		console.log(whitelist.length);
-
-		for(let temp of whitelist) {
+	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", null, "text").then((data) => {
+		whitelist = data.split("\n");
+		for (let temp of whitelist) {
 			whitelistSeparated.push(temp.split(" "));
 		}
-	}
-	req3.send(null);
+		console.log("downloaded whitelist.txt");
+		console.log(whitelist.length);
+		downloaded++;
+	});
 
-	let req4 = new XMLHttpRequest();
-	req4.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", true);
-	req4.responseType = "text";
-
-	req4.onload = function (e) {
-		censorList = req4.response.split("\n");
-		console.log("download complete");
+	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", null, "text").then((data) => {
+		censorList = data.split("\n");
+		console.log("downloaded censor_list.txt");
 		console.log(censorList.length);
-	}
-	req4.send(null);
+		downloaded++;
+	});
 
-	let req5 = new XMLHttpRequest();
-	req5.open("GET", "https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv?download=true", true);
-	req5.responseType = "text";
-
-	req5.onload = function (e) {
-		keys = req5.response.split("\n");
+	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv?download=true", null, "text").then((data) => {
+		keys = data.split("\n");
 		for (let i = 0; i < keys.length; i++) {
 			keys[i] = keys[i].split("|");
 			keys[i][1] = parseInt(keys[i][1]);
 		}
-		console.log("download complete");
+		console.log("downloaded key.csv");
 		console.log(keys.length);
-	}
-	req5.send(null);
+		downloaded++;
+	});
 
 	tagDataLength = 1911906176;
 
-	document.getElementById("generate").disabled = false;
+	let interval = setInterval(() => {
+		if (downloaded == 5) {
+			clearInterval(interval);
+			console.log("downloaded all lists");
+			document.getElementById("generate").disabled = false;
+		}
+	}, 100);
 }
 
 // On page load
@@ -1326,11 +1312,12 @@ async function post(url, data, authorization = null, resultType = 'json') {
 }
 
 // Get request
-async function get(url, authorization = null) {
+async function get(url, authorization = null, responseType = 'json') {
 	return new Promise((resolve, reject) => {
 		$.ajax({
 			url: url,
 			type: 'GET',
+			dataType: responseType,
 			beforeSend: function(request) {
 				request.setRequestHeader("Authorization", authorization);
 			},
