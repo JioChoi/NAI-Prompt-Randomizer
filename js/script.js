@@ -50,7 +50,7 @@ async function downloadLists() {
 		downloaded++;
 	});
 
-	get("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv?download=true", null, "text").then((data) => {
+	get("/key.csv", null, "text").then((data) => {
 		keys = data.split("\n");
 		for (let i = 0; i < keys.length; i++) {
 			keys[i] = keys[i].split("|");

@@ -60,6 +60,8 @@ app.use('/js', express.static(__dirname + '/js'));
 app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/dataset', express.static(__dirname + '/dataset'));
 app.use('/css', express.static(__dirname + '/css'));
+app.use('/key.csv', express.static(path.join(__dirname, '..', 'key.csv')));
+app.use('/tags.csv', express.static(path.join(__dirname, '..', 'tags.csv')));
 app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
