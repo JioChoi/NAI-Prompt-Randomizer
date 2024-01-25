@@ -23,14 +23,12 @@ async function downloadLists() {
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
 		artistList = data.split("\n");
 		console.log("downloaded artist_list.txt");
-		console.log(artistList.length);
 		downloaded++;
 	});
 
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/character_list.txt", null, "text").then((data) => {
 		characterList = data.split("\n");
 		console.log("downloaded character_list.txt");
-		console.log(characterList.length);
 		downloaded++;
 	});
 
@@ -40,21 +38,18 @@ async function downloadLists() {
 			whitelistSeparated.push(temp.split(" "));
 		}
 		console.log("downloaded whitelist.txt");
-		console.log(whitelist.length);
 		downloaded++;
 	});
 
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/censor_list.txt", null, "text").then((data) => {
 		censorList = data.split("\n");
 		console.log("downloaded censor_list.txt");
-		console.log(censorList.length);
 		downloaded++;
 	});
 
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/copyright_list.txt", null, "text").then((data) => {
 		copyrightList = data.split("\n");
 		console.log("downloaded copyright_list.txt");
-		console.log(censorList.length);
 		downloaded++;
 	});
 
@@ -65,7 +60,6 @@ async function downloadLists() {
 			keys[i][1] = parseInt(keys[i][1]);
 		}
 		console.log("downloaded key.csv");
-		console.log(keys.length);
 		downloaded++;
 	});
 
