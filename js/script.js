@@ -1117,7 +1117,12 @@ function suggestTags(str, element) {
 			let start = 0;
 			let end = tagSuggestElement.selectionStart;
 
-			start = Math.max(cursorStr.lastIndexOf(",") + 1, cursorStr.lastIndexOf(", ") + 2, cursorStr.lastIndexOf("{") + 1, cursorStr.lastIndexOf("~") + 1);
+			if (cursorStr.includes(",") || cursorStr.includes("{") || cursorStr.includes("~")) {
+				start = Math.max(cursorStr.lastIndexOf(",") + 1, cursorStr.lastIndexOf(", ") + 2, cursorStr.lastIndexOf("{") + 1, cursorStr.lastIndexOf("~") + 1);
+			}
+			else {
+				start = 0;
+			}
 
 			tagSuggestElement.value = str.substring(0, start) + tag + str.substring(end);
 			tagSuggestElement.selectionStart = start + tag.length;
