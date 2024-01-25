@@ -162,13 +162,18 @@
 				<h2 id="delayt">Delay: 8 seconds</h2>
 				<input type="range" id="delay" min="0" max="30" step="1" value="8">
 	
-				<div class="rowcb">
+				<div class="rowcb nobottom">
 					<input type="checkbox" id="automation">
 					<label for="automation">Enable Automation</label>
 	
 					<input type="checkbox" id="autodown">
 					<label for="autodown">Automatically Download</label>
 				</div>
+				<div class="rowcb">
+					<input type="checkbox" id="ignorefail">
+					<label for="ignorefail">Ignore Server Failure</label>
+				</div>
+				
 			</div>		
 			<div class="footer">
 				<button id="generate" onclick='generate()' disabled>Generate</button>

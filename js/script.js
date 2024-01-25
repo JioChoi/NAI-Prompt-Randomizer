@@ -1,7 +1,7 @@
 let api = '/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false}';
 
 let artistList;
 let characterList;
@@ -17,6 +17,8 @@ let progress = 0;
 
 let previousPos = null;
 let previousIncluding = "";
+
+let mobile = false;
 
 async function downloadLists() {
 	let downloaded = 0;
@@ -82,6 +84,8 @@ window.onload = async function () {
 	downloadLists();
 	await init();
 	
+	checkMobile();
+
 	const options = localStorage.getItem('options');
 	if(options == null) {
 		loadOptions(example);
@@ -93,6 +97,15 @@ window.onload = async function () {
 	checkDYN();
 
 	document.getElementById('loading').style.display = 'none';
+}
+
+function checkMobile() {
+	if(window.innerWidth <= 1023) {
+		mobile = true;
+	}
+	else {
+		mobile = false;
+	}
 }
 
 // Init css elements
@@ -183,6 +196,7 @@ function css() {
 			moveDropdown(dropdown, option);
 			resizeInfo();
 			moveTagSuggest();
+			checkMobile();
 		});
 
 		// When dropdown menu options are clicked
@@ -356,28 +370,37 @@ function css() {
 	const info = document.getElementById('info');
 
 	result.addEventListener('mouseenter', (e) => {
+		if(mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
 	});
 	info.addEventListener('mouseenter', (e) => {
+		if(mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
 	});
 
 	result.addEventListener('click', (e) => {
-		resizeInfo();
-		info.classList.add('shown');
+		if(!mobile) return;
+		if (!info.classList.contains('shown')) {
+			resizeInfo();
+			info.classList.add('shown');
+			e.stopPropagation();
+		}
 	});
 	document.addEventListener('click', (e) => {
-		if(e.target != result && e.target != info) {
+		if(!mobile) return;
+		if(e.target != info) {
 			info.classList.remove('shown');
 		}
 	});
 
 	result.addEventListener('mouseleave', (e) => {
+		if(mobile) return;
 		info.classList.remove('shown');
 	});
 	info.addEventListener('mouseleave', (e) => {
+		if(mobile) return;
 		info.classList.remove('shown');
 	});
 
@@ -515,6 +538,7 @@ function loadOptions(options) {
 	document.getElementById('delay').value = options.delay;
 	document.getElementById('automation').checked = options.automation;
 	document.getElementById('autodown').checked = options.autodownload;
+	document.getElementById('ignorefail').checked = options.ignorefail;
 
 	const imgSize = findImageSize(options.width, options.height);
 	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
@@ -544,6 +568,7 @@ function getOptions() {
 	options.delay = document.getElementById('delay').value;
 	options.automation = document.getElementById('automation').checked;
 	options.autodownload = document.getElementById('autodown').checked;
+	options.ignorefail = document.getElementById('ignorefail').checked;
 
 	return options;
 }
@@ -913,8 +938,15 @@ async function generate() {
 
 	let options = getOptions();
 	
-	let prompt = await randomizePrompt();
-	if(prompt == null) {
+	let prompt = null;
+	try {
+		prompt = await randomizePrompt();
+	} catch {
+		console.log("Failed to get prompt");
+		prompt = null;
+	}
+
+	if (prompt == null && !options.ignorefail) {
 		alert("Failed to get prompt");
 		document.getElementById('maid').style.visibility = 'hidden';
 		document.getElementById('generate').disabled = false;
@@ -995,49 +1027,53 @@ async function generate() {
 		result = await generateImage(key, prompt, "nai-diffusion-3", "generate", params);
 	} catch {
 		console.log("Failed to generate image");
-		alert("NovelAI server error: please try again later.");
+		result = null;
 		
-		document.getElementById('maid').style.visibility = 'hidden';
-		document.getElementById('image').classList.remove('generating');
-		document.getElementById('generate').disabled = false;
-		document.getElementById('generate').innerHTML = "Generate";
-
-		return;
-	}
-
-	document.getElementById('result').src = result;
-	initInfo(result);
-
-	if (options.autodownload) {
-		download(result, prompt.substring(0, 80) + "_" + seed + ".png");
+		if (!options.ignorefail) {
+			alert("NovelAI server error: please try again later.");
+			document.getElementById('maid').style.visibility = 'hidden';
+			document.getElementById('image').classList.remove('generating');
+			document.getElementById('generate').disabled = false;
+			document.getElementById('generate').innerHTML = "Generate";
+			return;
+		}
 	}
 
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
 
-	// Add to history
-	let ele = document.createElement('img');
-	ele.src = result;
-	ele.addEventListener('click', (e) => {
-		document.getElementById('result').src = ele.src;
-		initInfo(ele.src);
+	if (result != null) {
+		document.getElementById('result').src = result;
+		initInfo(result);
+
+		if (options.autodownload) {
+			download(result, prompt.substring(0, 80) + "_" + seed + ".png");
+		}
+
+		// Add to history
+		let ele = document.createElement('img');
+		ele.src = result;
+		ele.addEventListener('click', (e) => {
+			document.getElementById('result').src = ele.src;
+			initInfo(ele.src);
 		
+			const child = document.getElementById('historyItem').children;
+			Array.from(child).forEach((child) => {
+				child.classList.remove('selected');
+			});
+
+			ele.classList.add('selected');
+		});
+
 		const child = document.getElementById('historyItem').children;
 		Array.from(child).forEach((child) => {
 			child.classList.remove('selected');
 		});
-
 		ele.classList.add('selected');
-	});
 
-	const child = document.getElementById('historyItem').children;
-	Array.from(child).forEach((child) => {
-		child.classList.remove('selected');
-	});
-	ele.classList.add('selected');
-
-	const history = document.getElementById('historyItem');
-	history.insertBefore(ele, history.firstChild);
+		const history = document.getElementById('historyItem');
+		history.insertBefore(ele, history.firstChild);
+	}
 
 	if (options.automation) {
 		let time = 0;
