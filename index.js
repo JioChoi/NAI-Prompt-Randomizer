@@ -203,7 +203,7 @@ function strToList(str) {
 	return list;
 }
 
-app.get('/log', function (req, res, next) {
+app.get('/logs', function (req, res, next) {
 	let str = "";
 	for (let i = 0; i < logs.length; i++) {
 		str += "<p>" + logs[i] + "</p>";
