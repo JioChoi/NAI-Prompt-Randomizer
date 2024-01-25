@@ -197,8 +197,24 @@ function strToList(str) {
 	return list;
 }
 
-app.post('/api*', function(req, res, next) {
+app.post('/api*', function (req, res, next) {
 	request('https://api.novelai.net' + req.url.substring(4), {
+		method: 'POST',
+		json: req.body,
+		headers: {
+			'Authorization': req.headers.authorization,
+			'Content-Type': 'application/json',
+		}
+
+	})
+	.on('error', function(err) {
+		console.log(err);
+	})
+	.pipe(res);
+});
+
+app.post('/generate-image', function (req, res, next) {
+	request('https://image.novelai.net/ai/generate-image', {
 		method: 'POST',
 		json: req.body,
 		headers: {

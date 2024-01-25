@@ -1,12 +1,13 @@
 let api = '/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
 
 let artistList;
 let characterList;
 let whitelist;
 let censorList;
+let copyrightList;
 let whitelistSeparated = [];
 let tagDataLength = 0;
 
@@ -50,6 +51,13 @@ async function downloadLists() {
 		downloaded++;
 	});
 
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/copyright_list.txt", null, "text").then((data) => {
+		copyrightList = data.split("\n");
+		console.log("downloaded copyright_list.txt");
+		console.log(censorList.length);
+		downloaded++;
+	});
+
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/resolve/main/key.csv", null, "text").then((data) => {
 		keys = data.split("\n");
 		for (let i = 0; i < keys.length; i++) {
@@ -61,12 +69,12 @@ async function downloadLists() {
 		downloaded++;
 	});
 
-	tagDataLength = 1911906176;
+	tagDataLength = 2012411821;
 
 	let interval = setInterval(() => {
-		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / 5 * 100) + "%";
+		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / 6 * 100) + "%";
 
-		if (downloaded == 5) {
+		if (downloaded == 6) {
 			clearInterval(interval);
 			console.log("downloaded all lists");
 			document.getElementById('generate').innerHTML = "Generate";
@@ -486,6 +494,7 @@ function loadOptions(options) {
 	document.getElementById('including').value = options.including;
 	document.getElementById('removeArtist').checked = options.removeArtist;
 	document.getElementById('removeCharacter').checked = options.removeCharacter;
+	document.getElementById('removeCopyright').checked = options.removeCopyright;
 	document.getElementById('endprompt').value = options.endprompt;
 	document.getElementById('negprompt').value = options.negativePrompt;
 
@@ -514,6 +523,7 @@ function getOptions() {
 	options.including = document.getElementById('including').value;
 	options.removeArtist = document.getElementById('removeArtist').checked;
 	options.removeCharacter = document.getElementById('removeCharacter').checked;
+	options.removeCopyright = document.getElementById('removeCopyright').checked;
 	options.endprompt = document.getElementById('endprompt').value;
 	options.negativePrompt = document.getElementById('negprompt').value;
 
@@ -670,11 +680,12 @@ async function randomizePrompt() {
 
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
+	let removeCopyright = options.removeCopyright;
 
 	let endprompt = removeEmptyElements(strToList(options.endprompt));
 	let negative = removeEmptyElements(strToList(options.negativePrompt));
 
-	let prompt = await getRandomPrompt(including, excluding);
+	let prompt = await getRandomPrompt(including, excluding, options.including);
 
 	if(prompt == null || prompt === "") {
 		return null;
@@ -695,6 +706,10 @@ async function randomizePrompt() {
 		prompt = removeListFromList(characterList, prompt);
 	}
 
+	if (removeCopyright) {
+		prompt = removeListFromList(copyrightList, prompt);
+	}
+
 	if (begprompt.includes("uncensored") || endprompt.includes("uncensored")) {
 		prompt = removeListFromList(censorList, prompt);
 	}
@@ -705,7 +720,7 @@ async function randomizePrompt() {
 	return prompt;
 }
 
-async function getRandomPrompt(including, excluding) {
+async function getRandomPrompt(including, excluding, searchString) {
 	process = 0;
 
 	if (including.length == 0) {
@@ -724,7 +739,7 @@ async function getRandomPrompt(including, excluding) {
 
 	let pos;
 
-	let inc = including.concat(excluding).join(", ");
+	let inc = searchString;
 	if (previousIncluding === inc) {
 		pos = previousPos;
 	}
@@ -742,17 +757,20 @@ async function getRandomPrompt(including, excluding) {
 			process = i / (including.length + excluding.length);
 			document.getElementById('generate').innerHTML = "Searching... " + Math.round(process * 100) + "%";
 		}
-	
+		
 		for (i = 0; i < excluding.length; i++) {
 			temp = new Set(await getPositions(excluding[i]));
 			pos = new Set([...pos].filter(x => !temp.has(x)));
-	
+			delete temp;
+			
 			process = (i + including.length) / (including.length + excluding.length);
 			document.getElementById('generate').innerHTML = "Searching... " + Math.round(process * 100) + "%";
 		}
 	
 		pos = Array.from(pos);
 	}
+
+	console.log(pos.length);
 
 	previousIncluding = inc;
 	previousPos = pos;
@@ -1170,8 +1188,6 @@ function checkDYN() {
 
 // Generate image
 async function generateImage(accessToken, prompt, model, action, parameters) {
-	let url = api + "/ai/generate-image";
-
 	let data = {
 		"input": prompt,
 		"model": model,
@@ -1179,7 +1195,7 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 		"parameters": parameters,
 	}
 
-	let result = await post(url, data, accessToken, 'blob');
+	let result = await post('generate-image', data, accessToken, 'blob');
 
 	const { entries } = await unzipit.unzip(result);
 
