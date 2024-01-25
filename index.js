@@ -35,7 +35,7 @@ var tagDataLength = 0;
 var posDataLength = 0;
 
 const opts = {
-	points: 20, // 6 points
+	points: 30, // 6 points
 	duration: 1, // Per second
 };
 
