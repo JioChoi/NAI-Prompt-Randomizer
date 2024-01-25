@@ -11,7 +11,10 @@
 	<script src="js/buffer.js"></script>
 	<script src="node_modules/unzipit/dist/unzipit.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-
+	<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+	
+	<script src="js/URL.js"></script>
 	<script src="js/script.js"></script>
 
 	<link rel="stylesheet" href="css/reset.css">
@@ -196,6 +199,10 @@
 			</div>
 
 			<div id="historyItem">
+			</div>
+
+			<div id="historyDownload" onclick="downloadHistory()">
+				Download History
 			</div>
 		</div>
 

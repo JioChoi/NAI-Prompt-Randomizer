@@ -1232,6 +1232,29 @@ function checkDYN() {
 	}
 }
 
+function downloadHistory() {
+	const child = document.getElementById('historyItem').children;
+
+	if (child.length == 0) {
+		alert("History is empty.");
+		return;
+	}
+
+	let zip = new JSZip();
+	JSZip.support.nodebuffer = false;
+
+	for (let i = 0; i < child.length; i++) {
+		let data = URL.getFromObjectURL(child[i].src);
+		zip.file(String(i) + ".png", data);
+	}
+
+	zip.generateAsync({ type: "blob" }).then(function (content) {
+		let date = new Date();
+		let fileName = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds() + ".zip";
+		saveAs(content, fileName);
+	});
+}
+
 // Generate image
 async function generateImage(accessToken, prompt, model, action, parameters) {
 	let data = {
