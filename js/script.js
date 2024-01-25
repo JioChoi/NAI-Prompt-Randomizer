@@ -1253,8 +1253,9 @@ function downloadHistory() {
 		let fileName = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds() + ".zip";
 
 		let url = URL.createObjectURL(content);
-		download(url, fileName);
-		URL.revokeObjectURL(url);
+		content.type = "application/zip";
+		//download(url, fileName);
+		saveAs(url, fileName);
 	});
 }
 
