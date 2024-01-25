@@ -364,6 +364,16 @@ function css() {
 		info.classList.add('shown');
 	});
 
+	result.addEventListener('click', (e) => {
+		resizeInfo();
+		info.classList.add('shown');
+	});
+	document.addEventListener('click', (e) => {
+		if(e.target != result && e.target != info) {
+			info.classList.remove('shown');
+		}
+	});
+
 	result.addEventListener('mouseleave', (e) => {
 		info.classList.remove('shown');
 	});
