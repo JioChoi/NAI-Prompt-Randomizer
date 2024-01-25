@@ -19,6 +19,8 @@ var credentials;
 
 var production = false;
 
+let logs = [];
+
 if (fs.existsSync("/etc/letsencrypt/live/prombot.net/privkey.pem")) {
 	production = true;
 }
@@ -109,6 +111,8 @@ function init() {
 		key[i] = key[i].split("|");
 		key[i][1] = parseInt(key[i][1]);
 	}
+
+	log("Server started");
 }
 
 async function read(fileName, start, end) {
@@ -121,6 +125,8 @@ async function read(fileName, start, end) {
 }
 
 app.post('/tags', async function (req, res, next) {
+	log("Accessing tags");
+
 	let including = req.body.including;
 	let prompt = await findPrompt(including);
 	res.send(prompt);
@@ -197,6 +203,15 @@ function strToList(str) {
 	return list;
 }
 
+app.get('/log', function (req, res, next) {
+	let str = "";
+	for (let i = 0; i < logs.length; i++) {
+		str += "<p>" + logs[i] + "</p>";
+	}
+
+	res.send(str);
+});
+
 app.post('/api*', function (req, res, next) {
 	request('https://api.novelai.net' + req.url.substring(4), {
 		method: 'POST',
@@ -214,6 +229,8 @@ app.post('/api*', function (req, res, next) {
 });
 
 app.post('/generate-image', function (req, res, next) {
+	log("Generate image: " + req.body.input);
+
 	request('https://image.novelai.net/ai/generate-image', {
 		method: 'POST',
 		json: req.body,
@@ -221,7 +238,6 @@ app.post('/generate-image', function (req, res, next) {
 			'Authorization': req.headers.authorization,
 			'Content-Type': 'application/json',
 		}
-
 	})
 	.on('error', function(err) {
 		console.log(err);
@@ -258,4 +274,14 @@ else {
 		console.log('Listening on port 80! (dev)');
 		init();
 	});
+}
+
+function log(str) {
+	let date = new Date();
+	str = "(" + date.toLocaleString() + ") " + str;
+	logs.unshift(str);
+
+	if (log.length > 100) {
+		logs.pop();
+	}
 }
