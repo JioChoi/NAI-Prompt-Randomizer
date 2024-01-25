@@ -1087,6 +1087,7 @@ function searchTags(str) {
 	
 function expand() {
 	document.getElementById('sidebar').classList.toggle('expanded');
+	document.getElementById('upico').classList.toggle('rotate');
 }
 
 function hideTagSuggest() {
