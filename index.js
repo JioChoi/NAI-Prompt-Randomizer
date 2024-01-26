@@ -277,11 +277,12 @@ else {
 }
 
 function log(str) {
-	let date = new Date();
-	str = "(" + date.toLocaleString() + ") " + str;
+	let date = new Date().toLocaleString('en-US', {timeZone: 'Asia/Seoul'});
+
+	str = "(" + date + ") " + str;
 	logs.unshift(str);
 
-	if (log.length > 100) {
+	if (log.length > 10) {
 		logs.pop();
 	}
 }
