@@ -165,14 +165,14 @@ async function getStealthExif(src) {
 						}
 
 						let temp = pako.ungzip(array);
-						console.log(new TextDecoder("utf-8").decode(temp));
-
-						break;
+						return new TextDecoder("utf-8").decode(temp);
 					}
 				}
 			}
 		}
 	}
+
+	return null;
 }
 
 // Init css elements
@@ -1371,15 +1371,16 @@ async function getExif(url) {
 	const data = await response.blob();
 	let pnginfo = UPNG.decode(await data.arrayBuffer());
 	let text = pnginfo.tabs.tEXt;
+
 	if (text == undefined) {
 		return getStealthExif(url);
 	}
 	else {
-		if (text.tEXt == undefined) {
+		if (text.Comment == undefined) {
 			return getStealthExif(url);
 		}
 		else {
-			return JSON.parse(text.tEXt);
+			return JSON.parse(text.Comment);
 		}
 	}
 
