@@ -113,60 +113,61 @@ async function getStealthExif(src) {
 	let ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: true});
 	let img = new Image();
 	img.src = src;
+	
+	await img.decode();
 
-	img.onload = () => {
-		canvas.width = img.width;
-		canvas.height = img.height;
-		ctx.drawImage(img, 0, 0);
+	canvas.width = img.width;
+	canvas.height = img.height;
+	ctx.drawImage(img, 0, 0);
 
-		let binary = "";
-		const signature = "stealth_pngcomp"
-		let index = 0;
-		let reading = "signature"
-		let length = 0;
+	let binary = "";
+	const signature = "stealth_pngcomp"
+	let index = 0;
+	let reading = "signature"
+	let length = 0;
 
-		for (let x = 0; x < img.width; x++) {
-			for (let y = 0; y < img.height; y++) {
-				let data = ctx.getImageData(x, y, 1, 1).data;
-				let a = data[3];
-				binary += String(a & 1);
-				index++;
+	for (let x = 0; x < img.width; x++) {
+		for (let y = 0; y < img.height; y++) {
+			let data = ctx.getImageData(x, y, 1, 1).data;
+			let a = data[3];
+			binary += String(a & 1);
+			index++;
 
-				if (reading == "signature") {
-					if (index == signature.length * 8) {
-						let str = "";
-						for (let i = 0; i < binary.length / 8; i++) {
-							str += String.fromCharCode(parseInt(binary.substring(i * 8, i * 8 + 8), 2));
-						}
-
-						if (str == signature) {
-							reading = "length";
-							binary = "";
-							index = 0;
-						}
-						else {
-							return null;
-						}
+			if (reading == "signature") {
+				if (index == signature.length * 8) {
+					let str = "";
+					for (let i = 0; i < binary.length / 8; i++) {
+						str += String.fromCharCode(parseInt(binary.substring(i * 8, i * 8 + 8), 2));
 					}
-				}
-				else if (reading == "length") {
-					if (index == 32) {
-						length = parseInt(binary, 2);
-						reading = "data";
+
+					if (str == signature) {
+						reading = "length";
 						binary = "";
 						index = 0;
 					}
-				}
-				else if (reading == "data") {
-					if (index == length) {
-						let array = new Uint8Array(length);
-						for (let i = 0; i < binary.length / 8; i++) {
-							array[i] = (parseInt(binary.substring(i * 8, i * 8 + 8), 2));
-						}
-
-						let temp = pako.ungzip(array);
-						return new TextDecoder("utf-8").decode(temp);
+					else {
+						return null;
 					}
+				}
+			}
+			else if (reading == "length") {
+				if (index == 32) {
+					length = parseInt(binary, 2);
+					reading = "data";
+					binary = "";
+					index = 0;
+				}
+			}
+			else if (reading == "data") {
+				if (index == length) {
+					let array = new Uint8Array(length);
+					for (let i = 0; i < binary.length / 8; i++) {
+						array[i] = (parseInt(binary.substring(i * 8, i * 8 + 8), 2));
+					}
+
+					let temp = pako.ungzip(array);
+					let prompt = new TextDecoder("utf-8").decode(temp);
+					return prompt;
 				}
 			}
 		}
@@ -185,7 +186,9 @@ function css() {
 		if (files.length > 0) {
 			const file = files[0];
 			if (file.type.match('image/png')) {
-				getExif(URL.createObjectURL(file));
+				getExif(URL.createObjectURL(file)).then((data) => {
+					console.log(data);
+				});
 			}
 		}
 
@@ -1372,19 +1375,21 @@ async function getExif(url) {
 	let pnginfo = UPNG.decode(await data.arrayBuffer());
 	let text = pnginfo.tabs.tEXt;
 
-	if (text == undefined) {
-		return getStealthExif(url);
-	}
-	else {
-		if (text.Comment == undefined) {
-			return getStealthExif(url);
+	try {
+		if (text == undefined) {
+			return JSON.parse(await getStealthExif(url));
 		}
 		else {
-			return JSON.parse(text.Comment);
+			if (text.Comment == undefined) {
+				return JSON.parse(await getStealthExif(url));
+			}
+			else {
+				return JSON.parse(text.Comment);
+			}
 		}
+	} catch {
+		return null;
 	}
-
-	return null;
 }
 
 // Login to server
