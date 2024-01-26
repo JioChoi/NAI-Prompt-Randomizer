@@ -1364,26 +1364,12 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 }
 
 async function getExif(url) {
-	const arrayBuffer = await $.ajax({
-		url: url,
-		type: 'GET',
-		xhrFields: {
-			responseType: 'arraybuffer'
-		}
-	});
-	
-	let data = new Uint8Array(arrayBuffer);
+	const response = await fetch(url);
+	const data = await response.blob();
+	let pnginfo = UPNG.decode(await data.arrayBuffer());
+	let text = pnginfo.tabs.tEXt.Comment;
 
-	let string = new TextDecoder("utf-8").decode(data);
-	let pos = string.search('tEXtComment');
-
-	string = string.substring(pos + 13);
-	pos = string.search('"request_type"');
-	string = string.substring(0, pos - 2);
-
-	string = "{" + string + "}";
-
-	return JSON.parse(string);
+	return JSON.parse(text);
 }
 
 // Login to server

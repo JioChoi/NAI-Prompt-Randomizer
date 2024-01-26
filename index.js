@@ -282,7 +282,7 @@ function log(str) {
 	str = "(" + date + ") " + str;
 	logs.unshift(str);
 
-	if (log.length > 10) {
+	if (logs.length > 10) {
 		logs.pop();
 	}
 }
