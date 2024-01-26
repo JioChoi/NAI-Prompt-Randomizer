@@ -1098,6 +1098,7 @@ async function generate() {
 	}
 
 	let noiseSeed = Math.floor(Math.random() * 9999999999);
+	let steps = Number(options.step);
 
 	let params = {
 		"legacy": false,
@@ -1109,7 +1110,7 @@ async function generate() {
 		"seed": seed,
 		"extra_noise_seed": noiseSeed,
 		"sampler": sampler,
-		"steps": 28,
+		"steps": steps,
 		"scale": promptGuidance,
 		"uncond_scale": 1.0,
 		"negative_prompt": negativePrompt,
