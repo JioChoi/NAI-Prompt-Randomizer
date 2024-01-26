@@ -190,7 +190,9 @@ function css() {
 					let options = getOptions();
 					options.begprompt = data.prompt;
 					options.negativePrompt = data.uc;
-					loadOptions(JSON.stringify(options, null, 4));
+					let optionsStr = JSON.stringify(options, null, 4);
+					loadOptions(optionsStr);
+					localStorage.setItem('options', optionsStr);
 				});
 			}
 		}
@@ -200,6 +202,11 @@ function css() {
 
 	window.addEventListener('dragover', (e) => {
 		imageUploader.classList.add('shown');
+		e.preventDefault();
+	});
+
+	imageUploader.addEventListener('dragleave', (e) => {
+		imageUploader.classList.remove('shown');
 		e.preventDefault();
 	});
 
@@ -786,8 +793,8 @@ async function init() {
 async function randomizePrompt() {
 	options = getOptions();
 
-	let begprompt = removeEmptyElements(strToList(options.begprompt));
-	let including = removeEmptyElements(strToList(options.including));
+	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ",")));
+	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ",")));
 	let excluding = [];
 	for (var i = 0; i < including.length; i++) {
 		if (including[i].startsWith("~")) {
@@ -804,8 +811,12 @@ async function randomizePrompt() {
 	let removeCharacter = options.removeCharacter;
 	let removeCopyright = options.removeCopyright;
 
-	let endprompt = removeEmptyElements(strToList(options.endprompt));
-	let negative = removeEmptyElements(strToList(options.negativePrompt));
+	let endprompt = removeEmptyElements(strToList(options.endprompt.replace(/\n/g, ",")));
+	let negative = removeEmptyElements(strToList(options.negativePrompt.replace(/\n/g, ",")));
+
+	if (including.length == 0) {
+		return begprompt.concat(endprompt).join(", ");
+	}
 
 	let prompt = await getRandomPrompt(including, excluding, options.including);
 
@@ -950,8 +961,6 @@ async function getPositions(tag) {
 
 function combinePrompt(beg, mid, end) {
 	let prompt = beg.concat(mid).concat(end).join(", ");
-
-	prompt = beg.concat(mid).concat(end).join(", ");
 	return prompt;
 }
 
@@ -1136,6 +1145,7 @@ async function generate() {
 	document.getElementById('image').classList.remove('generating');
 
 	if (result != null) {
+		document.getElementById('generate').innerHTML = "Generate";
 		document.getElementById('result').src = result;
 		initInfo(result);
 
