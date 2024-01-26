@@ -144,6 +144,9 @@ async function getStealthExif(src) {
 							binary = "";
 							index = 0;
 						}
+						else {
+							return null;
+						}
 					}
 				}
 				else if (reading == "length") {
@@ -181,8 +184,8 @@ function css() {
 		const files = e.dataTransfer.files;
 		if (files.length > 0) {
 			const file = files[0];
-			if (file.type.match('image.*')) {
-				getStealthExif(URL.createObjectURL(file));
+			if (file.type.match('image/png')) {
+				getExif(URL.createObjectURL(file));
 			}
 		}
 
@@ -1367,9 +1370,20 @@ async function getExif(url) {
 	const response = await fetch(url);
 	const data = await response.blob();
 	let pnginfo = UPNG.decode(await data.arrayBuffer());
-	let text = pnginfo.tabs.tEXt.Comment;
+	let text = pnginfo.tabs.tEXt;
+	if (text == undefined) {
+		return getStealthExif(url);
+	}
+	else {
+		if (text.tEXt == undefined) {
+			return getStealthExif(url);
+		}
+		else {
+			return JSON.parse(text.tEXt);
+		}
+	}
 
-	return JSON.parse(text);
+	return null;
 }
 
 // Login to server

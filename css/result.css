@@ -57,6 +57,7 @@
 	position: absolute;
 
 	display: block;
+	visibility: hidden;
 
 	background-color: #000000c3;
 
@@ -83,6 +84,7 @@
 
 #info.shown {
 	opacity: 1;
+	visibility: visible;
 }
 
 #maid {
