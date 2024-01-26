@@ -167,7 +167,7 @@ async function getStealthExif(src) {
 
 					let temp = pako.ungzip(array);
 					let prompt = new TextDecoder("utf-8").decode(temp);
-					return prompt;
+					return JSON.parse(prompt);
 				}
 			}
 		}
@@ -187,7 +187,10 @@ function css() {
 			const file = files[0];
 			if (file.type.match('image/png')) {
 				getExif(URL.createObjectURL(file)).then((data) => {
-					console.log(data);
+					let options = getOptions();
+					options.begprompt = data.prompt;
+					options.negativePrompt = data.uc;
+					loadOptions(JSON.stringify(options, null, 4));
 				});
 			}
 		}
@@ -1289,7 +1292,7 @@ function moveTagSuggest() {
 
 function findTags(str) {
 	str = str.substring(str.lastIndexOf(",") + 1);
-	str = str.toLowerCase().trim().replace(/_/g, " ").replace(/{/g, "").replace(/}/g, "").replace(/~/g, "");
+	str = str.toLowerCase().trim().replace(/_/g, " ").replace(/{/g, "").replace(/\[/g, "").replace(/~/g, "");
 
 	if(str == "") return [];
 	
@@ -1377,11 +1380,11 @@ async function getExif(url) {
 
 	try {
 		if (text == undefined) {
-			return JSON.parse(await getStealthExif(url));
+			return JSON.parse((await getStealthExif(url)).Comment);
 		}
 		else {
 			if (text.Comment == undefined) {
-				return JSON.parse(await getStealthExif(url));
+				return JSON.parse((await getStealthExif(url)).Comment);
 			}
 			else {
 				return JSON.parse(text.Comment);
