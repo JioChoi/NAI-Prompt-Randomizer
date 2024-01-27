@@ -20,6 +20,8 @@ let previousIncluding = "";
 
 let mobile = false;
 
+const controller = new AbortController();
+
 async function downloadLists() {
 	let downloaded = 0;
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
@@ -1260,7 +1262,7 @@ function searchTags(str) {
 
 	return list;
 }
-	
+
 function expand() {
 	document.getElementById('sidebar').classList.toggle('expanded');
 	document.getElementById('upico').classList.toggle('rotate');
@@ -1268,6 +1270,7 @@ function expand() {
 
 function hideTagSuggest() {
 	document.getElementById('tagSuggest').style.visibility = 'hidden';
+	controller.abort();
 }
 
 function suggestTags(str, element) {
@@ -1285,12 +1288,43 @@ function suggestTags(str, element) {
 	suggest.addEventListener('mousedown', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
-	});
+	}, {signal: controller.signal});
+
+	let selected = 0;
+	window.addEventListener('keydown', (e) => {
+		if(e.key == "ArrowUp") {
+			selected--;
+			if(selected < 0) {
+				selected = 0;
+			}
+			e.preventDefault();
+		}
+		else if(e.key == "ArrowDown") {
+			selected++;
+			if(selected >= tags.length) {
+				selected = tags.length - 1;
+			}
+			e.preventDefault();
+		}
+
+		const items = document.getElementById('tagSuggest').children;
+		for(let i = 0; i < items.length; i++) {
+			items[i].classList.remove('selected');
+
+			if(i == selected) {
+				items[i].classList.add('selected');
+			}
+		}
+	}, {signal: controller.signal});
 
 	for(let i = 0; i < tags.length; i++) {
 		const item = document.createElement('div');
 		item.classList.add('item');
 		item.innerHTML = tags[i];
+
+		if(i == 0) {
+			item.classList.add('selected');
+		}
 
 		item.addEventListener('mouseup', (e) => {
 			const tag = tags[i];
@@ -1313,7 +1347,7 @@ function suggestTags(str, element) {
 			hideTagSuggest();
 
 			e.preventDefault();
-		});
+		}, {signal: controller.signal});
 
 		suggest.appendChild(item);
 	}

@@ -438,6 +438,10 @@ input[type="password"] {
 	background-color: #3c3c3c;
 }
 
+#tagSuggest .item.selected {
+	outline: 1px dotted #f9f9f949;
+}
+
 #anals {
 	display: flex;
 	position: fixed;
