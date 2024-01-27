@@ -221,11 +221,13 @@ app.post('/api*', function (req, res, next) {
 			'Authorization': req.headers.authorization,
 			'Content-Type': 'application/json',
 		}
-
-	})
-	.on('error', function(err) {
-		console.log(err);
-	})
+	},
+	function (error, response, body) {
+		if(response.statusCode != 200) {
+			log(String(response.statusCode) + ") " + req.url.substring(4) +" error: " + body.message);
+		}
+	}
+	)
 	.pipe(res);
 });
 
@@ -238,11 +240,12 @@ app.post('/generate-image', function (req, res, next) {
 		headers: {
 			'Authorization': req.headers.authorization,
 			'Content-Type': 'application/json',
-		}
-	})
-	.on('error', function(err) {
-		console.log(err);
-	})
+		}},
+		function (error, response, body) {
+			if(response.statusCode != 200) {
+				log(String(response.statusCode) + ") Generate image error: " + body.message);
+			}
+		})
 	.pipe(res);
 });
 
@@ -252,7 +255,13 @@ app.get('/api*', function(req, res, next) {
 		headers: {
 			'Authorization': req.headers.authorization
 		}
-	}).pipe(res);
+	},
+	function (error, response, body) {
+		if(response.statusCode != 200) {
+			log(String(response.statusCode) + ") " + req.url.substring(4) +" error: " + body.message);
+		}
+	}
+	).pipe(res);
 });
 
 app.get('/', function(req, res, next) {

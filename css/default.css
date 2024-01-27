@@ -437,3 +437,34 @@ input[type="password"] {
 #tagSuggest .item:nth-child(even):hover {
 	background-color: #3c3c3c;
 }
+
+#anals {
+	display: flex;
+	position: fixed;
+
+	justify-content: center;
+	align-items: center;
+
+	top: 15px;
+	right: 65px;
+
+	height: 40px;
+	padding: 0px 10px;
+
+	background-color: #1f1f1f;
+	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
+	border-radius: 10px;
+
+	z-index: 999;
+}
+
+#anals span {
+	font-weight: 700;
+	font-size: 16px;
+	color: #F5F3C2;
+}
+
+#anals span::after {
+	content: url('https://novelai.net/_next/static/media/anla.23c99491.svg');
+	margin-left: 3px;
+}

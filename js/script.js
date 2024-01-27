@@ -560,6 +560,7 @@ function css() {
 			document.getElementById('login').style.visibility = 'hidden';
 
 			document.getElementById('sidebar').classList.remove('hidden');
+			setAnals();
 		}
 	});
 
@@ -765,6 +766,19 @@ function hideHistory() {
 	}, 300);
 }
 
+async function getUserData() {
+	let data = get('/api/user/data', key);
+	return data;
+}
+
+async function setAnals() {
+	let anals = document.querySelector("#anals > span");
+	let amt = (await getUserData()).subscription;
+	amt = amt.trainingStepsLeft.fixedTrainingStepsLeft + amt.trainingStepsLeft.purchasedTrainingSteps;
+
+	anals.innerHTML = (amt);
+}
+
 // init server connection
 async function init() {
 	// Auto login.
@@ -783,6 +797,7 @@ async function init() {
 			document.getElementById('background').style.display = 'none';
 
 			document.getElementById('sidebar').classList.remove('hidden');
+			setAnals();
 		} catch (err) {
 			// Failed to auto login.
 			console.log("Failed to login");
@@ -1059,6 +1074,9 @@ async function generate() {
 	document.getElementById('maid').style.visibility = 'visible';
 	document.getElementById('maid').style.right = '-100px';
 	document.getElementById('image').classList.add('generating');
+	document.getElementById('generate').innerHTML = "Generate";
+
+	setAnals();
 
 	let negativePrompt = options.negativePrompt;
 
@@ -1142,6 +1160,7 @@ async function generate() {
 		}
 	}
 
+	setAnals();
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
 
