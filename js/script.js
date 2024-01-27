@@ -683,7 +683,7 @@ function resizeInfo() {
 	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset + 'px';
 	info.style.left = rect.left + window.pageXOffset + 'px';
 
-	info.style.width = result.clientWidth - window.pageXOffset + 'px';
+	info.style.width = rect.width - window.pageXOffset + 'px';
 }
 
 function initInfo(url) {
