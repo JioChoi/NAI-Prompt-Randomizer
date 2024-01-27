@@ -59,6 +59,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/js', express.static(__dirname + '/js'));
+app.use('/', express.static(__dirname + '/favicon'));
 app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/dataset', express.static(__dirname + '/dataset'));
 app.use('/css', express.static(__dirname + '/css'));
