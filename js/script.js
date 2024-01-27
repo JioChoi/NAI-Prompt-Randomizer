@@ -20,7 +20,7 @@ let previousIncluding = "";
 
 let mobile = false;
 
-const controller = new AbortController();
+let controller = new AbortController();
 
 async function downloadLists() {
 	let downloaded = 0;
@@ -1271,6 +1271,8 @@ function expand() {
 function hideTagSuggest() {
 	document.getElementById('tagSuggest').style.visibility = 'hidden';
 	controller.abort();
+
+	controller = new AbortController();
 }
 
 function suggestTags(str, element) {
@@ -1280,6 +1282,13 @@ function suggestTags(str, element) {
 	if(tags.length == 0) {
 		hideTagSuggest();
 		return;
+	}
+
+	if(tags.length == 1) {
+		if(tags[0] == str.substring(Math.max(str.lastIndexOf(",") + 1, str.lastIndexOf(", ") + 2))) {
+			hideTagSuggest();
+			return;
+		}
 	}
 
 	const suggest = document.getElementById('tagSuggest');
@@ -1305,6 +1314,19 @@ function suggestTags(str, element) {
 				selected = tags.length - 1;
 			}
 			e.preventDefault();
+		}
+		else if(e.key == "ArrowLeft") {
+			hideTagSuggest();
+			return;
+		}
+		else if(e.key == "ArrowRight") {
+			hideTagSuggest();
+			return;
+		}
+		else if(e.key == "Enter" || e.key == "Tab") {
+			suggest.children[selected].dispatchEvent(new Event('mouseup'));
+			e.preventDefault();
+			return;
 		}
 
 		const items = document.getElementById('tagSuggest').children;
@@ -1368,13 +1390,26 @@ function moveTagSuggest() {
 }
 
 function findTags(str) {
-	str = str.substring(str.lastIndexOf(",") + 1);
-	str = str.toLowerCase().trim().replace(/_/g, " ").replace(/{/g, "").replace(/\[/g, "").replace(/~/g, "");
+	str = str.substring(Math.max(str.lastIndexOf(",") + 1, str.lastIndexOf(", ") + 2));
+	str = str.toLowerCase().replace(/_/g, " ").replace(/{/g, "").replace(/\[/g, "").replace(/~/g, "");
 
 	if(str == "") return [];
 	
 	tags = [];
-	strSeparated = removeEmptyElements(str.split(" "));
+	strSeparated = str.split(" ");
+
+	let spacenum = 0;
+	for(let i = 0; i < strSeparated.length; i++) {
+		if(strSeparated[i] == "") {
+			spacenum++;
+		}
+
+		if(spacenum >= 2) {
+			return [];
+		}
+	}
+
+	strSeparated = removeEmptyElements(strSeparated);
 
 	for (let i = 0; i < whitelistSeparated.length; i++) {
 		if (allInList(strSeparated, whitelistSeparated[i])) {
