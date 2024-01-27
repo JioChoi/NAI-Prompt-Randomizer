@@ -232,8 +232,6 @@ app.post('/api*', function (req, res, next) {
 });
 
 app.post('/generate-image', function (req, res, next) {
-	log("Generate image: " + req.body.input);
-
 	request('https://image.novelai.net/ai/generate-image', {
 		method: 'POST',
 		json: req.body,
@@ -243,7 +241,10 @@ app.post('/generate-image', function (req, res, next) {
 		}},
 		function (error, response, body) {
 			if(response.statusCode != 200) {
-				log(String(response.statusCode) + ") Generate image error: " + body.message);
+				log("(" + String(response.statusCode) + ") Generate image error: " + body.message);
+			}
+			else {
+				log("Generate image: " + req.body.input);
 			}
 		})
 	.pipe(res);

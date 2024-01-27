@@ -1149,8 +1149,21 @@ async function generate() {
 	} catch {
 		console.log("Failed to generate image");
 		result = null;
-		
-		if (!options.ignorefail) {
+
+		for(let i = 0; i < 4; i++) {
+			try {
+				result = await generateImage(key, prompt, "nai-diffusion-3", "generate", params);
+			} catch {
+				console.log("Failed to generate image Extra Try: #" + (i + 1));
+				result = null;
+			}
+
+			if(result != null) {
+				break;
+			}
+		}
+
+		if (!options.ignorefail && result == null) {
 			alert("NovelAI server error: please try again later.");
 			document.getElementById('maid').style.visibility = 'hidden';
 			document.getElementById('image').classList.remove('generating');
