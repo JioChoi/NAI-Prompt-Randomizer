@@ -2,28 +2,28 @@ const express = require('express');
 const cors = require('cors');
 const request = require('request');
 const fs = require('fs');
-const os = require('os');
-const { randomBytes } = require('crypto');
-const { RateLimiterMemory } = require("rate-limiter-flexible");
-
 const https = require('https');
 const http = require('http');
-const { resolve } = require('path');
-
 const path = require("path");
-
-var privateKey;
-var certificate;
-var ca;
-var credentials;
-
-var production = false;
+const { RateLimiterMemory } = require("rate-limiter-flexible");
 
 let logs = [];
 
+let app = express();
+let tagDataLength = 0;
+let posDataLength = 0;
+
+/* Production Detection */
+let production = false;
 if (fs.existsSync("/etc/letsencrypt/live/prombot.net/privkey.pem")) {
 	production = true;
 }
+
+/* HTTPS */
+let privateKey;
+let certificate;
+let ca;
+let credentials;
 
 if(production) {
 	privateKey = fs.readFileSync("/etc/letsencrypt/live/prombot.net/privkey.pem")
@@ -31,10 +31,6 @@ if(production) {
 	ca = fs.readFileSync("/etc/letsencrypt/live/prombot.net/chain.pem")
 	credentials = { key: privateKey, cert: certificate, ca: ca }
 }
-
-var app = express();
-var tagDataLength = 0;
-var posDataLength = 0;
 
 const opts = {
 	points: 30, // 6 points
@@ -74,7 +70,6 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-// TODO: THIS IS ONLY CODE FOR THE SERVER SIDE
 async function getPromptFromPos(pos) {
 	let start = pos;
 	let end = pos;

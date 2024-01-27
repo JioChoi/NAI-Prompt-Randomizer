@@ -808,8 +808,8 @@ async function init() {
 async function randomizePrompt() {
 	options = getOptions();
 
-	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ",")));
-	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ",")));
+	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ",").replace(/_/g, " ")));
+	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ",").replace(/_/g, " ")));
 	let excluding = [];
 	for (var i = 0; i < including.length; i++) {
 		if (including[i].startsWith("~")) {
@@ -1040,8 +1040,8 @@ function strToList(str) {
 
 function removeListFromList(list1, list2) {
 	for (var i = 0; i < list1.length; i++) {
-		while(list2.includes(list1[i].replace(/{/g, "").replace(/}/g, ""))) {
-			list2.splice(list2.indexOf(list1[i].replace(/{/g, "").replace(/}/g, "")), 1);
+		while(list2.includes(list1[i].replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, ""))) {
+			list2.splice(list2.indexOf(list1[i].replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "")), 1);
 		}
 	}
 

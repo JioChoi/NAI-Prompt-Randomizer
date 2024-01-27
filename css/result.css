@@ -11,7 +11,7 @@
 	justify-content: center;
 	align-items: center;
 
-	width: calc(100vw - 500px);
+	width: calc(100vw - 450px);
 	outline: 100px solid #181818;
 
 	height: 100vh;
@@ -19,7 +19,7 @@
 }
 
 #image.shown {
-	width: calc(100vw - 700px);
+	width: calc(100vw - 200px - 450px);
 }
 
 .generating {
