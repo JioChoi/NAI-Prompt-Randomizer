@@ -1136,7 +1136,7 @@ async function generate() {
 		"sm_dyn" : DYN,
 		"dynamic_thresholding": false,
 		"controlnet_strength": 1,
-		"add_original_image": true,
+		"add_original_image": false,
 		"cfg_rescale": promptGuidanceRescale,
 		"noise_schedule": "native",
 		"ucPreset": 3,
