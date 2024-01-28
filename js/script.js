@@ -97,8 +97,6 @@ async function downloadLists() {
 			clearInterval(interval);
 			console.log("downloaded all lists");
 
-			whitelist = [...new Set([...whitelist, ...artistList, ...characterList, ...censorList, ...copyrightList])];
-
 			for (let temp of whitelist) {
 				whitelistSeparated.push(temp.split(" "));
 			}
