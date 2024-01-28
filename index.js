@@ -32,6 +32,7 @@ if(production) {
 	credentials = { key: privateKey, cert: certificate, ca: ca }
 }
 
+/* Rate Limiter */
 const opts = {
 	points: 30, // 6 points
 	duration: 1, // Per second
@@ -49,19 +50,14 @@ app.use((req, res, next) => {
 	});
 });
 
+/* Status Monitor */
 app.use(require('express-status-monitor')());
 
+/* Body Parser */
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/js', express.static(__dirname + '/js'));
-app.use('/', express.static(__dirname + '/favicon'));
-app.use('/assets', express.static(__dirname + '/assets'));
-app.use('/dataset', express.static(__dirname + '/dataset'));
-app.use('/css', express.static(__dirname + '/css'));
-app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
-app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
-
+/* CORS */
 app.use(cors({
 	origin: '*',
 	methods: ['GET', 'POST', 'OPTIONS'],
@@ -70,64 +66,16 @@ app.use(cors({
 	optionsSuccessStatus: 200
 }));
 
-async function getPromptFromPos(pos) {
-	let start = pos;
-	let end = pos;
+/* Static Files */
+app.use('/js', express.static(__dirname + '/js'));
+app.use('/', express.static(__dirname + '/favicon'));
+app.use('/assets', express.static(__dirname + '/assets'));
+app.use('/dataset', express.static(__dirname + '/dataset'));
+app.use('/css', express.static(__dirname + '/css'));
+app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
+app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
-	for (end = pos; end < tagDataLength; end++) {
-		if (await read("tags.csv", end, end + 1) == 0x0A) {
-			break;
-		}
-	}
-
-	let data = await read("tags.csv", start, end);
-	let str = new TextDecoder("utf-8").decode(data);
-
-	return str;
-}
-
-
-async function readHex(fileName, start, end) {
-	let data = await read(fileName, start, end);
-
-	var view = new DataView(data.buffer, 0);
-	return view.getUint32(0);
-}
-
-function init() {
-	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
-	console.log("Tag data length: " + tagDataLength);
-
-	posDataLength = fs.statSync(path.join(__dirname, '..', 'pos.csv')).size;
-
-	// Load key.csv
-	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
-	key = key.split("\n");
-	for (let i = 0; i < key.length; i++) {
-		key[i] = key[i].split("|");
-		key[i][1] = parseInt(key[i][1]);
-	}
-
-	log("Server started");
-}
-
-async function read(fileName, start, end) {
-	const stream = fs.createReadStream(path.join(__dirname, '..', fileName), {start: start, end: end, highWaterMark:end - start});
-	return new Promise(function(resolve, reject) {
-		stream.on('data', function(chunk) {
-			resolve(new Uint8Array(chunk.buffer));
-		});
-	});
-}
-
-app.post('/tags', async function (req, res, next) {
-	log("Accessing tags");
-
-	let including = req.body.including;
-	let prompt = await findPrompt(including);
-	res.send(prompt);
-});
-
+/* Routes */
 app.post('/readTags', async function (req, res, next) {
 	let pos = req.body.pos;
 
@@ -140,64 +88,6 @@ app.post('/readTags', async function (req, res, next) {
 	res.send(prompt);
 });
 
-async function findPrompt(including) {
-	let excluding = [];
-	for (var i = 0; i < including.length; i++) {
-		if (including[i].startsWith("~")) {
-			excluding.push(including[i].substring(1));
-			including.splice(i, 1);
-			i--;
-		}
-	}
-
-	including = removeEmptyElements(including);
-	excluding = removeEmptyElements(excluding);
-
-	return await getRandomPrompt(including, excluding);
-}
-
-function removeEmptyElements(list) {
-	for (var i = 0; i < list.length; i++) {
-		if (list[i].trim() == "") {
-			list.splice(i, 1);
-			i--;
-		}
-	}
-
-	return list;
-}
-
-function listInList(list1, list2) {
-	for (var i = 0; i < list1.length; i++) {
-		if (list2.includes(list1[i])) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-function allInList(list1, list2) {
-	for (var i = 0; i < list1.length; i++) {
-		if (!list2.includes(list1[i])) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-function strToList(str) {
-	str = str.trim();
-	if(str == "") return [];
-
-	let list = str.split(",");
-	for (let i = 0; i < list.length; i++) {
-		list[i] = list[i].trim();
-	}
-
-	return list;
-}
 
 app.get('/logs', function (req, res, next) {
 	let str = "";
@@ -264,6 +154,61 @@ app.get('/', function(req, res, next) {
 	res.sendFile(__dirname + '/index.html');
 });
 
+/* Functions */
+async function getPromptFromPos(pos) {
+	let start = pos;
+	let end = pos;
+
+	for (end = pos; end < tagDataLength; end++) {
+		if (await read("tags.csv", end, end + 1) == 0x0A) {
+			break;
+		}
+	}
+
+	let data = await read("tags.csv", start, end);
+	let str = new TextDecoder("utf-8").decode(data);
+
+	return str;
+}
+
+async function read(fileName, start, end) {
+	const stream = fs.createReadStream(path.join(__dirname, '..', fileName), {start: start, end: end, highWaterMark:end - start});
+	return new Promise(function(resolve, reject) {
+		stream.on('data', function(chunk) {
+			resolve(new Uint8Array(chunk.buffer));
+		});
+	});
+}
+
+function init() {
+	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
+	console.log("Tag data length: " + tagDataLength);
+
+	posDataLength = fs.statSync(path.join(__dirname, '..', 'pos.csv')).size;
+
+	// Load key.csv
+	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
+	key = key.split("\n");
+	for (let i = 0; i < key.length; i++) {
+		key[i] = key[i].split("|");
+		key[i][1] = parseInt(key[i][1]);
+	}
+
+	log("Server started");
+}
+
+function log(str) {
+	let date = new Date().toLocaleString('en-US', {timeZone: 'Asia/Seoul'});
+
+	str = "(" + date + ") " + str;
+	logs.unshift(str);
+
+	if (logs.length > 30) {
+		logs.pop();
+	}
+}
+
+/* Start Server */
 if(production) {
 	https.createServer(credentials, app).listen(443, function() {
 		console.log('Listening on port 443!');
@@ -280,15 +225,4 @@ else {
 		console.log('Listening on port 80! (dev)');
 		init();
 	});
-}
-
-function log(str) {
-	let date = new Date().toLocaleString('en-US', {timeZone: 'Asia/Seoul'});
-
-	str = "(" + date + ") " + str;
-	logs.unshift(str);
-
-	if (logs.length > 30) {
-		logs.pop();
-	}
 }
