@@ -1013,7 +1013,7 @@ async function randomizePrompt() {
 		prompt = removeListFromList(copyrightList, prompt);
 	}
 
-	if (begprompt.includes("uncensored") || endprompt.includes("uncensored")) {
+	if (options.begprompt.includes("uncensored") || options.endprompt.includes("uncensored")) {
 		prompt = removeListFromList(censorList, prompt);
 	}
 
