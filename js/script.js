@@ -122,6 +122,12 @@ window.onload = async function () {
 		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
 		loadOptions(localStorage.getItem('options'));
 	}
+
+	const settings = localStorage.getItem('settings');
+	if (settings != null) {
+		loadSettings(settings);
+	}
+	
 	css();
 	checkDYN();
 
@@ -274,17 +280,9 @@ function css() {
 		let minHeight = textarea.rows * 25 + 24;
 		textarea.style.minHeight = minHeight + 'px';
 
-		// window.addEventListener('mousemove', e => {
-		// 	let height = textarea.style.height;
-		// 	height = height.substring(0, height.length - 2);
-
-		// 	if (height > minHeight) {
-		// 		textarea.style.minHeight = height + 'px';
-		// 	}
-		// 	else {
-		// 		textarea.style.minHeight = minHeight + 'px';
-		// 	}
-		// });
+		new ResizeObserver(() => {
+			localStorage.setItem('settings', JSON.stringify(getSettings()));
+		}).observe(textarea);
 	});
 
 	// Sidebar event listener for auto saving parameter changes
@@ -699,6 +697,25 @@ function loadOptions(options) {
 
 	const imgSize = findImageSize(options.width, options.height);
 	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
+}
+
+function loadSettings(settings) {
+	settings = JSON.parse(settings);
+
+	document.getElementById('begprompt').style.height = settings.begpromheight;
+	document.getElementById('including').style.height = settings.includingheight;
+	document.getElementById('endprompt').style.height = settings.endpromptheight;
+	document.getElementById('negprompt').style.height = settings.negpromptheight;
+}
+
+function getSettings() {
+	const settings = {};
+	settings.begpromheight = document.getElementById('begprompt').style.height;
+	settings.includingheight = document.getElementById('including').style.height;
+	settings.endpromptheight = document.getElementById('endprompt').style.height;
+	settings.negpromptheight = document.getElementById('negprompt').style.height;
+
+	return settings;
 }
 
 // Get user options
