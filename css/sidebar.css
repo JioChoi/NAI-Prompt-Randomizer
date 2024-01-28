@@ -23,7 +23,7 @@
 }
 
 #items {
-	display: flex;
+	display: grid;
 	flex-direction: column;
 
 	width: 100%;

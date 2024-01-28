@@ -268,10 +268,23 @@ function css() {
 		}
 	}, 10);
 
-	// Set minimum height for textareas
+	//Set minimum height for textareas
 	const textareas = document.getElementsByTagName('textarea');
 	Array.from(textareas).forEach((textarea) => {
-		textarea.style.minHeight = textarea.rows * 25 + 24 + 'px';
+		let minHeight = textarea.rows * 25 + 24;
+		textarea.style.minHeight = minHeight + 'px';
+
+		// window.addEventListener('mousemove', e => {
+		// 	let height = textarea.style.height;
+		// 	height = height.substring(0, height.length - 2);
+
+		// 	if (height > minHeight) {
+		// 		textarea.style.minHeight = height + 'px';
+		// 	}
+		// 	else {
+		// 		textarea.style.minHeight = minHeight + 'px';
+		// 	}
+		// });
 	});
 
 	// Sidebar event listener for auto saving parameter changes
