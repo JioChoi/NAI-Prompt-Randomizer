@@ -1547,7 +1547,9 @@ function moveTagSuggest() {
 }
 
 function findTags(str) {
-	str = str.substring(Math.max(str.lastIndexOf(",") + 1, str.lastIndexOf(", ") + 2));
+	if(str.includes(",")) {
+		str = str.substring(Math.max(str.lastIndexOf(",") + 1, str.lastIndexOf(", ") + 2));
+	}
 	str = str.toLowerCase().replace(/_/g, " ").replace(/{/g, "").replace(/\[/g, "").replace(/~/g, "");
 
 	if(str == "") return [];
