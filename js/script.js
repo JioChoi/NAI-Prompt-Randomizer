@@ -1,13 +1,16 @@
 let api = '/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let artistList;
 let characterList;
+let characteristicList;
 let whitelist;
 let censorList;
 let copyrightList;
+let numberList;
+let qualityList;
 let whitelistSeparated = [];
 let tagDataLength = 0;
 
@@ -23,6 +26,8 @@ let mobile = false;
 let controller = new AbortController();
 
 async function downloadLists() {
+	const fileNum = 9;
+
 	let downloaded = 0;
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt", null, "text").then((data) => {
 		artistList = data.split("\n");
@@ -38,9 +43,6 @@ async function downloadLists() {
 
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/whitelist.txt", null, "text").then((data) => {
 		whitelist = data.split("\n");
-		for (let temp of whitelist) {
-			whitelistSeparated.push(temp.split(" "));
-		}
 		console.log("downloaded whitelist.txt");
 		downloaded++;
 	});
@@ -50,10 +52,28 @@ async function downloadLists() {
 		console.log("downloaded censor_list.txt");
 		downloaded++;
 	});
+	
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/characteristic_list.txt", null, "text").then((data) => {
+		characteristicList = data.split("\n");
+		console.log("downloaded characteristic_list.txt");
+		downloaded++;
+	});
+
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/number.txt", null, "text").then((data) => {
+		numberList = data.split("\n");
+		console.log("downloaded number.txt");
+		downloaded++;
+	});
 
 	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/copyright_list.txt", null, "text").then((data) => {
 		copyrightList = data.split("\n");
 		console.log("downloaded copyright_list.txt");
+		downloaded++;
+	});
+
+	downloadFile("https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/quality_list.txt", null, "text").then((data) => {
+		qualityList = data.split("\n");
+		console.log("downloaded quality_list.txt");
 		downloaded++;
 	});
 
@@ -70,11 +90,19 @@ async function downloadLists() {
 	tagDataLength = 2012411821;
 
 	let interval = setInterval(() => {
-		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / 6 * 100) + "%";
+		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / fileNum * 100) + "%";
 
-		if (downloaded == 6) {
+		// Downloaded
+		if (downloaded == fileNum) {
 			clearInterval(interval);
 			console.log("downloaded all lists");
+
+			whitelist = [...new Set([...whitelist, ...artistList, ...characterList, ...censorList, ...copyrightList])];
+
+			for (let temp of whitelist) {
+				whitelistSeparated.push(temp.split(" "));
+			}
+
 			document.getElementById('generate').innerHTML = "Generate";
 			document.getElementById("generate").disabled = false;
 		}
@@ -93,12 +121,26 @@ window.onload = async function () {
 		loadOptions(example);
 	}
 	else {
+		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
 		loadOptions(localStorage.getItem('options'));
 	}
 	css();
 	checkDYN();
 
 	document.getElementById('loading').style.display = 'none';
+}
+
+function checkOptions(option) {
+	option = JSON.parse(option);
+	let temp = JSON.parse(example);
+
+	for(let key in temp) {
+		if(!(key in option)) {
+			option[key] = temp[key];
+		}
+	}
+
+	return JSON.stringify(option);
 }
 
 function checkMobile() {
@@ -642,6 +684,7 @@ function loadOptions(options) {
 	document.getElementById('automation').checked = options.automation;
 	document.getElementById('autodown').checked = options.autodownload;
 	document.getElementById('ignorefail').checked = options.ignorefail;
+	document.getElementById('reorderTags').checked = options.reorderTags;
 
 	const imgSize = findImageSize(options.width, options.height);
 	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + " " + imgSize[1];
@@ -672,6 +715,7 @@ function getOptions() {
 	options.automation = document.getElementById('automation').checked;
 	options.autodownload = document.getElementById('autodown').checked;
 	options.ignorefail = document.getElementById('ignorefail').checked;
+	options.reorderTags = document.getElementById('reorderTags').checked;
 
 	return options;
 }
@@ -694,6 +738,116 @@ function initInfo(url) {
 	});
 
 	document.getElementById('info').scrollTop = 0;
+}
+
+temp = "1girl, {{kirisame_marisa, {{touhou}}}}, {{kakure eria, sangbob}}, {{a photo of a girl and her father holding hands together}}, [[7010]], alraune, blush, breasts, [[cum, cum on body, cum on breasts, cum on hair]], facial, flower, hair flower, hair ornament, heart, heart-shaped pupils, looking at viewer, monster girl, monsterification, nipples, open mouth, plant, plant girl, rose, simple background, smile, solo, symbol-shaped pupils, thorns, vines, white background, {{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}"
+
+function reorderPrompt(prompt) {
+	prompt = prompt.replace(/_/g, " ");
+
+	let data = [];
+	let weight = 0;
+	let buffer = "";
+	for (let i = 0; i < prompt.length; i++) {
+		if(prompt[i] == "{" || prompt[i] == "[" || prompt[i] == "}" || prompt[i] == "]" || prompt[i] == "," || i == prompt.length - 1) {
+			buffer = buffer.trim();
+
+			if(buffer != "") {
+				data.push([weight, buffer]);
+			}
+			buffer = "";
+		}
+		else {
+			buffer += prompt[i];
+		}
+
+		if(prompt[i] == "{") {
+			weight++;
+		}
+		else if(prompt[i] == "}") {
+			weight--;
+		}
+		else if(prompt[i] == "[") {
+			weight--;
+		}
+		else if(prompt[i] == "]") {
+			weight++;
+		}
+	}
+
+	let front = [];
+	front = front.concat(extractListFromList(numberList, data));
+	front = front.concat(extractListFromList(characterList, data));
+	front = front.concat(extractListFromList(copyrightList, data));
+	front = front.concat(extractListFromList(artistList, data));
+
+	let back = [];
+	back = back.concat(extractListFromList(qualityList, data));
+
+	let result = [];
+	result = result.concat(front);
+	result = result.concat(data);
+	result = result.concat(back);
+	result.push([0, ""]);
+
+	let str = "";
+	weight = 0;
+	for(let i = 0; i < result.length; i++) {
+		if(weight != result[i][0]) {
+			str = str.substring(0, str.length - 2);
+
+			if(weight < result[i][0]) {
+				for(let j = weight; j < result[i][0]; j++) {
+					if(j < 0) {
+						str += "]";
+						if(j == result[i][0] - 1 && i != result.length - 1) 
+							str += ", ";
+					}
+					else {
+						if(str.at(-1) != "{")
+							str += ", ";
+						str += "{";
+					}
+				}
+			}
+			else {
+				for(let j = weight; j > result[i][0]; j--) {
+					if(j <= 0) {
+						if(str.at(-1) != "[")
+							str += ", ";
+						str += "["
+					}
+					else {
+						str += "}";
+						if(j == result[i][0] + 1 && i != result.length - 1) 
+							str += ", ";
+					}
+				}
+			}
+
+			weight = result[i][0];
+		}
+
+		str += result[i][1];
+		if(i != result.length - 1)
+			str += ", ";
+	}
+
+	return str;
+}
+
+function extractListFromList(list2, list1) {
+	let result = [];
+
+	for(let i = 0; i < list1.length; i++) {
+		if(list2.includes(list1[i][1])) {
+			result.push(list1[i]);
+			list1.splice(i, 1);
+			i--;
+		}
+	}
+
+	return result;
 }
 
 // Change image size field based on string
@@ -854,6 +1008,7 @@ async function randomizePrompt() {
 
 	if (removeCharacter) {
 		prompt = removeListFromList(characterList, prompt);
+		prompt = removeListFromList(characteristicList, prompt);
 	}
 
 	if (removeCopyright) {
@@ -1071,6 +1226,10 @@ async function generate() {
 		document.getElementById('generate').disabled = false;
 		document.getElementById('image').classList.remove('generating');
 		return;
+	}
+
+	if (options.reorderTags) {
+		prompt = reorderPrompt(prompt);
 	}
 
 	document.getElementById('maid').style.visibility = 'visible';
