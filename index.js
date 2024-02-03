@@ -160,7 +160,7 @@ async function getPromptFromPos(pos) {
 	let end = pos;
 
 	for (end = pos; end < tagDataLength; end++) {
-		if (await read("tags.csv", end, end + 1) == 0x0D || await read("tags.csv", end, end + 1) == 0x0A) {
+		if (await read("tags.csv", end, end + 1) == 0x0A) {
 			break;
 		}
 	}

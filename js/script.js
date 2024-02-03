@@ -90,7 +90,7 @@ async function downloadLists() {
 		downloaded++;
 	});
 
-	tagDataLength = 2066275861;
+	tagDataLength = 2057298521;
 
 	let interval = setInterval(() => {
 		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / fileNum * 100) + "%";
@@ -1021,9 +1021,14 @@ async function randomizePrompt() {
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
 	let removeCopyright = options.removeCopyright;
+	let nsfw = options.nsfw;
 
 	let endprompt = removeEmptyElements(strToList(options.endprompt.replace(/\n/g, ",")));
 	let negative = removeEmptyElements(strToList(options.negativePrompt.replace(/\n/g, ",")));
+
+	if (!nsfw) {
+		including.push("rating:s");
+	}
 
 	if (including.length == 0) {
 		return begprompt.concat(endprompt).join(", ");
@@ -1294,6 +1299,9 @@ async function generate() {
 	setAnals();
 
 	let negativePrompt = options.negativePrompt;
+	if (!options.nsfw) {
+		negativePrompt += ", {{uncensored, nsfw, pussy, nipples}}";
+	}
 
 	let width = Number(options.width);
 	let height = Number(options.height);
