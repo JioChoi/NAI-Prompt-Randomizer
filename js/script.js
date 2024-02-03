@@ -109,6 +109,11 @@ async function downloadLists() {
 
 // On page load
 window.onload = async function () {
+	window.addEventListener('beforeunload', (e) => {
+		e.preventDefault();
+		e.returnValue = true;
+	});
+
 	downloadLists();
 	await init();
 	
