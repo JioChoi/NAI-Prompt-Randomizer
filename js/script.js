@@ -1006,7 +1006,7 @@ async function randomizePrompt() {
 
 	let nonsfw = options.nonsfw;
 	if (nonsfw) {
-		options.including += ", rating:s";
+		options.including += ", rating:g";
 	}
 
 	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ",").replace(/_/g, " ")));
