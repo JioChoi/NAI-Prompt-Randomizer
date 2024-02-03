@@ -1,7 +1,7 @@
 let api = '/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"nsfw": false, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let artistList;
 let characterList;
@@ -13,6 +13,8 @@ let numberList;
 let qualityList;
 let whitelistSeparated = [];
 let tagDataLength = 0;
+
+let preventReload = false;
 
 let tagSuggestElement = null;
 let keys = [];
@@ -87,7 +89,7 @@ async function downloadLists() {
 		downloaded++;
 	});
 
-	tagDataLength = 2012411821;
+	tagDataLength = 2066275861;
 
 	let interval = setInterval(() => {
 		document.getElementById('generate').innerHTML = "Downloading Data... " + Math.round(downloaded / fileNum * 100) + "%";
@@ -110,8 +112,10 @@ async function downloadLists() {
 // On page load
 window.onload = async function () {
 	window.addEventListener('beforeunload', (e) => {
-		e.preventDefault();
-		e.returnValue = true;
+		if (preventReload) {
+			e.preventDefault();
+			e.returnValue = true;
+		}
 	});
 
 	downloadLists();
@@ -681,6 +685,7 @@ function loadOptions(options) {
 	document.getElementById('removeArtist').checked = options.removeArtist;
 	document.getElementById('removeCharacter').checked = options.removeCharacter;
 	document.getElementById('removeCopyright').checked = options.removeCopyright;
+	document.getElementById('NSFW').checked = options.nsfw;
 	document.getElementById('endprompt').value = options.endprompt;
 	document.getElementById('negprompt').value = options.negativePrompt;
 
@@ -731,6 +736,7 @@ function getOptions() {
 	options.removeArtist = document.getElementById('removeArtist').checked;
 	options.removeCharacter = document.getElementById('removeCharacter').checked;
 	options.removeCopyright = document.getElementById('removeCopyright').checked;
+	options.nsfw = document.getElementById('NSFW').checked;
 	options.endprompt = document.getElementById('endprompt').value;
 	options.negativePrompt = document.getElementById('negprompt').value;
 
@@ -1028,6 +1034,8 @@ async function randomizePrompt() {
 		return null;
 	}
 
+	console.log(prompt);
+
 	prompt = strToList(prompt);
 	prompt = removeEmptyElements(prompt);
 
@@ -1240,6 +1248,8 @@ function removeListFromList(list1, list2) {
 
 // Generate button click
 async function generate() {
+	preventReload = true;
+
 	document.getElementById('generate').disabled = true;
 	document.getElementById('generate').innerHTML = "Searching... 0%";
 
