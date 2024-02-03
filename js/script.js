@@ -22,6 +22,7 @@ let previousPos = null;
 let previousIncluding = "";
 
 let mobile = false;
+let worker = new Worker('js/worker.js');
 
 let controller = new AbortController();
 
@@ -1231,6 +1232,16 @@ function removeListFromList(list1, list2) {
 	}
 
 	return list2;
+}
+
+async function startGenerate() {
+	worker.postMessage({ type: "generate" });
+}
+
+worker.onmessage = function (e) {
+	if (e.data.type == 'generate') {
+		generate();
+	}
 }
 
 // Generate button click
