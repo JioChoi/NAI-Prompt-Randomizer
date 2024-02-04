@@ -1,8 +1,8 @@
-# Welcome to Prombot 🚀
+# Welcome to Prombot
 
 Automatic prompt generator for Novel AI image generator!
 
-Try it out at [prombot.net](https://prombot.net/) and unleash your creativity! 🌈
+Try it out at [prombot.net](https://prombot.net/)
 
 ## Getting Started
 
