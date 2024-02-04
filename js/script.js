@@ -786,7 +786,8 @@ function initInfo(url) {
 	document.getElementById('info').scrollTop = 0;
 }
 
-temp = "1girl, {{kirisame_marisa, {{touhou}}}}, {{kakure eria, sangbob}}, {{a photo of a girl and her father holding hands together}}, [[7010]], alraune, blush, breasts, [[cum, cum on body, cum on breasts, cum on hair]], facial, flower, hair flower, hair ornament, heart, heart-shaped pupils, looking at viewer, monster girl, monsterification, nipples, open mouth, plant, plant girl, rose, simple background, smile, solo, symbol-shaped pupils, thorns, vines, white background, {{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}"
+temp = '1girl, [fu-ta], {{gsusart}}, anya (spy x family), damian desmond, spy x family, 1boy, ^^^, black hair, blush, brown eyes, buttons, child, crossed arms, eden academy school uniform, full body, green background, green eyes, long sleeves, medium hair, pink hair, school uniform, shaded face, shoes, short hair, shorts, simple background, socks, standing, volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres'
+
 
 function reorderPrompt(prompt) {
 	prompt = prompt.replace(/_/g, " ");
@@ -794,8 +795,8 @@ function reorderPrompt(prompt) {
 	let data = [];
 	let weight = 0;
 	let buffer = "";
-	for (let i = 0; i < prompt.length; i++) {
-		if(prompt[i] == "{" || prompt[i] == "[" || prompt[i] == "}" || prompt[i] == "]" || prompt[i] == "," || i == prompt.length - 1) {
+	for (let i = 0; i <= prompt.length; i++) {
+		if(i == prompt.length || prompt[i] == "{" || prompt[i] == "[" || prompt[i] == "}" || prompt[i] == "]" || prompt[i] == ",") {
 			buffer = buffer.trim();
 
 			if(buffer != "") {
@@ -807,17 +808,19 @@ function reorderPrompt(prompt) {
 			buffer += prompt[i];
 		}
 
-		if(prompt[i] == "{") {
-			weight++;
-		}
-		else if(prompt[i] == "}") {
-			weight--;
-		}
-		else if(prompt[i] == "[") {
-			weight--;
-		}
-		else if(prompt[i] == "]") {
-			weight++;
+		if(i < prompt.length) {
+			if(prompt[i] == "{") {
+				weight++;
+			}
+			else if(prompt[i] == "}") {
+				weight--;
+			}
+			else if(prompt[i] == "[") {
+				weight--;
+			}
+			else if(prompt[i] == "]") {
+				weight++;
+			}
 		}
 	}
 
@@ -835,6 +838,8 @@ function reorderPrompt(prompt) {
 	result = result.concat(data);
 	result = result.concat(back);
 	result.push([0, ""]);
+
+	console.log(result);
 
 	let str = "";
 	weight = 0;
@@ -875,8 +880,13 @@ function reorderPrompt(prompt) {
 		}
 
 		str += result[i][1];
-		if(i != result.length - 1)
+		if(i < result.length - 1) {
 			str += ", ";
+		}
+	}
+
+	if(str.substring(str.length - 2) == ", ") {
+		str = str.substring(0, str.length - 2);
 	}
 
 	return str;
@@ -1269,8 +1279,19 @@ async function startGenerate() {
 }
 
 worker.onmessage = function (e) {
-	if (e.data.type == 'generate') {
-		generate();
+	switch(e.data.type) {
+		case "generate":
+			generate();
+			break;
+		case "getOptions":
+			worker.postMessage({ type: "getOptions_result", options: getOptions() });
+			break;
+		case "setButtonText":
+			document.getElementById('generate').innerHTML = e.data.text;
+			break;
+		case "setButtonDisabled":
+			document.getElementById('generate').disabled = e.data.disabled;
+			break;
 	}
 }
 

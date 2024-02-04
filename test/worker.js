@@ -5,7 +5,9 @@ onmessage = function(e) {
 			i++;
 			postMessage(i);
 		}, 100);
-	}
 
-	postMessage("interval");
+		this.setInterval(() => {
+			postMessage("count");
+		}, 100);
+	}
 }

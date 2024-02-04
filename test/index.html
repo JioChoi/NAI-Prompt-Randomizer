@@ -15,6 +15,7 @@
 	<h2 id="c"></h2>
 
 	<script>
+		let count = 0;
 		// Create a new Worker
 		const worker = new Worker('worker.js');
 
@@ -22,12 +23,11 @@
 		worker.postMessage('start');
 
 		// Listen for messages from the worker
-		worker.onmessage = function(e) {
-			if(e.data === 'interval') {
-				let i = 0;
-				setInterval(() => {
-					document.getElementById('c').innerHTML = i++;
-				}, 100);
+		worker.onmessage = async function(e) {
+			if(e.data === 'count') {
+				await sleep(1000);
+				count++;
+				document.getElementById('c').innerHTML = count;
 			}
 			else
 				document.getElementById('b').innerHTML = e.data;
@@ -38,6 +38,10 @@
 		setInterval(() => {
 			document.getElementById('a').innerHTML = i++;
 		}, 100);
+
+		function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
 	</script>
 </body>
 </html>
