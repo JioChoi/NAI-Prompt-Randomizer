@@ -67,6 +67,7 @@ app.use(cors({
 }));
 
 /* Static Files */
+app.use('/test', express.static(__dirname + '/test'));
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/', express.static(__dirname + '/favicon'));
 app.use('/assets', express.static(__dirname + '/assets'));

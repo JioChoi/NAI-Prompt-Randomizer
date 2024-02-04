@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>WebWorker Testing</title>
+</head>
+<body>
+	<h1>WebWorker Testing</h1>
+	<h2>setInterval()</h2>
+	<h2 id="a"></h2>
+	<h2>only webworker</h2>
+	<h2 id="b"></h2>
+	<h2>webworker but call main</h2>
+	<h2 id="c"></h2>
+
+	<script>
+		// Create a new Worker
+		const worker = new Worker('worker.js');
+
+		// Send a message to the worker
+		worker.postMessage('start');
+
+		// Listen for messages from the worker
+		worker.onmessage = function(e) {
+			if(e.data === 'interval') {
+				let i = 0;
+				setInterval(() => {
+					document.getElementById('c').innerHTML = i++;
+				}, 100);
+			}
+			else
+				document.getElementById('b').innerHTML = e.data;
+		};
+
+		// Set interval
+		let i = 0;
+		setInterval(() => {
+			document.getElementById('a').innerHTML = i++;
+		}, 100);
+	</script>
+</body>
+</html>
