@@ -1,13 +1,13 @@
-onmessage = function (e) {
+self.addEventListener('message', function (e) {
 	switch(e.data.type) {
-		case 'generate':
+		case 'requestGenerate':
 			self.postMessage({ type: 'generate' });
 			break;
 		case 'automation':
 			addAutomationInterval();
 			break;
 	}
-}
+});
 
 function waitMessage(msg) {
 	self.postMessage(msg);
@@ -23,10 +23,13 @@ function waitMessage(msg) {
 
 function addAutomationInterval() {
 	let time = 0;
-	
+
+	console.log("Automation started")
 	const interval = setInterval(async () => {
 		options = (await waitMessage({ type: 'getOptions' })).options;
 		time += 100;
+
+		console.log(time);
 
 		self.postMessage({type: "setButtonText", text: time / 1000 + "s / " + options.delay + "s"});
 
@@ -34,12 +37,14 @@ function addAutomationInterval() {
 			self.postMessage({type: "setButtonText", text: "Generate"});
 			self.postMessage({type: "setButtonDisabled", disabled: false});
 			clearInterval(interval);
+			return;
 		}
 
 		if (time >= options.delay * 1000) {
 			self.postMessage({type: "generate"});
 			self.postMessage({type: "setButtonText", text: "Generate"});
 			clearInterval(interval);
+			return;
 		}
 	}, 100);
 }

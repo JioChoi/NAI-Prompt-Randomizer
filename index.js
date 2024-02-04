@@ -117,6 +117,11 @@ app.post('/api*', function (req, res, next) {
 	.pipe(res);
 });
 
+app.post('/test', function (req, res, next) {
+	console.log("REQUEST");
+	res.send("OK");
+});
+
 app.post('/generate-image', function (req, res, next) {
 	request('https://image.novelai.net/ai/generate-image', {
 		method: 'POST',

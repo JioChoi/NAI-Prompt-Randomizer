@@ -839,8 +839,6 @@ function reorderPrompt(prompt) {
 	result = result.concat(back);
 	result.push([0, ""]);
 
-	console.log(result);
-
 	let str = "";
 	weight = 0;
 	for(let i = 0; i < result.length; i++) {
@@ -1275,7 +1273,7 @@ function removeListFromList(list1, list2) {
 }
 
 async function startGenerate() {
-	worker.postMessage({ type: "generate" });
+	worker.postMessage({ type: "requestGenerate" });
 }
 
 worker.onmessage = function (e) {
@@ -1456,24 +1454,25 @@ async function generate() {
 
 	if (options.automation) {
 		let time = 0;
+		worker.postMessage({ type: "automation" });
 
-		const interval = setInterval(() => {
-			options = getOptions();
-			time += 100;
-			document.getElementById('generate').innerHTML = time / 1000 + "s / " + options.delay + "s";
+		// const interval = setInterval(() => {
+		// 	options = getOptions();
+		// 	time += 100;
+		// 	document.getElementById('generate').innerHTML = time / 1000 + "s / " + options.delay + "s";
 			
-			if (!options.automation) {
-				document.getElementById('generate').disabled = false;
-				document.getElementById('generate').innerHTML = "Generate";
-				clearInterval(interval);
-			}
+		// 	if (!options.automation) {
+		// 		document.getElementById('generate').disabled = false;
+		// 		document.getElementById('generate').innerHTML = "Generate";
+		// 		clearInterval(interval);
+		// 	}
 
-			if (time >= options.delay * 1000) {
-				generate();
-				document.getElementById('generate').innerHTML = "Generate";
-				clearInterval(interval);
-			}
-		}, 100);
+		// 	if (time >= options.delay * 1000) {
+		// 		generate();
+		// 		document.getElementById('generate').innerHTML = "Generate";
+		// 		clearInterval(interval);
+		// 	}
+		// }, 100);
 	}
 	else {
 		document.getElementById('generate').disabled = false;
