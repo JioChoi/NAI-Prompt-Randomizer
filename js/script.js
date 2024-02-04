@@ -1397,7 +1397,7 @@ async function generate() {
 				break;
 			}
 
-			await sleep(1000);
+			await sleep(options.delay * 1000);
 		}
 
 		if (!options.ignorefail && result == null) {
