@@ -28,6 +28,39 @@ let worker = new Worker('js/worker.js');
 
 let controller = new AbortController();
 
+// On page load
+window.onload = async function () {
+	window.addEventListener('beforeunload', (e) => {
+		if (preventReload) {
+			e.preventDefault();
+			e.returnValue = true;
+		}
+	});
+
+	downloadLists();
+	await init();
+
+	checkMobile();
+
+	const options = localStorage.getItem('options');
+	if (options == null) {
+		loadOptions(example);
+	} else {
+		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
+		loadOptions(localStorage.getItem('options'));
+	}
+
+	const settings = localStorage.getItem('settings');
+	if (settings != null) {
+		loadSettings(settings);
+	}
+
+	css();
+	checkDYN();
+
+	document.getElementById('loading').style.display = 'none';
+};
+
 async function downloadLists() {
 	const fileNum = 9;
 
@@ -115,39 +148,6 @@ async function downloadLists() {
 		}
 	}, 100);
 }
-
-// On page load
-window.onload = async function () {
-	window.addEventListener('beforeunload', (e) => {
-		if (preventReload) {
-			e.preventDefault();
-			e.returnValue = true;
-		}
-	});
-
-	downloadLists();
-	await init();
-
-	checkMobile();
-
-	const options = localStorage.getItem('options');
-	if (options == null) {
-		loadOptions(example);
-	} else {
-		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
-		loadOptions(localStorage.getItem('options'));
-	}
-
-	const settings = localStorage.getItem('settings');
-	if (settings != null) {
-		loadSettings(settings);
-	}
-
-	css();
-	checkDYN();
-
-	document.getElementById('loading').style.display = 'none';
-};
 
 function checkOptions(option) {
 	option = JSON.parse(option);
