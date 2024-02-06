@@ -1270,6 +1270,8 @@ worker.onmessage = function (e) {
 
 // Generate button click
 async function generate() {
+	gtag('event', 'Generate', {});
+
 	preventReload = true;
 
 	document.getElementById('generate').disabled = true;
