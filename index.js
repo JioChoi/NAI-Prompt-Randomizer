@@ -80,6 +80,11 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
+// sitemap.xml
+app.get('/sitemap.xml', function (req, res) {
+	res.sendFile(__dirname + '/sitemap.xml');
+});
+
 /* Routes */
 app.post('/readTags', async function (req, res, next) {
 	let pos = req.body.pos;
