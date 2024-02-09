@@ -19,6 +19,9 @@ let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
 	production = true;
 }
+if(process.argv[2] == "dev") {
+	production = false;
+}
 
 /* HTTPS */
 let privateKey;
@@ -238,8 +241,8 @@ if (production) {
 		res.end();
 	}).listen(80);
 } else {
-	app.listen(80, function () {
-		console.log('Listening on port 80! (dev)');
+	app.listen(8080, function () {
+		console.log('Listening on port 8080! (dev)');
 		init();
 	});
 }
