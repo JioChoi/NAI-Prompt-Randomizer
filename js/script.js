@@ -1,4 +1,5 @@
-let api = '/api';
+let host = 'https://jio7-prombot.hf.space';
+let api = 'https://jio7-prombot.hf.space/api';
 let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
@@ -958,7 +959,7 @@ function hideHistory() {
 }
 
 async function getUserData() {
-	let data = get('/api/user/data', key);
+	let data = get(api + '/user/data', key);
 	return data;
 }
 
@@ -1133,7 +1134,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 }
 
 async function getPromptFromPos(pos) {
-	return await post('/readTags', { pos: pos }, null, 'text');
+	return await post(host + '/readTags', { pos: pos }, null, 'text');
 }
 
 async function readTagData(start, end) {
@@ -1695,7 +1696,7 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 		parameters: parameters,
 	};
 
-	let result = await post('generate-image', data, accessToken, 'blob');
+	let result = await post(host + '/generate-image', data, accessToken, 'blob');
 
 	const { entries } = await unzipit.unzip(result);
 
