@@ -241,8 +241,8 @@ if (production) {
 		res.end();
 	}).listen(80);
 } else {
-	app.listen(8080, function () {
-		console.log('Listening on port 8080! (dev)');
+	app.listen(7860, function () {
+		console.log('Listening on port 7860! (dev)');
 		init();
 	});
 }
