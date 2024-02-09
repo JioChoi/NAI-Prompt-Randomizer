@@ -3,13 +3,13 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>NAI Prompt Bot</title>
+	<title>Prombot - Automatic Prompt Generator for Novel AI</title>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src="js/blake.js"></script>
-	<script src="node_modules/argon2-browser/dist/argon2-bundled.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"></script>
 	<script src="js/buffer.js"></script>
-	<script src="node_modules/unzipit/dist/unzipit.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/unzipit@1.4.3/dist/unzipit.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
@@ -32,13 +32,15 @@
 	<link rel="stylesheet" href="css/reset.css">
 	<link rel="stylesheet" href="css/style.css">
 
-	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-	<link rel="manifest" href="/site.webmanifest">
-	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+	<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+	<link rel="manifest" href="favicon/site.webmanifest">
+	<link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
 	<meta name="msapplication-TileColor" content="#fcdbc8">
 	<meta name="theme-color" content="#ffffff">
+
+	<meta name="description" content="Prombot is an automatic prompt generator for Novel AI Diffusion. It automatically generates high-quality prompts from the Danbooru database. You can easily automate image generation without any program installation.">
 </head>
 <body>
 	<!-- <div id="preset">
