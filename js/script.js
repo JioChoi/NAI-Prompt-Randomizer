@@ -236,8 +236,89 @@ async function getStealthExif(src) {
 	return null;
 }
 
+function addPreset() {
+	let name = window.prompt('Please enter the name of the preset.', '');
+	name = name.trim();
+
+	if (name != null && name != '') {
+		let list = localStorage.getItem('preset_list');
+
+		if (!list.split(',').includes(name)) {
+			list += ',' + name;
+			localStorage.setItem('preset_list', list);
+			addPresetItem(name);
+		}
+
+		let options = getOptions();
+		localStorage.setItem('preset_' + name, JSON.stringify(options, null, 4));
+	}
+}
+
+function addPresetItem(name) {
+	const preset = document.getElementById('presetItem');
+
+	let item = document.createElement('div');
+	item.classList.add('item');
+
+	let text = document.createElement('span');
+	text.innerHTML = name;
+	text.classList.add('text');
+	item.appendChild(text);
+
+	if(name != 'default') {
+		let remove = document.createElement('span');
+		remove.classList.add('delete');
+
+		remove.addEventListener('click', (e) => {
+			let yes = window.confirm('Delete preset "' + name + '"?');
+			
+			if (!yes) {
+				return;
+			}
+
+			let list = localStorage.getItem('preset_list');
+			list = list.split(',');
+			list.splice(list.indexOf(name), 1);
+			list = list.join(',');
+			localStorage.setItem('preset_list', list);
+
+			localStorage.removeItem('preset_' + name);
+
+			preset.removeChild(item);
+		});
+		item.appendChild(remove);
+	}
+
+	text.addEventListener('click', (e) => {
+		let options = localStorage.getItem('preset_' + name);
+		if(options == null) {
+			options = example;
+		}
+
+		loadOptions(options);
+		hidePreset();
+
+		document.getElementById('sidebar').classList.add('expanded');
+		document.getElementById('upico').classList.add('rotate');
+	});
+
+	preset.appendChild(item);
+}
+
 // Init css elements
 function css() {
+	// Get preset data
+	let list = localStorage.getItem('preset_list');
+	if (list == null) {
+		list = 'default';
+		localStorage.setItem('preset_list', list);
+	}
+
+	list = list.split(',');
+	for (let i = 0; i < list.length; i++) {
+		addPresetItem(list[i]);
+	}
+
 	const imageUploader = document.getElementById('imageUploader');
 	window.addEventListener('drop', (e) => {
 		imageUploader.classList.remove('shown');

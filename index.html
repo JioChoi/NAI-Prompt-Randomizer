@@ -225,11 +225,15 @@
 		<div id="presetBtn" onclick="showPreset()"></div>
 		
 		<div id="preset">
-			<div class="title">
+			<div class="title" onclick="hidePreset()">
 				<h1>Presets</h1>
 				<span class="left" onclick="hidePreset()"></span>
 			</div>
-			<div id="presetItem"></div>
+			<div id="presetItem">
+			</div>
+			<div id="presetSave" onclick="addPreset()">
+				Add Preset
+			</div>
 		</div>
 
 		<div id="anals">
@@ -237,7 +241,7 @@
 		</div>
 
 		<div id="history">
-			<div class="title">
+			<div class="title" onclick="hideHistory()">
 				<h1>History</h1>
 				<span class="right" onclick="hideHistory()"></span>
 			</div>

@@ -167,6 +167,11 @@ body {
 	#presetBtn {
 		left: 15px;
 	}
+
+	#preset {
+		left: 0px;
+		z-index: 999;
+	}
 }
 
 /* Tablet */
@@ -257,5 +262,10 @@ body {
 
 	#presetBtn {
 		left: 15px;
+	}
+
+	#preset {
+		left: 0px;
+		z-index: 999;
 	}
 }
