@@ -6,7 +6,6 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 const path = require('path');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
 
 let logs = [];
 
@@ -40,25 +39,6 @@ if (production) {
 	ca = fs.readFileSync('/etc/letsencrypt/live/prombot.net/chain.pem');
 	credentials = { key: privateKey, cert: certificate, ca: ca };
 }
-
-/* Rate Limiter */
-const opts = {
-	points: 30, // 6 points
-	duration: 1, // Per second
-};
-
-const rateLimiter = new RateLimiterMemory(opts);
-
-app.use((req, res, next) => {
-	rateLimiter
-		.consume(req.ip)
-		.then(() => {
-			next();
-		})
-		.catch(() => {
-			res.status(429).send('Too Many Requests');
-		});
-});
 
 /* Status Monitor */
 app.use(require('express-status-monitor')());
