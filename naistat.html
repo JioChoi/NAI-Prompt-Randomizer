@@ -70,7 +70,7 @@
 		window.onload = () => {
 			// Get server status
 			let xhr = new XMLHttpRequest();
-			xhr.open("GET", "../stat", true);
+			xhr.open("GET", "https://jio7-prombot.hf.space/stat", true);
 			xhr.onreadystatechange = () => {
 				if (xhr.readyState == 4 && xhr.status == 200) {
 					let data = JSON.parse(xhr.responseText);
