@@ -1032,7 +1032,12 @@ async function randomizePrompt() {
 	let negative = removeEmptyElements(strToList(options.negativePrompt.replace(/\n/g, ',')));
 
 	if (including.length == 0) {
-		return begprompt.concat(endprompt).join(', ');
+		if(excluding.length == 0) {
+			return begprompt.concat(endprompt).join(', ');
+		}
+		else {
+			including.push('1girl');
+		}
 	}
 
 	let prompt = await getRandomPrompt(including, excluding, options.including);
@@ -1040,8 +1045,9 @@ async function randomizePrompt() {
 	if (prompt == null || prompt === '') {
 		return null;
 	}
-
-	console.log(prompt);
+	else if(prompt === "DNE") {
+		return "DNE";
+	}
 
 	prompt = strToList(prompt);
 	prompt = removeEmptyElements(prompt);
@@ -1077,7 +1083,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 	process = 0;
 
 	if (including.length == 0) {
-		return null;
+		return "";
 	}
 
 	for (var i = 0; i < including.length; i++) {
@@ -1086,7 +1092,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 		}, including[i]);
 
 		if (index == -1) {
-			return null;
+			return "";
 		}
 	}
 
@@ -1121,14 +1127,16 @@ async function getRandomPrompt(including, excluding, searchString) {
 		pos = Array.from(pos);
 	}
 
-	console.log(pos.length);
+	document.getElementById('generate').innerHTML = 'Generate';
+
+	if(pos.length === 0) {
+		return "DNE";
+	}
 
 	previousIncluding = inc;
 	previousPos = pos;
 
 	pos = pos[Math.floor(Math.random() * pos.length)];
-
-	document.getElementById('generate').innerHTML = 'Generate';
 
 	return await getPromptFromPos(pos);
 }
@@ -1290,6 +1298,13 @@ async function generate() {
 
 	if (prompt == null && !options.ignorefail) {
 		alert('Failed to get prompt');
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('generate').disabled = false;
+		document.getElementById('image').classList.remove('generating');
+		return;
+	}
+	else if(prompt === "DNE") {
+		alert('Cannot find any matching prompt');
 		document.getElementById('maid').style.visibility = 'hidden';
 		document.getElementById('generate').disabled = false;
 		document.getElementById('image').classList.remove('generating');
