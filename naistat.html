@@ -77,7 +77,7 @@
 					let failed = data.failed;
 					let total = data.total;
 
-					let star = failed / total * 5;
+					let star = Math.round((total - failed) / total * 5);
 
 					let starLine = document.createElement("span");
 					starLine.classList.add("mingcute--star-line");
