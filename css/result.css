@@ -336,8 +336,8 @@
 #presetItem .item .text {
 	margin: 10px 15px;
 	margin-right: 0px;
-	width: 100%;
-	width: -webkit-fill-available;
+	width: calc(100% - 40px);
+	word-wrap: break-word;
 }
 
 #presetSave {
