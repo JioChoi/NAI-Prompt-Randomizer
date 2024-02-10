@@ -420,6 +420,12 @@ input[type='password'] {
 	height: 50px;
 }
 
+.left {
+	content: url('https://api.iconify.design/mingcute/left-small-fill.svg?color=%23f9f9f9');
+	width: 50px;
+	height: 50px;
+}
+
 #tagSuggest {
 	display: block;
 	position: fixed;

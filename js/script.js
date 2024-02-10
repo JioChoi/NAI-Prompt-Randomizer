@@ -947,6 +947,14 @@ function showHistory() {
 	}, 300);
 }
 
+function showPreset() {
+	document.getElementById('preset').classList.add('shown');
+}
+
+function hidePreset() {
+	document.getElementById('preset').classList.remove('shown');
+}
+
 function hideHistory() {
 	document.getElementById('history').classList.remove('shown');
 	const ele = document.getElementById('image');

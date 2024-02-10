@@ -54,6 +54,7 @@
 		</ul>
 	</div> -->
 
+	
 	<div id="background"></div>
 	<div id="loading">
 		<div class="spinner"></div>
@@ -65,33 +66,33 @@
 		<input type="text" id="id" placeholder="Email">
 		<input type="password" id="password" placeholder="Password">
 		<button id="loginBtn">Sign in</button>
-		<h2 id="continue">Continue without signing in</h2>
+		<!-- <h2 id="continue">Continue without signing in</h2> -->
 	</div>
-
+	
 	<div class="container">
 		<div class="hidden" id="sidebar">
 			<div id="expand" onclick="expand()"><span id="upico" class="up"></span></div>
 			<div id="items">
 				<h1 id="firstTitle">Prompt Randomizer</h1>
-
+				
 				<h2>Beginning Prompt</h2>
 				<textarea id="begprompt" rows="3" placeholder="Prompt to put at the beginning."></textarea>
-		
+				
 				<h2>Prompt Search Options</h2>
 				<textarea id="including" rows="3" placeholder="Search for prompts including... (~ for excluding)"></textarea>
-	
+				
 				<div class="rowcb nobottom">
 					<div>
 						<input type="checkbox" id="removeArtist">
 						<label for="removeArtist">Remove Artist</label>
 					</div>
-	
+					
 					<div>
 						<input type="checkbox" id="removeCharacter">
 						<label for="removeCharacter">Remove Character</label>
 					</div>
 				</div>
-
+				
 				<div class="rowcb nobottom">
 					<div>
 						<input type="checkbox" id="removeCopyright">
@@ -101,17 +102,17 @@
 						<label for="nonsfw">No NSFW</label>
 					</div>
 				</div>
-
+				
 				<h2>Ending Prompt</h2>
 				<textarea id="endprompt" rows="3" placeholder="Prompt to put at the end."></textarea>
-		
+				
 				<h2>Negative Prompt</h2>
 				<textarea id="negprompt" rows="4" placeholder="Prompt to not include."></textarea>
-
+				
 				<h1>Options</h1>
-	
+				
 				<h2>Image Size</h2>
-	
+				
 				<div class="row">
 					<button class="dropdown" id="dropdown_imgsize">
 						<div>Normal Portrait</div>
@@ -122,25 +123,25 @@
 						<li>Portrait (832x1216)</li>
 						<li>Landscape (1216x832)</li>
 						<li>Square (1024x1024)</li>
-		
+						
 						<li class="title">LARGE</li>
 						<li>Portrait (1024x1536)</li>
 						<li>Landscape (1536x1024)</li>
 						<li>Square (1472x1472)</li>
-		
+						
 						<li class="title">WALLPAPER</li>
 						<li>Portrait (1088x1920)</li>
 						<li>Landscape (1920x1088)</li>
-		
+						
 						<li class="title">SMALL</li>
 						<li>Portrait (512x768)</li>
 						<li>Landscape (768x512)</li>
 						<li>Square (640x640)</li>
-		
+						
 						<li class="title">CUSTOM</li>
 						<li>Custom</li>
 					</ul>
-	
+					
 					<div class="size">
 						<input id="width" value="832">
 						<div class="x"></div>
@@ -150,19 +151,19 @@
 				
 				<h2 id="stept">Steps: 28</h2>
 				<input type="range" id="step" min="1" max="50" step="1" value="28">
-	
+				
 				<h2 id="pgt">Prompt Guidance: 5</h2>
 				<input type="range" id="pg" min="0" max="10" step="0.1" value="5">
-	
+				
 				<h2 id="pgrt">Prompt Guidance Rescale: 0</h2>
 				<input type="range" id="pgr" min="0" max="1" step="0.01" value="0">
-	
+				
 				<div class="row">
 					<div>
 						<h2 class="noleft">Seed</h2>
 						<input type="text" id="seed" placeholder="Random">
 					</div>
-		
+					
 					<div>
 						<h2 class="noleft">Sampler</h2>
 						<button class="dropdown" id="dropdown_sampler">
@@ -175,33 +176,33 @@
 							<li>DPM++ 2S Ancestral</li>
 							<li>DPM++ SDE</li>
 						</ul>
-			
+						
 						<div class="rowcb noleft">
 							<input type="checkbox" id="SMEA">
 							<label for="SMEA">SMEA</label>
-			
+							
 							<input type="checkbox" id="DYN">
 							<label for="DYN">DYN</label>
 						</div>
 					</div>
 				</div>
-	
+				
 				<h1>Automation</h1>
-	
+				
 				<h2 id="delayt">Delay: 8 seconds</h2>
 				<input type="range" id="delay" min="0" max="30" step="1" value="8">
-	
+				
 				<div class="rowcb nobottom">
 					<input type="checkbox" id="automation">
 					<label for="automation">Enable Automation</label>
-	
+					
 					<input type="checkbox" id="autodown">
 					<label for="autodown">Automatically Download</label>
 				</div>
 				<div class="rowcb">
 					<input type="checkbox" id="ignorefail">
 					<label for="ignorefail">Ignore Server Failure</label>
-
+					
 					<input type="checkbox" id="reorderTags">
 					<label for="reorderTags">Reorder Tags</label>
 				</div>
@@ -211,9 +212,9 @@
 				<button id="generate" onclick='startGenerate()' disabled>Generate</button>
 			</div>
 		</div>
-	
+		
 		<img id="maid" src="assets/maid.png"></img>
-	
+		
 		<div id="image">
 			<img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'">
 			<!-- <img id="result" onerror="this.onerror=null; this.src='assets/noimg.png'" src="assets/temp.png"> -->
@@ -221,13 +222,22 @@
 		</div>
 		
 		<div id="historyBtn" onclick="showHistory()"></div>
+		<div id="presetBtn" onclick="showPreset()"></div>
 		
+		<div id="preset">
+			<div class="title">
+				<h1>Presets</h1>
+				<span class="left" onclick="hidePreset()"></span>
+			</div>
+			<div id="presetItem"></div>
+		</div>
+
 		<div id="anals">
 			<span>0</span>
 		</div>
 
 		<div id="history">
-			<div id="title">
+			<div class="title">
 				<h1>History</h1>
 				<span class="right" onclick="hideHistory()"></span>
 			</div>

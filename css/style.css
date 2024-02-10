@@ -142,7 +142,7 @@ body {
 
 		border-top: 2px solid #1f1f1f;
 
-		box-shadow: none;
+		box-shadow: 0 40px 0px 0 #1f1f1f;
 	}
 
 	#image {
@@ -162,6 +162,10 @@ body {
 	#login {
 		width: 100vw;
 		height: 100%;
+	}
+
+	#presetBtn {
+		left: 15px;
 	}
 }
 
@@ -234,7 +238,7 @@ body {
 
 		border-top: 2px solid #1f1f1f;
 
-		box-shadow: none;
+		box-shadow: 0 40px 0px 0 #1f1f1f;
 	}
 
 	#image {
@@ -249,5 +253,9 @@ body {
 
 	#info {
 		padding: 10px;
+	}
+
+	#presetBtn {
+		left: 15px;
 	}
 }

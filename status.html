@@ -111,9 +111,9 @@
 
 					let starDiv = document.getElementById("star");
 					for (let i = 0; i < 5; i++) {
-						if (star >= 1) {
+						if (star >= 0.5) {
 							starDiv.appendChild(starFill.cloneNode(true));
-						} else if (star >= 0.5) {
+						} else if (star > 0) {
 							starDiv.appendChild(starHalfFill.cloneNode(true));
 						} else {
 							starDiv.appendChild(starLine.cloneNode(true));

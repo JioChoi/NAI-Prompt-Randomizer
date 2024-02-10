@@ -113,18 +113,3 @@
 #option_sampler {
 	width: 220px;
 }
-
-#preset {
-	position: fixed;
-	top: 0px;
-	right: 0px;
-
-	margin: 10px;
-}
-#dropdown_preset {
-	width: 160px;
-}
-#option_preset {
-	width: 160px;
-	max-height: 120px;
-}
