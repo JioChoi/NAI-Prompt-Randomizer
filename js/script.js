@@ -243,8 +243,8 @@ function addPreset() {
 	if (name != null && name != '') {
 		let list = localStorage.getItem('preset_list');
 
-		if (!list.split(',').includes(name)) {
-			list += ',' + name;
+		if (!list.split('\n').includes(name)) {
+			list += '\n' + name;
 			localStorage.setItem('preset_list', list);
 			addPresetItem(name);
 		}
@@ -277,9 +277,9 @@ function addPresetItem(name) {
 			}
 
 			let list = localStorage.getItem('preset_list');
-			list = list.split(',');
+			list = list.split('\n');
 			list.splice(list.indexOf(name), 1);
-			list = list.join(',');
+			list = list.join('\n');
 			localStorage.setItem('preset_list', list);
 
 			localStorage.removeItem('preset_' + name);
@@ -314,7 +314,7 @@ function css() {
 		localStorage.setItem('preset_list', list);
 	}
 
-	list = list.split(',');
+	list = list.split('\n');
 	for (let i = 0; i < list.length; i++) {
 		addPresetItem(list[i]);
 	}
