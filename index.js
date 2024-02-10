@@ -17,6 +17,8 @@ let posDataLength = 0;
 let failed = 0;
 let total = 0;
 
+let prvTime = 0;
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -146,12 +148,12 @@ app.get('/stat', function (req, res, next) {
 });
 
 app.post('/generate-image', function (req, res, next) {
-	let date = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
-	let min = Number(date.split(' ')[1].split(':')[1]);
-
-	if(min % 10 == 0) {
+	let time = new Date().getTime();
+	// reset every 30 minutes
+	if (time - prvTime > 1800000) {
 		failed = 0;
 		total = 0;
+		prvTime = time;
 	}
 
 	request(
