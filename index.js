@@ -107,7 +107,7 @@ app.post('/api*', function (req, res, next) {
 			},
 		},
 		function (error, response, body) {
-			if (response.statusCode != 200) {
+			if (response && response.statusCode != 200) {
 				log(String(response.statusCode) + ') ' + req.url.substring(4) + ' error: ' + body.message);
 			}
 		},
@@ -148,7 +148,7 @@ app.post('/generate-image', function (req, res, next) {
 		},
 		function (error, response, body) {
 			total++;
-			if (response.statusCode != 200) {
+			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				failed++;
 			} else {
@@ -167,7 +167,7 @@ app.get('/api*', function (req, res, next) {
 			},
 		},
 		function (error, response, body) {
-			if (response.statusCode != 200) {
+			if (response && response.statusCode != 200) {
 				log(String(response.statusCode) + ') ' + req.url.substring(4) + ' error: ' + body.message);
 			}
 		},
