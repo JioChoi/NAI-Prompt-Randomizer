@@ -336,7 +336,7 @@
 #presetItem .item .text {
 	margin: 10px 15px;
 	margin-right: 0px;
-	width: calc(100% - 40px);
+	width: calc(100% - 55px);
 	word-wrap: break-word;
 }
 
