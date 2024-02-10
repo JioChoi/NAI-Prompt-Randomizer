@@ -14,6 +14,9 @@ let app = express();
 let tagDataLength = 0;
 let posDataLength = 0;
 
+let failed = 0;
+let total = 0;
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -134,7 +137,23 @@ app.post('/test', function (req, res, next) {
 	res.send('OK');
 });
 
+app.get('/naistat', function (req, res, next) {
+	res.sendFile(__dirname + '/naistat.html');
+});
+
+app.get('/stat', function (req, res, next) {
+	res.send({ failed: failed, total: total });
+});
+
 app.post('/generate-image', function (req, res, next) {
+	let date = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+	let min = Number(date.split(' ')[1].split(':')[1]);
+
+	if(min % 10 == 0) {
+		failed = 0;
+		total = 0;
+	}
+
 	request(
 		'https://image.novelai.net/ai/generate-image',
 		{
@@ -146,8 +165,10 @@ app.post('/generate-image', function (req, res, next) {
 			},
 		},
 		function (error, response, body) {
+			total++;
 			if (response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+				failed++;
 			} else {
 				log('Generate image: ' + req.body.input);
 			}
