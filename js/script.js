@@ -1543,6 +1543,7 @@ async function generate() {
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
 	document.getElementById('progressBar').style.visibility = 'hidden';
+	document.getElementById('generate').disabled = false;
 
 	if (result != null) {
 		document.getElementById('generate').innerHTML = 'Generate';
