@@ -127,6 +127,14 @@ app.get('/naistat', function (req, res, next) {
 	res.sendFile(__dirname + '/status.html');
 });
 
+app.post('/time', function (req, res, next) {
+	let time = req.body.time;
+	totalTime += time;
+	totalSuccess++;
+	recentTime = time;
+	res.send('OK');
+});
+
 app.get('/stat', function (req, res, next) {
 	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess, recentTime: recentTime});
 });
@@ -158,12 +166,7 @@ app.post('/generate-image', function (req, res, next) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				failed++;
 			} else {
-				let newTime = new Date().getTime();
-				totalTime += newTime - time;
-				totalSuccess++;
-				recentTime = newTime - time;
-
-				log('Generate image: ' + req.body.input + ' (' + (newTime - time) + 'ms)');	
+				log('Generate image: ' + req.body.input);	
 			}
 		},
 	).pipe(res);

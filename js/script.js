@@ -1505,7 +1505,7 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get("https://jio7-prombot.hf.space/stat")).avgTime + 6000;
+	let eta = (await get("https://jio7-prombot.hf.space/stat")).recentTime;
 
 	const interval = setInterval(async () => {
 		let time = (new Date().getTime() - generateTime);
@@ -1517,6 +1517,7 @@ async function generate() {
 	document.getElementById('progressBar').style.width = '0px';
 	document.getElementById('progressBar').style.visibility = 'visible';
 
+	let time = new Date().getTime();
 	try {
 		result = await generateImage(key, prompt, 'nai-diffusion-3', 'generate', params);
 	} catch {
@@ -1547,6 +1548,8 @@ async function generate() {
 		document.getElementById('generate').innerHTML = 'Generate';
 		document.getElementById('result').src = result;
 		initInfo(result);
+
+		await post('https://jio7-prombot.hf.space/time', { time: new Date().getTime() - time });
 
 		if (options.autodownload) {
 			download(result, prompt.substring(0, 80) + '_' + seed + '.png');
@@ -1580,24 +1583,6 @@ async function generate() {
 	if (options.automation) {
 		let time = 0;
 		worker.postMessage({ type: 'automation' });
-
-		// const interval = setInterval(() => {
-		// 	options = getOptions();
-		// 	time += 100;
-		// 	document.getElementById('generate').innerHTML = time / 1000 + "s / " + options.delay + "s";
-
-		// 	if (!options.automation) {
-		// 		document.getElementById('generate').disabled = false;
-		// 		document.getElementById('generate').innerHTML = "Generate";
-		// 		clearInterval(interval);
-		// 	}
-
-		// 	if (time >= options.delay * 1000) {
-		// 		generate();
-		// 		document.getElementById('generate').innerHTML = "Generate";
-		// 		clearInterval(interval);
-		// 	}
-		// }, 100);
 	} else {
 		document.getElementById('generate').disabled = false;
 	}

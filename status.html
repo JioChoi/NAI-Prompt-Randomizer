@@ -126,7 +126,7 @@
 					let recenttime = (data.recentTime / 1000).toFixed(2);
 
 					let msg = document.getElementById("msg");
-					msg.innerHTML = `${failed} errors / ${total} requests (${recenttime}s / image)`;
+					msg.innerHTML = `${failed} errors / ${total} requests (${avgtime}s / image)`;
 				}
 			};
 			xhr.send();
