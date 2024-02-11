@@ -467,3 +467,263 @@ tail wagging
 tail wrap
 dark-skinned male
 dark-skinned other
+matching hairstyle
+official alternate hairstyle
+single side bun
+side up bun
+dog human
+gorilla human
+cat human
+bear human
+raccoon human
+werewolf
+squirrel human
+pig human
+horse human
+bat human
+deer human
+lion human
+cow human
+sheep human
+fox human
+goat human
+monkey human
+ferret human
+mouse human
+rabbit human
+panda human
+tiger human
+dog furry
+gorilla furry
+cat furry
+bear furry
+raccoon furry
+wolf furry
+squirrel furry
+pig furry
+horse furry
+bat furry
+deer furry
+lion furry
+cow furry
+sheep furry
+fox furry
+goat furry
+monkey furry
+ferret furry
+mouse furry
+rabbit furry
+panda furry
+tiger furry
+burglar
+gyaru
+construction worker
+miner
+florist
+lumberjack
+librarian
+croupier
+merchant
+shepherd
+mechanic
+politician
+terrorist
+judge
+student
+hacker
+salaryman
+office lady
+guard
+police
+janitor
+soldier
+standard-bearer
+officer
+lifeguard
+sailor
+firefighter
+spy
+astronaut
+chef
+conductor
+bodyguard
+bartender
+waiter
+waitress
+butler
+cashier
+maid
+nurse maid
+ladies maid
+military maid
+victoria maid
+cybermaid
+steampunk maid
+japanese-style maid
+china-style maid
+classic maid
+kitchen maid
+faller maid
+french maid
+house maid
+housekeeper
+scientist
+chemist
+engineer
+geisha
+idol
+actor
+actress
+musician
+painter
+artist
+athlete
+footballer
+a basketball player.
+baseball player
+volleyball player
+golfer
+tennis player
+cyclist
+teacher
+math teacher
+science teacher
+english teacher
+health teacher
+school nurse
+driver
+pilot
+train attendant
+train conductor
+flight attendant
+trucker
+doctor
+nurse
+dentist
+slave
+farmer
+queen
+king
+prisoner
+dominatrix
+knight
+ninja
+witch
+wizard
+miko
+samurai
+priest
+nun
+monk
+alchemist
+warrior
+slut
+skank
+bitch
+whore
+call girl
+stripper
+prostitution
+porno actor
+yellow hair
+sky blue hair
+ombre
+sombre
+absurdly short hair
+bluntbangs
+gray hair streak
+white hair streak
+brown hair streak
+red hair streak
+pink hair streak
+orange hair streak
+yellow hair streak
+blonde hair streak
+light green hair streak
+green hair streak
+sky blue hair streak
+blue hair streak
+purple hair streak
+black hair streak
+rainbow hair streak
+short eyes
+long eyes
+short eyebrow
+long eyebrow
+slender eyebrow
+heavy eyebrow
+short eyelashes
+long eyelashes
+slender eyelashes
+heavy eyelashes
+gray eyes
+golden eyes
+light green eyes
+sky blue eyes
+odd eye
+multicolored eye
+spade-shaped pupils
+clover-shaped pupils
+blanked eyes
+empty eyes
+sconstricted pupils
+bloodshot pupils
+flaming pupils
+glowing pupils
+halo
+horns
+horn bow
+horn ornament
+horn ribbon
+horn ring
+horned headwear
+horned helmet
+horned hood
+horned mask
+black horns
+blue horns
+brown horns
+purple horns
+red horns
+white horns
+single horn
+multiple horns
+asymmetrical horns
+mismatched horns
+uneven horns
+broken horns
+broken horn
+cone horns
+cow horns
+curled horns
+demon horns
+dragon horns
+fake horns
+fiery horns
+glowing horns
+giraffe horns
+goat horns
+gradient horns
+hair horns
+huge horns
+low horns
+mechanical horns
+sheep horns
+tree horns
+skin-covered horns
+broken halo
+compass rose halo
+crescent halo
+cruciform halo
+dark halo
+double halo
+drawn halo
+faded halo
+flaming halo
+fake halo
+liquid halo
+mechanical halo
+melting halo
+star halo
+square halo
+winged halo
