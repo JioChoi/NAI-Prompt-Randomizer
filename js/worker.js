@@ -29,8 +29,6 @@ function addAutomationInterval() {
 		options = (await waitMessage({ type: 'getOptions' })).options;
 		time += 100;
 
-		console.log(time);
-
 		self.postMessage({type: "setButtonText", text: time / 1000 + "s / " + options.delay + "s"});
 
 		if (!options.automation) {

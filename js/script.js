@@ -1448,7 +1448,6 @@ async function generate() {
 	document.getElementById('maid').style.right = '-100px';
 	document.getElementById('image').classList.add('generating');
 	document.getElementById('generate').innerHTML = 'Generate';
-	document.getElementById('generate').disabled = false;
 
 	setAnals();
 
@@ -1521,7 +1520,7 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get("https://jio7-prombot.hf.space/stat")).recentTime;
+	let eta = (await get("https://jio7-prombot.hf.space/stat")).recentTime + 4000;
 
 	const interval = setInterval(async () => {
 		let time = (new Date().getTime() - generateTime);
@@ -1559,6 +1558,7 @@ async function generate() {
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
 	document.getElementById('progressBar').style.visibility = 'hidden';
+	document.getElementById('generate').disabled = false;
 
 	if (result != null) {
 		document.getElementById('generate').innerHTML = 'Generate';
@@ -1596,8 +1596,8 @@ async function generate() {
 		history.insertBefore(ele, history.firstChild);
 	}
 
-	if (options.automation) {
-		let time = 0;
+	if (getOptions().automation) {
+		document.getElementById('generate').disabled = true;
 		worker.postMessage({ type: 'automation' });
 	} else {
 		document.getElementById('generate').disabled = false;

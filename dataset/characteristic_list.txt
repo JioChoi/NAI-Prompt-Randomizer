@@ -515,6 +515,7 @@ mouse furry
 rabbit furry
 panda furry
 tiger furry
+furry
 burglar
 gyaru
 construction worker
