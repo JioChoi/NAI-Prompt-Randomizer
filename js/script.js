@@ -1512,7 +1512,7 @@ async function generate() {
 
 		generateProgress = time / eta;
 		setProgressbar();
-	}, 500);
+	}, 1000);
 
 	document.getElementById('progressBar').style.width = '0px';
 	document.getElementById('progressBar').style.visibility = 'visible';
