@@ -15,6 +15,8 @@ let posDataLength = 0;
 
 let failed = 0;
 let total = 0;
+let totalTime = 0;
+let totalSuccess = 0;
 
 let prvTime = 0;
 
@@ -23,7 +25,7 @@ let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
 	production = true;
 }
-if(process.argv[2] == "dev") {
+if (process.argv[2] == 'dev') {
 	production = false;
 }
 
@@ -120,11 +122,11 @@ app.post('/test', function (req, res, next) {
 });
 
 app.get('/naistat', function (req, res, next) {
-	res.sendFile(__dirname + '/naistat.html');
+	res.sendFile(__dirname + '/status.html');
 });
 
 app.get('/stat', function (req, res, next) {
-	res.send({ failed: failed, total: total });
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess });
 });
 
 app.post('/generate-image', function (req, res, next) {
@@ -134,6 +136,8 @@ app.post('/generate-image', function (req, res, next) {
 		failed = 0;
 		total = 0;
 		prvTime = time;
+		totalTime = 0;
+		totalSuccess = 0;
 	}
 
 	request(
@@ -153,6 +157,9 @@ app.post('/generate-image', function (req, res, next) {
 				failed++;
 			} else {
 				log('Generate image: ' + req.body.input);
+				let newTime = new Date().getTime();
+				totalTime += newTime - time;
+				totalSuccess++;
 			}
 		},
 	).pipe(res);

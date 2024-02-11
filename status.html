@@ -121,8 +121,10 @@
 						star -= 1;
 					}
 
+					let avgtime = data.avgTime.toFixed(2);
+
 					let msg = document.getElementById("msg");
-					msg.innerHTML = `${failed} errors / ${total} requests`;
+					msg.innerHTML = `${failed} errors / ${total} requests (${avgtime}s / image)`;
 				}
 			};
 			xhr.send();
