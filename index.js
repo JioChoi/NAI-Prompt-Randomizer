@@ -18,6 +18,8 @@ let total = 0;
 let totalTime = 0;
 let totalSuccess = 0;
 
+let recentTime = 0;
+
 let prvTime = 0;
 
 /* Production Detection */
@@ -126,7 +128,7 @@ app.get('/naistat', function (req, res, next) {
 });
 
 app.get('/stat', function (req, res, next) {
-	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess });
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess, recentTime: recentTime});
 });
 
 app.post('/generate-image', function (req, res, next) {
@@ -156,10 +158,12 @@ app.post('/generate-image', function (req, res, next) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				failed++;
 			} else {
-				log('Generate image: ' + req.body.input);
 				let newTime = new Date().getTime();
 				totalTime += newTime - time;
 				totalSuccess++;
+				recentTime = newTime - time;
+
+				log('Generate image: ' + req.body.input + ' (' + (newTime - time) + 'ms)');	
 			}
 		},
 	).pipe(res);
@@ -182,7 +186,12 @@ app.get('/api*', function (req, res, next) {
 });
 
 app.get('/', function (req, res, next) {
-	res.sendFile(__dirname + '/index.html');
+	if (process.argv[2] == 'dev') {
+		res.sendFile(__dirname + '/static.html');
+	}
+	else {
+		res.sendFile(__dirname + '/index.html');
+	}
 });
 
 /* Functions */
@@ -251,8 +260,15 @@ if (production) {
 		res.end();
 	}).listen(80);
 } else {
-	app.listen(7860, function () {
-		console.log('Listening on port 7860! (dev)');
-		init();
-	});
+	if (process.argv[2] == 'dev') {
+		app.listen(7860, function () {
+			console.log('Listening on port 7860! (dev)');
+			init();
+		});
+	} else {
+		app.listen(80, function () {
+			console.log("Listening on port 80! (dev)")
+			init();
+		});
+	}
 }

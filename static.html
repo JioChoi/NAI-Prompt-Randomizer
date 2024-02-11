@@ -6,15 +6,64 @@
 	<title>Prombot - Automatic Prompt Generator for Novel AI</title>
 </head>
 <body>
-	<iframe id="github-iframe" src=""></iframe>
-<script>
-    fetch('https://github.com/JioChoi/NAI-Prompt-Randomizer')
-        .then(function(response) {
-            return response.json();
-        }).then(function(data) {
-            var iframe = document.getElementById('github-iframe');
-            iframe.src = 'data:text/html;base64,' + encodeURIComponent(data['content']);
-        });
-</script>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f4f4f4;
+			overflow: hidden;
+			margin: 0;
+			padding: 0;
+
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			width: 100%;
+			height: 100vh;
+		}
+
+		.container {
+			display: flex;
+
+			width: 400px;
+			height: 300px;
+
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+
+			background-color: #fff;
+
+			border-radius: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		}
+
+		h1, h3, h5 {
+			margin: 0;
+			padding: 0;
+		}
+
+		h1 {
+			margin-bottom: 20px;
+		}
+		h3 {
+			margin-bottom: 10px;
+		}
+	</style>
+	<div class="container">
+		<h1>Prombot</h1>
+		<h3>Try at <a href="https://prombot.net" target="_blank">prombot.net</a></h3>
+		<h3><a href="https://github.com/JioChoi/NAI-Prompt-Randomizer" target="_blank">Github</a></h3>
+	</div>
+
+	<script>
+		window.onload = function() {
+			document.body.style.height = window.innerHeight + 'px';
+		}
+
+		window.onresize = function() {
+			document.body.style.height = window.innerHeight + 'px';
+		}
+	</script>
 </body>
 </html>

@@ -15,6 +15,8 @@ let qualityList;
 let whitelistSeparated = [];
 let tagDataLength = 0;
 
+let generateProgress = 0;
+
 let preventReload = false;
 
 let tagSuggestElement = null;
@@ -441,6 +443,7 @@ function css() {
 			resizeInfo();
 			moveTagSuggest();
 			checkMobile();
+			setProgressbar();
 		});
 
 		// When dropdown menu options are clicked
@@ -1376,11 +1379,23 @@ worker.onmessage = function (e) {
 	}
 };
 
+function setProgressbar() {
+	let progressBar = document.getElementById('progressBar');
+	let image = document.getElementById('image');
+
+	let rect = image.getBoundingClientRect();
+
+	progressBar.style.width = rect.width + 'px';
+	progressBar.style.background = 'linear-gradient(90deg, #0078d4 ' + generateProgress * 100 + '%, #131313 ' + generateProgress * 100 + '%)';
+	progressBar.style.left = rect.left + 'px';
+}
+
 // Generate button click
 async function generate() {
 	gtag('event', 'Generate', {});
 
 	preventReload = true;
+	generateProgress = 0;
 
 	document.getElementById('generate').disabled = true;
 	document.getElementById('generate').innerHTML = 'Searching... 0%';
@@ -1489,25 +1504,44 @@ async function generate() {
 	};
 	let result = null;
 
+	generateTime = new Date().getTime();
+	let eta = (await get("https://jio7-prombot.hf.space/stat")).avgTime + 6000;
+
+	const interval = setInterval(async () => {
+		let time = (new Date().getTime() - generateTime);
+
+		generateProgress = time / eta;
+		setProgressbar();
+	}, 500);
+
+	document.getElementById('progressBar').style.width = '0px';
+	document.getElementById('progressBar').style.visibility = 'visible';
+
 	try {
 		result = await generateImage(key, prompt, 'nai-diffusion-3', 'generate', params);
 	} catch {
 		console.log('Failed to generate image');
 		result = null;
 
+		clearInterval(interval);
+
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('image').classList.remove('generating');
+		document.getElementById('generate').disabled = false;
+		document.getElementById('generate').innerHTML = 'Generate';
+		document.getElementById('progressBar').style.visibility = 'hidden';
 		if (!options.ignorefail && result == null) {
 			alert('NovelAI server error: please try again later.');
-			document.getElementById('maid').style.visibility = 'hidden';
-			document.getElementById('image').classList.remove('generating');
-			document.getElementById('generate').disabled = false;
-			document.getElementById('generate').innerHTML = 'Generate';
 			return;
 		}
 	}
 
+	clearInterval(interval);
+
 	setAnals();
 	document.getElementById('maid').style.visibility = 'hidden';
 	document.getElementById('image').classList.remove('generating');
+	document.getElementById('progressBar').style.visibility = 'hidden';
 
 	if (result != null) {
 		document.getElementById('generate').innerHTML = 'Generate';
