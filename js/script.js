@@ -135,10 +135,10 @@ async function downloadLists() {
 			console.log('downloaded all lists');
 
 			// Load whitelist
-			whitelist.push('rating:general');
-			whitelist.push('rating:sensitive');
-			whitelist.push('rating:questionable');
-			whitelist.push('rating:explicit');
+			whitelist.push('rating: general');
+			whitelist.push('rating: sensitive');
+			whitelist.push('rating: questionable');
+			whitelist.push('rating: explicit');
 
 			for (let temp of whitelist) {
 				whitelistSeparated.push(temp.split(' '));
@@ -1104,8 +1104,13 @@ async function randomizePrompt() {
 	options.including = options.including.replace(/rating:explicit/g, 'rating:e');
 	options.including = options.including.replace(/rating:sensitive/g, 'rating:s');
 
-	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ',').replace(/_/g, ' ')));
-	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ',').replace(/_/g, ' ')));
+	options.including = options.including.replace(/rating: general/g, 'rating:g');
+	options.including = options.including.replace(/rating: questionable/g, 'rating:q');
+	options.including = options.including.replace(/rating: explicit/g, 'rating:e');
+	options.including = options.including.replace(/rating: sensitive/g, 'rating:s');
+
+	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ',')));
+	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ',')));
 	let excluding = [];
 	for (var i = 0; i < including.length; i++) {
 		if (including[i].startsWith('~')) {
