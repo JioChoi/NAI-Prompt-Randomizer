@@ -107,7 +107,6 @@ cone hair bun
 doughnut hair bun
 heart hair bun
 triple bun
-cone hair bun
 hair rings
 single hair ring
 half updo
@@ -249,3 +248,222 @@ fish tail
 scorpion tail
 snake tail
 tadpole tail
+animal ears
+bat ears
+bear ears
+rabbit ears
+cat ears
+cow ears
+deer ears
+dog ears
+ferret ears
+fox ears
+goat ears
+horse ears
+kemonomimi mode
+lion ears
+monkey ears
+mouse ears
+panda ears
+pikachu ears
+pig ears
+raccoon ears
+sheep ears
+squirrel ears
+tiger ears
+wolf ears
+fake animal ears
+animal ear headphones
+bear ear headphones
+cat ear headphones
+rabbit ear headphones
+hair ears
+robot ears
+extra ears
+ear piercing
+ear protection
+earrings
+single earring
+headphones
+object behind ear
+roots
+alternate hair color
+translucent hair
+widow's peak
+neckbeard
+stroking beard
+two-tone beard
+braided beard
+long beard
+tied beard
+very long beard
+goatee
+mustache
+stubble
+alternate facial hair
+bearded girl
+fake mustache
+beard
+toothbrush mustache
+mustached girl
+head fins
+single head wing
+wings
+alternate wings
+multiple wings
+no wings
+single wing
+large wings
+mini wings
+angel wings
+demon wings
+dragon wings
+fairy wings
+insect wings
+butterfly wings
+dragonfly wings
+ladybug wings
+moth wings
+bat wings
+crystal wings
+energy wings
+fiery wings
+ice wings
+light hawk wings
+liquid wings
+artificial wings
+fake wings
+hair wings
+mechanical wings
+metal wings
+plant wings
+feathered wings
+black wings
+gradient wings
+red wings
+white wings
+blue wings
+green wings
+brown wings
+transparent wings
+yellow wings
+pink wings
+rainbow wings
+grey wings
+ankle wings
+detached wings
+head wings
+low wings
+leg wings
+wrist wings
+wing ears
+winged arms
+winged bag
+winged hat
+winged helmet
+winged footwear
+asymmetrical wings
+bloody wings
+bowed wings
+flapping
+glowing wings
+heart wings
+torn wings
+wing censor
+grabbing another's wing
+wing hug
+wing umbrella
+wingjob
+wing ribbon
+constricted pupils
+dilated pupils
+extra pupils
+horizontal pupils
+no pupils
+slit pupils
+symbol-shaped pupils
+diamond-shaped pupils
+flower-shaped pupils
+heart-shaped pupils
+star-shaped pupils
+cross-shaped pupils
+x-shaped pupils
+mismatched pupils
+blue sclera
+black sclera
+blank eyes
+bloodshot eyes
+green sclera
+mismatched sclera
+no sclera
+orange sclera
+red sclera
+yellow sclera
+bags under eyes
+aegyo sal
+bruised eye
+flaming eyes
+glowing eyes
+glowing eye
+missing eye
+one-eyed
+third eye
+extra eyes
+no eyes
+covering own eyes
+bandage over one eye
+blindfold
+hat over eyes
+eyepatch
+eyelashes
+colored eyelashes
+fake eyelashes
+eyes visible through hair
+glasses
+makeup
+eyeliner
+eyeshadow
+mascara
+forehead mark
+forehead
+aqua lips
+black lips
+blue lips
+grey lips
+green lips
+orange lips
+pink lips
+purple lips
+red lips
+shiny lips
+yellow lips
+tail
+tail bell
+tail bow
+tail ornament
+tail piercing
+tail ribbon
+tail ring
+fake tail
+heart tail
+heart tail duo
+holding another's tail
+holding own tail
+holding with tail
+intertwined tails
+panties around tail
+prehensile tail
+spiked tail
+stiff tail
+tail between legs
+tail biting
+tail censor
+tail grab
+tail fondling
+tail pull
+tail raised
+tail stand
+tail wagging
+tail wrap
+dark-skinned male
+dark-skinned other

@@ -2,7 +2,7 @@ let host = 'https://jio7-prombot.hf.space';
 let api = 'https://jio7-prombot.hf.space/api';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let artistList;
 let characterList;
@@ -12,6 +12,8 @@ let censorList;
 let copyrightList;
 let numberList;
 let qualityList;
+let attireList;
+
 let whitelistSeparated = [];
 let tagDataLength = 0;
 
@@ -65,7 +67,7 @@ window.onload = async function () {
 };
 
 async function downloadLists() {
-	const fileNum = 9;
+	const fileNum = 10;
 
 	let downloaded = 0;
 	downloadFile('https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt', null, 'text').then((data) => {
@@ -113,6 +115,12 @@ async function downloadLists() {
 	downloadFile('https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/quality_list.txt', null, 'text').then((data) => {
 		qualityList = data.split('\n');
 		console.log('downloaded quality_list.txt');
+		downloaded++;
+	});
+
+	downloadFile('https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/clothes_list.txt', null, 'text').then((data) => {
+		attireList = data.split('\n');
+		console.log('downloaded clothes_list.txt');
 		downloaded++;
 	});
 
@@ -297,7 +305,7 @@ function addPresetItem(name) {
 			options = example;
 		}
 
-		loadOptions(options);
+		loadOptions(checkOptions(options));
 		hidePreset();
 
 		document.getElementById('sidebar').classList.add('expanded');
@@ -771,6 +779,7 @@ function loadOptions(options) {
 	document.getElementById('removeArtist').checked = options.removeArtist;
 	document.getElementById('removeCharacter').checked = options.removeCharacter;
 	document.getElementById('removeCopyright').checked = options.removeCopyright;
+	document.getElementById('removeAttire').checked = options.removeAttire;
 	document.getElementById('nonsfw').checked = options.nonsfw;
 	document.getElementById('endprompt').value = options.endprompt;
 	document.getElementById('negprompt').value = options.negativePrompt;
@@ -822,6 +831,7 @@ function getOptions() {
 	options.removeArtist = document.getElementById('removeArtist').checked;
 	options.removeCharacter = document.getElementById('removeCharacter').checked;
 	options.removeCopyright = document.getElementById('removeCopyright').checked;
+	options.removeAttire = document.getElementById('removeAttire').checked;
 	options.nonsfw = document.getElementById('nonsfw').checked;
 	options.endprompt = document.getElementById('endprompt').value;
 	options.negativePrompt = document.getElementById('negprompt').value;
@@ -1129,6 +1139,7 @@ async function randomizePrompt() {
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
 	let removeCopyright = options.removeCopyright;
+	let removeAttire = options.removeAttire;
 
 	let endprompt = removeEmptyElements(strToList(options.endprompt.replace(/\n/g, ',')));
 	let negative = removeEmptyElements(strToList(options.negativePrompt.replace(/\n/g, ',')));
@@ -1169,6 +1180,10 @@ async function randomizePrompt() {
 
 	if (removeCopyright) {
 		prompt = removeListFromList(copyrightList, prompt);
+	}
+
+	if (removeAttire) {
+		prompt = removeListFromList(attireList, prompt);
 	}
 
 	if (options.begprompt.includes('uncensored') || options.endprompt.includes('uncensored')) {
@@ -1550,7 +1565,7 @@ async function generate() {
 		document.getElementById('result').src = result;
 		initInfo(result);
 
-		await post('https://jio7-prombot.hf.space/time', { time: new Date().getTime() - time });
+		await post('https://jio7-prombot.hf.space/time', { time: new Date().getTime() - time }, null, 'text');
 
 		if (options.autodownload) {
 			download(result, prompt.substring(0, 80) + '_' + seed + '.png');
