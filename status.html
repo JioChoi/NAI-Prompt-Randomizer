@@ -87,10 +87,7 @@
 	</div>
 
 	<script>
-		window.onload = () => {
-			document.body.style.height = window.innerHeight + 'px';
-
-			// Get server status
+		function getServerStatus() {
 			let xhr = new XMLHttpRequest();
 			xhr.open("GET", "https://jio7-prombot.hf.space/stat", true);
 			xhr.onreadystatechange = () => {
@@ -111,6 +108,8 @@
 					starHalfFill.classList.add("mingcute--star-half-fill");
 
 					let starDiv = document.getElementById("star");
+					starDiv.innerHTML = "";
+
 					for (let i = 0; i < 5; i++) {
 						if (star >= 0.5) {
 							starDiv.appendChild(starFill.cloneNode(true));
@@ -130,6 +129,16 @@
 				}
 			};
 			xhr.send();
+		}
+
+		window.onload = () => {
+			document.body.style.height = window.innerHeight + 'px';
+
+			getServerStatus();
+
+			setInterval(() => {
+				getServerStatus();
+			}, 5000);
 		};
 
 		window.onresize = () => {
