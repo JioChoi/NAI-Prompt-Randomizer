@@ -30,8 +30,6 @@
 	height: 100%;
 
 	overflow-y: scroll;
-
-	padding-bottom: 35px;
 }
 
 #sidebar .footer {
@@ -112,4 +110,29 @@
 }
 #option_sampler {
 	width: 220px;
+}
+
+#items .footer {
+	user-select: text;
+
+	display: flex;
+
+	justify-content: center;
+	align-items: flex-end;
+
+	width: 100%;
+	height: 60px;
+
+	font-size: 14px;
+
+	margin-top: 40px;
+	padding-bottom: 10px;
+
+	background: transparent;
+	color: #535353;
+
+	text-align: center;
+
+	z-index: 0;
+	box-shadow: none;
 }

@@ -406,8 +406,10 @@ function css() {
 	});
 
 	window.addEventListener('dragover', (e) => {
-		imageUploader.classList.add('shown');
-		e.preventDefault();
+		if (e.dataTransfer.types.includes('Files')) {
+			imageUploader.classList.add('shown');
+			e.preventDefault();
+		}
 	});
 
 	imageUploader.addEventListener('dragleave', (e) => {
@@ -932,8 +934,12 @@ function initInfo(url) {
 temp = '1girl, [fu-ta], {{gsusart}}, anya (spy x family), damian desmond, spy x family, 1boy, ^^^, black hair, blush, brown eyes, buttons, child, crossed arms, eden academy school uniform, full body, green background, green eyes, long sleeves, medium hair, pink hair, school uniform, shaded face, shoes, short hair, shorts, simple background, socks, standing, volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres';
 
 function logout() {
-	localStorage.removeItem('key');
-	location.reload();
+	const yes = window.confirm('Logout from your Novel AI account?');
+
+	if (yes) {
+		localStorage.removeItem('key');
+		location.reload();
+	}
 }
 
 function reorderPrompt(prompt) {
