@@ -13,14 +13,7 @@ let app = express();
 let tagDataLength = 0;
 let posDataLength = 0;
 
-let failed = 0;
-let total = 0;
-let totalTime = 0;
-let totalSuccess = 0;
-
-let recentTime = 0;
-
-let prvTime = 0;
+let status = [];
 
 /* Production Detection */
 let production = false;
@@ -129,25 +122,38 @@ app.get('/naistat', function (req, res, next) {
 
 app.post('/time', function (req, res, next) {
 	let time = req.body.time;
-	totalTime += time;
-	totalSuccess++;
-	recentTime = time;
+	status.push({at: new Date().getTime(), time: time, status: 'success'});
+
 	res.send('OK');
 });
 
 app.get('/stat', function (req, res, next) {
-	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess, recentTime: recentTime});
+	let total = status.length;
+	let totalSuccess = 0;
+	let totalTime = 0;
+	let failed = 0;
+
+	for (let i = 0; i < status.length; i++) {
+		if (status[i].status == 'success') {
+			totalSuccess++;
+			totalTime += status[i].time;
+		} else {
+			failed++;
+		}
+	}
+
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess});
 });
 
 app.post('/generate-image', function (req, res, next) {
-	let time = new Date().getTime();
-	// reset every 30 minutes
-	if (time - prvTime > 1800000) {
-		failed = 0;
-		total = 0;
-		prvTime = time;
-		totalTime = 0;
-		totalSuccess = 0;
+	// Remove old status
+	let now = new Date().getTime();
+
+	for (let i = 0; i < status.length; i++) {
+		if (now - status[i].at > 10 * 60 * 1000) {
+			status.splice(i, 1);
+			i--;
+		}
 	}
 
 	request(
@@ -161,10 +167,9 @@ app.post('/generate-image', function (req, res, next) {
 			},
 		},
 		function (error, response, body) {
-			total++;
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
-				failed++;
+				status.push({at: new Date().getTime(), time: 0, status: 'failed'});
 			} else {
 				log('Generate image: ' + req.body.input);	
 			}

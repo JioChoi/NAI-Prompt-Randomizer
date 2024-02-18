@@ -1630,7 +1630,7 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get(host + "/stat")).recentTime + 4000;
+	let eta = (await get(host + "/stat")).avgTime + 4000;
 
 	const interval = setInterval(async () => {
 		let time = (new Date().getTime() - generateTime);
