@@ -1103,8 +1103,34 @@ async function init() {
 	}
 }
 
+function applyDynamicPrompt(prompt) {
+	let buffer = '';
+	let indexStart = 0;
+	for (let i = 0; i < prompt.length; i++) {
+		if(prompt[i] == '<') {
+			buffer = '';
+			indexStart = i;
+		}
+		else if (prompt[i] == '>') {
+			let tags = buffer.split('|');
+			let index = Math.floor(Math.random() * tags.length);
+			prompt = prompt.substring(0, indexStart) + tags[index] + prompt.substring(i + 1);
+		}
+		else {
+			buffer += prompt[i];
+		}
+	}
+
+	return prompt;
+}
+
 async function randomizePrompt() {
 	options = getOptions();
+
+	// Dynamic prompt
+	options.including = applyDynamicPrompt(options.including);
+	options.begprompt = applyDynamicPrompt(options.begprompt);
+	options.endprompt = applyDynamicPrompt(options.endprompt);
 
 	let nonsfw = options.nonsfw;
 	if (nonsfw) {
@@ -1726,8 +1752,8 @@ function suggestTags(str, element) {
 				let start = 0;
 				let end = tagSuggestElement.selectionStart;
 
-				if (cursorStr.includes(',') || cursorStr.includes('{') || cursorStr.includes('~') || cursorStr.includes('[')) {
-					start = Math.max(cursorStr.lastIndexOf(',') + 1, cursorStr.lastIndexOf(', ') + 2, cursorStr.lastIndexOf('{') + 1, cursorStr.lastIndexOf('~') + 1, cursorStr.lastIndexOf('[') + 1);
+				if (cursorStr.includes(',') || cursorStr.includes('{') || cursorStr.includes('~') || cursorStr.includes('[') || cursorStr.includes('<') || cursorStr.includes('|')) {
+					start = Math.max(cursorStr.lastIndexOf(',') + 1, cursorStr.lastIndexOf(', ') + 2, cursorStr.lastIndexOf('{') + 1, cursorStr.lastIndexOf('~') + 1, cursorStr.lastIndexOf('[') + 1, cursorStr.lastIndexOf('<') + 1, cursorStr.lastIndexOf('|') + 1);
 				} else {
 					start = 0;
 				}
@@ -1762,10 +1788,11 @@ function moveTagSuggest() {
 }
 
 function findTags(str) {
+	str = str.replace(/\|/g, ',');
 	if (str.includes(',')) {
 		str = str.substring(Math.max(str.lastIndexOf(',') + 1, str.lastIndexOf(', ') + 2));
 	}
-	str = str.toLowerCase().replace(/_/g, ' ').replace(/{/g, '').replace(/\[/g, '').replace(/~/g, '');
+	str = str.toLowerCase().replace(/_/g, ' ').replace(/{/g, '').replace(/\[/g, '').replace(/~/g, '').replace(/</g, '');
 
 	if (str == '') return [];
 
