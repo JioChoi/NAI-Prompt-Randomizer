@@ -298,6 +298,9 @@ input[type='range']:focus::-webkit-slider-thumb {
 	background-color: #0078d4;
 	outline: 2px solid #0078d4;
 }
+input[type='range']:hover {
+	cursor: pointer;
+}
 
 /* Text Input */
 input[type='text'] {

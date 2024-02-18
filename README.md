@@ -4,14 +4,18 @@ Automatic prompt generator for Novel AI image generator!
 
 Try it out at [prombot.net](https://prombot.net/)
 
-## Getting Started
-
-Follow these steps to start using Prombot:
-
-- **Clone the repository.**
-- **Run the following command to start the application:**
-  ```bash
-  sudo node index.js
+## Installation Guide
+**Installation**
+```
+git clone https://github.com/JioChoi/NAI-Prompt-Randomizer.git
+cd NAI-Prompt-Randomizer
+chmod +x install.sh
+bash install.sh
+```
+**Starting Server**
+```
+sudo node index.js
+```
 
 ## Configuration Options
 ![1.png](/images/EN/1.png)
