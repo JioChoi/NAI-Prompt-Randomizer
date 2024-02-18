@@ -33,6 +33,8 @@ let worker = new Worker('js/worker.js');
 
 let controller = new AbortController();
 
+let wildcards = {};
+
 // On page load
 window.onload = async function () {
 	window.addEventListener('beforeunload', (e) => {
@@ -150,8 +152,11 @@ async function downloadLists() {
 			whitelist.push('rating: questionable');
 			whitelist.push('rating: explicit');
 
+			// Load wildcards
+			loadWildcards();
+
 			for (let temp of whitelist) {
-				whitelistSeparated.push(temp.split(' '));
+				whitelistSeparated.push(temp.toLowerCase().split(' '));
 			}
 
 			document.getElementById('generate').innerHTML = 'Generate';
@@ -171,6 +176,21 @@ function checkOptions(option) {
 	}
 
 	return JSON.stringify(option);
+}
+
+function loadWildcards() {
+	for(let i = 0; i < localStorage.length; i++) {
+		let key = localStorage.key(i);
+		if(key.startsWith('wildcard_')) {
+			let data = localStorage.getItem(key);
+			data = data.split('\n');
+
+			const name = key.substring(9);
+			wildcards[name] = data;
+
+			whitelist.push("__" + name + "__");
+		}
+	}
 }
 
 function checkMobile() {
@@ -317,6 +337,40 @@ function addPresetItem(name) {
 
 // Init css elements
 function css() {
+	// Wildcard Loader
+	let wildcard = document.getElementById('wildcards');
+	wildcard.addEventListener('change', (e) => {
+		const files = wildcard.files;
+
+		for (let i = 0; i < files.length; i++) {
+			const name = files[i].name.substring(0, files[i].name.length - 4);
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				let data = reader.result;
+				data = data.replace(/\r/g, '');
+				data = data.split('\n');
+
+				for (let i = 0; i < data.length; i++) {
+					data[i] = data[i].trim();
+
+					if(data[i] == '' || data[i][0] == '#') {
+						data.splice(i, 1);
+						i--;
+					}
+				}
+
+				localStorage.setItem('wildcard_' + name, data.join('\n'));
+				wildcards[name] = data;
+				whitelist.push("__" + name + "__");
+				whitelistSeparated.push(("__" + name + "__").toLowerCase().split(' '));
+			};
+
+			reader.readAsText(files[i]);
+		}
+
+		wildcard.value = '';
+	});
+
 	// Get preset data
 	let list = localStorage.getItem('preset_list');
 	if (list == null) {
@@ -1124,8 +1178,33 @@ function applyDynamicPrompt(prompt) {
 	return prompt;
 }
 
+function applyWildcards(prompt) {
+	let regex = /__\w+__/g;
+	let match = prompt.match(regex);
+
+	if(match == null) {
+		return prompt;
+	}
+
+	for(let i = 0; i < match.length; i++) {
+		let name = match[i].substring(2, match[i].length - 2);
+		let data = wildcards[name];
+		if(data != null) {
+			let index = Math.floor(Math.random() * data.length);
+			prompt = prompt.replace(match[i], data[index]);
+		}
+	}
+
+	return prompt;
+}
+
 async function randomizePrompt() {
 	options = getOptions();
+
+	// Wildcards
+	options.begprompt = applyWildcards(options.begprompt);
+	options.including = applyWildcards(options.including);
+	options.endprompt = applyWildcards(options.endprompt);
 
 	// Dynamic prompt
 	options.including = applyDynamicPrompt(options.including);
@@ -1639,21 +1718,6 @@ function download(dataurl, filename) {
 	link.click();
 }
 
-function searchTags(str) {
-	let list = [];
-	for (let i = 0; i < whitelist.length; i++) {
-		if (whitelist[i].includes(str)) {
-			list.push(whitelist[i]);
-		}
-
-		if (list.length >= 5) {
-			break;
-		}
-	}
-
-	return list;
-}
-
 function expand() {
 	document.getElementById('sidebar').classList.toggle('expanded');
 	document.getElementById('upico').classList.toggle('rotate');
@@ -1792,7 +1856,7 @@ function findTags(str) {
 	if (str.includes(',')) {
 		str = str.substring(Math.max(str.lastIndexOf(',') + 1, str.lastIndexOf(', ') + 2));
 	}
-	str = str.toLowerCase().replace(/_/g, ' ').replace(/{/g, '').replace(/\[/g, '').replace(/~/g, '').replace(/</g, '');
+	str = str.toLowerCase().replace(/{/g, '').replace(/\[/g, '').replace(/~/g, '').replace(/</g, '');
 
 	if (str == '') return [];
 

@@ -508,3 +508,42 @@ input[type='password'] {
 	content: url('https://novelai.net/_next/static/media/anla.23c99491.svg');
 	margin-left: 3px;
 }
+
+/* File Input */
+input[type='file'] {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+input[type='file'] + label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	width: fit-content;
+	padding: 6px 10px;
+
+	font-size: 16px;
+	color: #f9f9f9;
+
+	background-color: #313131;
+	border: 2px solid #3c3c3c;
+	border-radius: 5px;
+
+	margin: 0px 30px;
+
+	cursor: pointer;
+}
+input[type='file'] + label span {
+	height: 20px;
+	width: 20px;
+	margin-right: 6px;
+	text-align: center;
+}
+input[type='file'] + label:hover {
+	background-color: #3c3c3c;
+	border: 2px solid #424242;
+}

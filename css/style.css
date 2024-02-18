@@ -172,6 +172,10 @@ body {
 		left: 0px;
 		z-index: 999;
 	}
+
+	input[type='file'] + label {
+		margin-left: 20px;
+	}
 }
 
 /* Tablet */
@@ -267,5 +271,9 @@ body {
 	#preset {
 		left: 0px;
 		z-index: 999;
+	}
+
+	input[type='file'] + label {
+		margin-left: 20px;
 	}
 }
