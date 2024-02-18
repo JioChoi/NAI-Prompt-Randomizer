@@ -1,8 +1,12 @@
-# Welcome to Prombot
+# Prombot
 
 Automatic prompt generator for Novel AI image generator!
 
 Try it out at [prombot.net](https://prombot.net/)
+
+## Requirements
+- Node.js 18 or above
+- Git
 
 ## Installation Guide
 **Installation**
@@ -12,9 +16,19 @@ cd NAI-Prompt-Randomizer
 chmod +x install.sh
 bash install.sh
 ```
+
 **Starting Server**
 ```
 sudo node index.js
+```
+**Changing the Server Address**
+``cd js/script.js``
+
+Change host to your backend server address
+```
+// Server HOST Address (Change this to your server address)
+let host = 'https://jio7-prombot.hf.space';
+let key = null;
 ```
 
 ## Configuration Options

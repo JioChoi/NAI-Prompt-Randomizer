@@ -1,5 +1,5 @@
+// Server HOST Address (Change this to your server address)
 let host = 'https://jio7-prombot.hf.space';
-let api = 'https://jio7-prombot.hf.space/api';
 let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
@@ -1066,7 +1066,7 @@ function hideHistory() {
 }
 
 async function getUserData() {
-	let data = get(api + '/user/data', key);
+	let data = get(host + '/api/user/data', key);
 	return data;
 }
 
@@ -1520,7 +1520,7 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get("https://jio7-prombot.hf.space/stat")).recentTime + 4000;
+	let eta = (await get(host + "/stat")).recentTime + 4000;
 
 	const interval = setInterval(async () => {
 		let time = (new Date().getTime() - generateTime);
@@ -1565,7 +1565,7 @@ async function generate() {
 		document.getElementById('result').src = result;
 		initInfo(result);
 
-		await post('https://jio7-prombot.hf.space/time', { time: new Date().getTime() - time }, null, 'text');
+		await post(host + '/time', { time: new Date().getTime() - time }, null, 'text');
 
 		if (options.autodownload) {
 			download(result, prompt.substring(0, 80) + '_' + seed + '.png');
@@ -1909,7 +1909,7 @@ async function connect(id, pw) {
 
 // Test access token validity
 async function testAccessToken(accessToken) {
-	let url = api + '/user/information';
+	let url = host + '/api/user/information';
 	let result = await get(url, accessToken);
 	return result;
 }
@@ -1922,7 +1922,7 @@ function reformatAccessToken(accessToken) {
 // Get access token
 async function getAccessToken(id, pw) {
 	let key = await getAccessKey(id, pw);
-	let url = api + '/user/login';
+	let url = host + '/api/user/login';
 	var accessToken = await post(url, { key: key }).then((data) => {
 		return data.accessToken;
 	});
