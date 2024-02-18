@@ -1201,12 +1201,17 @@ function applyWildcards(prompt) {
 async function randomizePrompt() {
 	options = getOptions();
 
+	// Dynamic prompt #1
+	options.including = applyDynamicPrompt(options.including);
+	options.begprompt = applyDynamicPrompt(options.begprompt);
+	options.endprompt = applyDynamicPrompt(options.endprompt);
+
 	// Wildcards
 	options.begprompt = applyWildcards(options.begprompt);
 	options.including = applyWildcards(options.including);
 	options.endprompt = applyWildcards(options.endprompt);
 
-	// Dynamic prompt
+	// Dynamic prompt #2
 	options.including = applyDynamicPrompt(options.including);
 	options.begprompt = applyDynamicPrompt(options.begprompt);
 	options.endprompt = applyDynamicPrompt(options.endprompt);
