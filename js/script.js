@@ -1683,6 +1683,7 @@ async function generate() {
 	if (result != null) {
 		document.getElementById('generate').innerHTML = 'Generate';
 		document.getElementById('result').src = result;
+		document.getElementById('support').style.display = 'none';
 		initInfo(result);
 
 		await post(host + '/time', { time: new Date().getTime() - time }, null, 'text');
