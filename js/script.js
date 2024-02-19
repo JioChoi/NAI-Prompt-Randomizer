@@ -698,6 +698,11 @@ function css() {
 		if (e.target != info) {
 			info.classList.remove('shown');
 		}
+
+		if (e.target.id == "image" || e.target.id == "result" || e.target.id == "info" || e.target.id == "expand") {
+			hideHistory();
+			hidePreset();
+		}
 	});
 
 	result.addEventListener('mouseleave', (e) => {
