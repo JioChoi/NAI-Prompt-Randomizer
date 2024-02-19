@@ -1144,6 +1144,8 @@ async function init() {
 	let accessToken = localStorage.getItem('key');
 	if (accessToken == null) {
 		// Not logged in.
+		document.getElementById('id').disabled = false;
+		document.getElementById('password').disabled = false;
 	} else {
 		key = accessToken;
 		try {
@@ -1159,6 +1161,8 @@ async function init() {
 		} catch (err) {
 			// Failed to auto login.
 			console.log('Failed to login');
+			document.getElementById('id').disabled = false;
+			document.getElementById('password').disabled = false;
 		}
 	}
 }
