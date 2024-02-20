@@ -168,7 +168,13 @@ app.post('/generate-image', function (req, res, next) {
 		},
 		function (error, response, body) {
 			if (response && response.statusCode != 200) {
-				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+				if (body.message == undefined) {
+					// include ip address
+					log('(' + String(response.statusCode) + ') (' + req.socket.remoteAddress + ') Generate image error: ' + body);
+				}
+				else {
+					log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+				}
 				status.push({at: new Date().getTime(), time: 0, status: 'failed'});
 			} else {
 				log('Generate image: ' + req.body.input);	
