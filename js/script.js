@@ -694,14 +694,14 @@ function css() {
 		}
 	});
 	document.addEventListener('click', (e) => {
+		if (!document.getElementById('preset').contains(e.target) && !document.getElementById('history').contains(e.target) && e.target.id != 'presetBtn' && e.target.id != 'historyBtn') {
+			hideHistory();
+			hidePreset();
+		}
+
 		if (!mobile) return;
 		if (e.target != info) {
 			info.classList.remove('shown');
-		}
-
-		if (e.target.id == "image" || e.target.id == "result" || e.target.id == "info" || e.target.id == "expand") {
-			hideHistory();
-			hidePreset();
 		}
 	});
 
@@ -1101,6 +1101,8 @@ function moveDropdown(dropdown, option) {
 }
 
 function showHistory() {
+	hidePreset();
+
 	document.getElementById('history').classList.add('shown');
 	const ele = document.getElementById('image');
 	ele.style.transition = 'width 0.3s ease-in-out';
@@ -1112,6 +1114,8 @@ function showHistory() {
 }
 
 function showPreset() {
+	hideHistory();
+
 	document.getElementById('preset').classList.add('shown');
 }
 
