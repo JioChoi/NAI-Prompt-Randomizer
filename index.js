@@ -15,6 +15,9 @@ let posDataLength = 0;
 
 let status = [];
 
+let blacklist = [];
+let requestList = {};
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -72,6 +75,10 @@ app.get('/sitemap.xml', function (req, res) {
 
 /* Routes */
 app.post('/readTags', async function (req, res, next) {
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+	
 	let pos = req.body.pos;
 
 	if (pos == undefined || typeof pos != 'number' || pos < 0 || pos > tagDataLength) {
@@ -93,6 +100,10 @@ app.get('/logs', function (req, res, next) {
 });
 
 app.post('/api*', function (req, res, next) {
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+
 	request(
 		'https://api.novelai.net' + req.url.substring(4),
 		{
@@ -145,9 +156,47 @@ app.get('/stat', function (req, res, next) {
 	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess});
 });
 
+function checkBlacklist(req, res) {
+	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
+
+	if (blacklist.includes(ip)) {
+		res.send('You are an idiot');
+		return true;
+	}
+}
+
 app.post('/generate-image', function (req, res, next) {
-	// Remove old status
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+
 	let now = new Date().getTime();
+	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
+
+	if (requestList[ip] != undefined) {
+		const time = now - requestList[ip].last;
+		if (time < 500) {
+			requestList[ip].count++;
+		}
+		else {
+			requestList[ip].count = 0;
+		}
+
+		if (requestList[ip].count > 20) {
+			log('Blacklisted IP: ' + ip);
+			blacklist.push(ip);
+		}
+	}
+
+	if (requestList[ip] == undefined) {
+		requestList[ip] = {last: now, count: 0};
+	}
+	else {
+		requestList[ip].last = now;
+	}
+
+
+	// Remove old status
 
 	for (let i = 0; i < status.length; i++) {
 		if (now - status[i].at > 10 * 60 * 1000) {
@@ -184,6 +233,10 @@ app.post('/generate-image', function (req, res, next) {
 });
 
 app.get('/api*', function (req, res, next) {
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+	
 	request(
 		{
 			url: 'https://api.novelai.net' + req.url.substring(4),
@@ -200,6 +253,10 @@ app.get('/api*', function (req, res, next) {
 });
 
 app.get('/', function (req, res, next) {
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+
 	if (process.argv[2] == 'dev') {
 		res.sendFile(__dirname + '/static.html');
 	}
