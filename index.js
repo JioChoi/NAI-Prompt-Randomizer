@@ -14,9 +14,13 @@ let tagDataLength = 0;
 let posDataLength = 0;
 
 let status = [];
+let statusList = [];
 
 let blacklist = [];
 let requestList = {};
+
+let previousMinute = 0;
+let previousDay = 0;
 
 /* Production Detection */
 let production = false;
@@ -78,7 +82,7 @@ app.post('/readTags', async function (req, res, next) {
 	if (checkBlacklist(req, res)) {
 		return;
 	}
-	
+
 	let pos = req.body.pos;
 
 	if (pos == undefined || typeof pos != 'number' || pos < 0 || pos > tagDataLength) {
@@ -165,12 +169,52 @@ function checkBlacklist(req, res) {
 	}
 }
 
+app.post('/statusList', function (req, res, next) {
+	res.send(statusList);
+});
+
 app.post('/generate-image', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
 		return;
 	}
 
 	let now = new Date().getTime();
+	let time = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }).replaceAll('/', ',').replaceAll(' ', ',').replaceAll(':', ',').split(',');
+
+	let hour = time[4];
+	let minute = time[5];
+	let day = time[1];
+
+	if (minute >= previousMinute + 10) {
+		previousMinute = minute;
+
+		let total = status.length;
+		let totalSuccess = 0;
+		let totalTime = 0;
+
+		for (let i = 0; i < status.length; i++) {
+			if (status[i].status == 'success') {
+				totalSuccess++;
+				totalTime += status[i].time;
+			} else {
+				failed++;
+			}
+		}
+
+		statusList.push({ at: {day: day, hour: hour, minute: minute}, successRate: totalSuccess / total, avgTime: totalTime / totalSuccess });
+	}
+
+	if (day != previousDay) {
+		previousDay = day;
+		
+		for (let i = 0; i < statusList.length; i++) {
+			if (statusList[i].at.day > day + 1) {
+				statusList.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
 	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
 
 	if (requestList[ip] != undefined) {
@@ -194,7 +238,6 @@ app.post('/generate-image', function (req, res, next) {
 	else {
 		requestList[ip].last = now;
 	}
-
 
 	// Remove old status
 
@@ -224,9 +267,9 @@ app.post('/generate-image', function (req, res, next) {
 				else {
 					log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				}
-				status.push({at: new Date().getTime(), time: 0, status: 'failed'});
+				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 			} else {
-				log('Generate image: ' + req.body.input);	
+				log('Generate image: ' + req.body.input);
 			}
 		},
 	).pipe(res);
