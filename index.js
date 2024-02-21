@@ -72,6 +72,36 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_modules/argon2-browser/dist'));
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
+setInterval(function () {
+	let date = new Date();
+	let minute = date.getMinutes();
+	let day = date.getDate();
+
+	let total = status.length;
+	let totalSuccess = 0;
+	let totalTime = 0;
+	let failed = 0;
+
+	for (let i = 0; i < status.length; i++) {
+		if (status[i].status == 'success') {
+			totalSuccess++;
+			totalTime += status[i].time;
+		} else {
+			failed++;
+		}
+	}
+
+	statusList.push({ at: date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }), total: total, totalSuccess: totalSuccess, avgTime: totalTime / totalSuccess, failed: failed });
+	
+	for (let i = 0; i < statusList.length; i++) {
+		let temp = new Date(statusList[i].at).getTime();
+		if (date.getTime() - temp > 48 * 60 * 60 * 1000) {
+			statusList.splice(i, 1);
+			i--;
+		}
+	}
+}, 10 * 60 * 1000);
+
 // sitemap.xml
 app.get('/sitemap.xml', function (req, res) {
 	res.sendFile(__dirname + '/sitemap.xml');
@@ -169,7 +199,7 @@ function checkBlacklist(req, res) {
 	}
 }
 
-app.post('/statusList', function (req, res, next) {
+app.get('/statusList', function (req, res, next) {
 	res.send(statusList);
 });
 
@@ -179,44 +209,6 @@ app.post('/generate-image', function (req, res, next) {
 	}
 
 	let now = new Date().getTime();
-	let time = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }).replaceAll('/', ',').replaceAll(' ', ',').replaceAll(':', ',').split(',');
-
-	let hour = Number(time[4]);
-	let minute = Number(time[5]);
-	let day = Number(time[1]);
-
-	if (minute >= previousMinute) {
-		previousMinute = minute + 10;
-		if (previousMinute == 60) {
-			previousMinute = 0;
-		}
-
-		let total = status.length;
-		let totalSuccess = 0;
-		let totalTime = 0;
-
-		for (let i = 0; i < status.length; i++) {
-			if (status[i].status == 'success') {
-				totalSuccess++;
-				totalTime += status[i].time;
-			} else {
-				failed++;
-			}
-		}
-
-		statusList.push({ at: {day: day, hour: hour, minute: minute}, total: total, success: totalSuccess, failed: failed, avgTime: totalTime / totalSuccess });
-	}
-
-	if (day != previousDay) {
-		previousDay = day;
-		
-		for (let i = 0; i < statusList.length; i++) {
-			if (statusList[i].at.day > day + 1) {
-				statusList.splice(i, 1);
-				i--;
-			}
-		}
-	}
 
 	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
 
