@@ -204,7 +204,7 @@ app.post('/generate-image', function (req, res, next) {
 			}
 		}
 
-		statusList.push({ at: {day: day, hour: hour, minute: minute}, successRate: totalSuccess / total, avgTime: totalTime / totalSuccess });
+		statusList.push({ at: {day: day, hour: hour, minute: minute}, total: total, success: totalSuccess, failed: failed, avgTime: totalTime / totalSuccess });
 	}
 
 	if (day != previousDay) {
