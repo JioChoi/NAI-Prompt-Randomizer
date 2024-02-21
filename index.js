@@ -181,9 +181,9 @@ app.post('/generate-image', function (req, res, next) {
 	let now = new Date().getTime();
 	let time = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }).replaceAll('/', ',').replaceAll(' ', ',').replaceAll(':', ',').split(',');
 
-	let hour = time[4];
-	let minute = time[5];
-	let day = time[1];
+	let hour = Number(time[4]);
+	let minute = Number(time[5]);
+	let day = Number(time[1]);
 
 	if (minute >= previousMinute) {
 		previousMinute = minute + 10;
