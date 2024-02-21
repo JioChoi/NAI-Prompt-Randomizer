@@ -185,8 +185,11 @@ app.post('/generate-image', function (req, res, next) {
 	let minute = time[5];
 	let day = time[1];
 
-	if (minute >= previousMinute + 10) {
-		previousMinute = minute;
+	if (minute >= previousMinute) {
+		previousMinute = minute + 10;
+		if (previousMinute == 60) {
+			previousMinute = 0;
+		}
 
 		let total = status.length;
 		let totalSuccess = 0;
