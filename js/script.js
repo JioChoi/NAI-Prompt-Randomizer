@@ -644,6 +644,12 @@ function css() {
 	const delayElement = document.getElementById('delay');
 	const delayTitleElement = document.getElementById('delayt');
 
+	const infoExtractElement = document.getElementById('infoextract');
+	const infoExtractTitleElement = document.getElementById('infoextractt');
+
+	const refstrengthElement = document.getElementById('refstrength');
+	const refstrengthTitleElement = document.getElementById('refstrengtht');
+
 	// Show slider value on title when moved
 	promptGuidanceElement.addEventListener('input', (e) => {
 		promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
@@ -665,6 +671,16 @@ function css() {
 	});
 	delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
 
+	infoExtractElement.addEventListener('input', (e) => {
+		infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
+	});
+	infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
+
+	refstrengthElement.addEventListener('input', (e) => {
+		refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
+	});
+	refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
+		
 	// Disable dragging for h2 elements
 	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
 		h2.setAttribute('draggable', 'false');

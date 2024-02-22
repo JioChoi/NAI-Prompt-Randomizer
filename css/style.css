@@ -176,6 +176,10 @@ body {
 	input[type='file'] + label {
 		margin-left: 20px;
 	}
+
+	#vibe {
+		margin: 0 20px;
+	}
 }
 
 /* Tablet */
@@ -275,5 +279,9 @@ body {
 
 	input[type='file'] + label {
 		margin-left: 20px;
+	}
+
+	#vibe {
+		margin: 0 20px;
 	}
 }

@@ -30,8 +30,7 @@
 	height: 100%;
 
 	overflow-y: scroll;
-
-	margin-bottom: 30px;
+	padding-bottom: 30px;
 }
 
 #sidebar .footer {
@@ -138,4 +137,33 @@
 
 	z-index: 0 !important;
 	box-shadow: none !important;
+}
+
+#vibe {
+	width: fill-available;
+	width: -webkit-fill-available;
+	margin: 0 30px;
+	padding: 20px;
+
+	background-image: url("/assets/temp.png");
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+
+	position: relative;
+	isolation: isolate;
+}
+
+#vibe::before {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+
+	background-color: rgba(0, 0, 0, 0.4);
+	backdrop-filter: blur(5px);
+}
+
+#vibeUpload + label {
+	margin-top: 10px;
 }

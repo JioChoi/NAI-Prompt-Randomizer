@@ -198,7 +198,7 @@ label:hover {
 
 	width: 100%;
 
-	white-space: nowrap;
+	white-space: `wrap;
 	text-overflow: ellipsis;
 
 	padding: 5px 10px;
@@ -272,6 +272,9 @@ input[type='range'] {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+
+	width: -webkit-fill-available;
+	width: fill-available;
 
 	margin: 0px 30px;
 
@@ -546,4 +549,9 @@ input[type='file'] + label span {
 input[type='file'] + label:hover {
 	background-color: #3c3c3c;
 	border: 2px solid #424242;
+}
+
+.noside {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 }

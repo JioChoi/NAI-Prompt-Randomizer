@@ -22,6 +22,8 @@ let requestList = {};
 let previousMinute = 0;
 let previousDay = 0;
 
+let rateLimited = false;
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -204,6 +206,11 @@ app.get('/statusList', function (req, res, next) {
 });
 
 app.post('/generate-image', function (req, res, next) {
+	if (rateLimited) {
+		res.send('Rate limited');
+		return;
+	}
+
 	if (checkBlacklist(req, res)) {
 		return;
 	}
@@ -263,6 +270,16 @@ app.post('/generate-image', function (req, res, next) {
 					log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				}
 				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
+
+				if (response.statusCode == 429) {
+					// Wait a bit to avoid rate limit
+					if (!rateLimited) {
+						rateLimited = true;
+						setTimeout(function () {
+							rateLimited = false;
+						}, 15000);
+					}
+				}
 			} else {
 				log('Generate image: ' + req.body.input);
 			}
