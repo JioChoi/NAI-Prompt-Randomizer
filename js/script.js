@@ -2,7 +2,7 @@
 let host = 'https://jio7-prombot.hf.space';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let artistList;
 let characterList;
@@ -13,6 +13,8 @@ let copyrightList;
 let numberList;
 let qualityList;
 let attireList;
+
+let vibeImage = null;
 
 let whitelistSeparated = [];
 let tagDataLength = 0;
@@ -337,6 +339,34 @@ function addPresetItem(name) {
 
 // Init css elements
 function css() {
+	// Vibe loader
+	let vibe = document.getElementById('vibe');
+	let vibeUpload = document.getElementById('vibeUpload');
+	vibeUpload.addEventListener('change', (e) => {
+		const file = vibeUpload.files[0];
+		vibe.style.backgroundImage = 'url("' + URL.createObjectURL(file) + '")';
+
+		document.getElementById('vibeUploader').style.display = 'none';
+		document.getElementById('vibe').style.display = 'block';
+
+		let reader = new FileReader();
+		reader.onload = (e) => {
+			vibeImage = btoa(reader.result);
+		};
+
+		reader.readAsBinaryString(file);
+
+		vibeUpload.value = '';
+	});
+
+	document.getElementById('closeVibe').addEventListener('click', (e) => {
+		document.getElementById('vibe').style.display = 'none';
+		document.getElementById('vibeUploader').style.display = 'block';
+		vibe.style.backgroundImage = 'none';
+
+		vibeImage = null;
+	});
+
 	// Wildcard Loader
 	let wildcard = document.getElementById('wildcards');
 	wildcard.addEventListener('change', (e) => {
@@ -871,6 +901,9 @@ function loadOptions(options) {
 	document.getElementById('SMEA').checked = options.smea;
 	document.getElementById('DYN').checked = options.dyn;
 
+	document.getElementById('infoextract').value = options.infoextract;
+	document.getElementById('refstrength').value = options.refstrength;
+
 	document.getElementById('delay').value = options.delay;
 	document.getElementById('automation').checked = options.automation;
 	document.getElementById('autodown').checked = options.autodownload;
@@ -922,6 +955,9 @@ function getOptions() {
 	options.sampler = document.getElementById('dropdown_sampler').children[0].innerHTML;
 	options.smea = document.getElementById('SMEA').checked;
 	options.dyn = document.getElementById('DYN').checked;
+
+	options.infoextract = document.getElementById('infoextract').value;
+	options.refstrength = document.getElementById('refstrength').value;
 
 	options.delay = document.getElementById('delay').value;
 	options.automation = document.getElementById('automation').checked;
@@ -1662,6 +1698,13 @@ async function generate() {
 		ucPreset: 3,
 		params_version: 1,
 	};
+
+	if (vibeImage != null) {
+		params.reference_image = vibeImage;
+		params.reference_information_extracted = options.infoextract;
+		params.reference_strength = options.refstrength;
+	}
+
 	let result = null;
 
 	generateTime = new Date().getTime();
