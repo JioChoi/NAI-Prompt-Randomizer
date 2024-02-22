@@ -1701,8 +1701,8 @@ async function generate() {
 
 	if (vibeImage != null) {
 		params.reference_image = vibeImage;
-		params.reference_information_extracted = options.infoextract;
-		params.reference_strength = options.refstrength;
+		params.reference_information_extracted = Number(options.infoextract);
+		params.reference_strength = Number(options.refstrength);
 	}
 
 	let result = null;
