@@ -77,15 +77,10 @@
 			margin-top: 0.4rem;
 			color: #666;
 		}
-
-		#line-chart {
-			width: 300px;
-			height: 250px;
-		}
 	</style>
 
 	<div class="status">
-		<canvas id="line-chart" width="300" height="250"></canvas>
+		<canvas id="line-chart" width="600" height="250"></canvas>
 		<h1>NAI Server Status</h1>
 		<div id="star">
 		</div>
@@ -99,12 +94,13 @@
 		chart = new Chart(document.getElementById("line-chart"), {
 			type: 'line',
 			data: {
-				labels: [1500,1600,1700,1750,1800,1850,1900,1950,1999,2050],
+				labels: [],
 				datasets: [{ 
-					data: [123],
+					data: [],
 					label: "Time",
 					borderColor: "#3e95cd",
-					fill: false
+					fill: false,
+					lineTension: 0
 				}]
 			},
 			options: {
@@ -114,13 +110,16 @@
 
 		function getServerStatusList() {
 			let xhr = new XMLHttpRequest();
-			xhr.open("POST", "https://jio7-prombot.hf.space/statusList", true);
+			xhr.open("GET", "https://jio7-prombot.hf.space/statusList", true);
 			xhr.onreadystatechange = () => {
 				if (xhr.readyState == 4 && xhr.status == 200) {
 					let data = JSON.parse(xhr.responseText);
 					statusList = data;
 					// label time
-					chart.data.labels = statusList.map(item => item.at.minute);
+					chart.data.labels = statusList.map(item => {
+						const temp = item.at.split(', ')[1];
+						return temp.substring(0, temp.length - 6);
+					});
 					chart.data.datasets[0].data = statusList.map(item => item.avgTime / 1000);
 					// chart.data.datasets[1].data = statusList.map(item => item.success / item.total);
 					chart.update();
