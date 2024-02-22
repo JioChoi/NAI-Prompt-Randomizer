@@ -78,6 +78,12 @@
 			color: #666;
 		}
 
+		h3 {
+			font-size: 0.8rem;
+			color: #555;
+			margin-top: 1rem;
+		}
+
 		#line-chart {
 			width: min(500px, 90vw);
 		}
@@ -88,6 +94,7 @@
 		<div id="star"></div>
 		
 		<h2 id="msg"></h2>
+		<h3>Success Rate of Image Generation</h3>
 		<canvas id="line-chart"></canvas>
 	</div>
 
@@ -101,20 +108,28 @@
 				labels: timeLabels,
 				datasets: [{ 
 					data: [],
-					label: "Success Rate",
+					label: "Today",
 					borderColor: "rgba(0, 0, 0, 1)",
 					fill: false,
 					lineTension: 0.4
 				},
 				{
 					data: [],
-					label: "Success Rate",
+					label: "Yesterday",
 					borderColor: "rgba(0, 0, 0, 0.3)",
 					fill: false,
 					lineTension: 0.4
 				}]
 			},
 			options: {
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
 				elements: {
                     point:{
                         radius: 0
