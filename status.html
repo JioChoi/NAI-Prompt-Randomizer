@@ -84,9 +84,11 @@
 			margin-top: 1rem;
 		}
 
-		#line-chart {
-			width: min(500px, 90vw);
+		#chart {
+			width: min(90%, 500px);
+			height: 300px;
 		}
+
 	</style>
 
 	<div class="status">
@@ -95,7 +97,9 @@
 		
 		<h2 id="msg"></h2>
 		<h3>Success Rate of Image Generation</h3>
-		<canvas id="line-chart"></canvas>
+		<div id="chart">
+			<canvas id="line-chart"></canvas>
+		</div>
 	</div>
 
 	<script>
@@ -135,7 +139,7 @@
                         radius: 0
                     }
                 },
-    			responsive: false,
+    			responsive: true,
 				maintainAspectRatio: false,
 				scales: {
 					yAxes: [{
