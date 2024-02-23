@@ -39,6 +39,71 @@ let wildcards = {};
 
 // On page load
 window.onload = async function () {
+	downloadLists();
+	await loginWithAccessToken();
+
+	checkMobile();
+
+	loadOptions();
+	loadSettings();
+
+	css();
+	addEventListeners();
+	checkDYN();
+
+	// Remove Loading Screen
+	document.getElementById('loading').style.display = 'none';
+};
+
+
+// Init css elements
+function css() {
+	// Get preset data
+	let list = localStorage.getItem('preset_list');
+	if (list == null) {
+		list = 'default';
+		localStorage.setItem('preset_list', list);
+	}
+
+	list = list.split('\n');
+	for (let i = 0; i < list.length; i++) {
+		addPresetItem(list[i]);
+	}
+
+	const image = document.getElementById('image');
+
+	// Move maid
+	let maid = document.getElementById('maid');
+	setInterval(() => {
+		if (maid.style.visibility == 'visible') {
+			let maidPos = Number(maid.style.right.substring(0, maid.style.right.length - 2));
+			maidPos += 1;
+			maid.style.right = maidPos + 'px';
+
+			if (maidPos > image.clientWidth + 200) {
+				maid.style.right = '-100px';
+			}
+		}
+	}, 10);
+
+	//Set minimum height for textareas
+	const textareas = document.getElementsByTagName('textarea');
+	Array.from(textareas).forEach((textarea) => {
+		let minHeight = textarea.rows * 25 + 24;
+		textarea.style.minHeight = minHeight + 'px';
+
+		new ResizeObserver(() => {
+			localStorage.setItem('settings', JSON.stringify(getSettings()));
+		}).observe(textarea);
+	});
+
+	// Disable dragging for h2 elements
+	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
+		h2.setAttribute('draggable', 'false');
+	});
+}
+
+function addEventListeners() {
 	window.addEventListener('beforeunload', (e) => {
 		if (preventReload) {
 			e.preventDefault();
@@ -46,29 +111,519 @@ window.onload = async function () {
 		}
 	});
 
-	downloadLists();
-	await init();
+	// Vibe loader
+	let vibe = document.getElementById('vibe');
+	let vibeUpload = document.getElementById('vibeUpload');
+	vibeUpload.addEventListener('change', (e) => {
+		const file = vibeUpload.files[0];
+		vibe.style.backgroundImage = 'url("' + URL.createObjectURL(file) + '")';
 
-	checkMobile();
+		document.getElementById('vibeUploader').style.display = 'none';
+		document.getElementById('vibe').style.display = 'block';
 
-	const options = localStorage.getItem('options');
-	if (options == null) {
-		loadOptions(example);
-	} else {
-		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
-		loadOptions(localStorage.getItem('options'));
-	}
+		let reader = new FileReader();
+		reader.onload = (e) => {
+			vibeImage = btoa(reader.result);
+		};
 
-	const settings = localStorage.getItem('settings');
-	if (settings != null) {
-		loadSettings(settings);
-	}
+		reader.readAsBinaryString(file);
 
-	css();
-	checkDYN();
+		vibeUpload.value = '';
+	});
 
-	document.getElementById('loading').style.display = 'none';
-};
+	document.getElementById('closeVibe').addEventListener('click', (e) => {
+		document.getElementById('vibe').style.display = 'none';
+		document.getElementById('vibeUploader').style.display = 'block';
+		vibe.style.backgroundImage = 'none';
+
+		vibeImage = null;
+	});
+
+	// Wildcard Loader
+	let wildcard = document.getElementById('wildcards');
+	wildcard.addEventListener('change', (e) => {
+		const files = wildcard.files;
+
+		for (let i = 0; i < files.length; i++) {
+			const name = files[i].name.substring(0, files[i].name.length - 4);
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				let data = reader.result;
+				data = data.replace(/\r/g, '');
+				data = data.split('\n');
+
+				for (let i = 0; i < data.length; i++) {
+					data[i] = data[i].trim();
+
+					if (data[i] == '' || data[i][0] == '#') {
+						data.splice(i, 1);
+						i--;
+					}
+				}
+
+				localStorage.setItem('wildcard_' + name, data.join('\n'));
+				wildcards[name] = data;
+				whitelist.push('__' + name + '__');
+				whitelistSeparated.push(('__' + name + '__').toLowerCase().split(' '));
+			};
+
+			reader.readAsText(files[i]);
+		}
+
+		wildcard.value = '';
+	});
+
+	// Image Uploader
+	const imageUploader = document.getElementById('imageUploader');
+	window.addEventListener('drop', (e) => {
+		imageUploader.classList.remove('shown');
+
+		const files = e.dataTransfer.files;
+		if (files.length > 0) {
+			const file = files[0];
+			if (file.type.match('image/png')) {
+				getExif(URL.createObjectURL(file)).then((data) => {
+					let options = getOptions();
+					options.begprompt = data.prompt;
+					options.negativePrompt = data.uc;
+					let optionsStr = JSON.stringify(options, null, 4);
+					setOptions(optionsStr);
+					localStorage.setItem('options', optionsStr);
+				});
+			}
+		}
+
+		e.preventDefault();
+	});
+
+	window.addEventListener('dragover', (e) => {
+		if (e.dataTransfer.types.includes('Files')) {
+			imageUploader.classList.add('shown');
+			e.preventDefault();
+		}
+	});
+
+	imageUploader.addEventListener('dragleave', (e) => {
+		imageUploader.classList.remove('shown');
+		e.preventDefault();
+	});
+
+	// Sidebar event listener for auto saving parameter changes
+	const sidebarItems = document.getElementById('items');
+	sidebarItems.addEventListener('change', (e) => {
+		const options = getOptions();
+		const optionsStr = JSON.stringify(options, null, 4);
+		checkDYN();
+		localStorage.setItem('options', optionsStr);
+	});
+
+	initDropdowns();
+
+	// Init input fields
+	const seedElement = document.getElementById('seed');
+
+	// Select all text when clicked
+	seedElement.addEventListener('click', (e) => {
+		seedElement.select();
+	});
+
+	// Only allow numbers
+	seedElement.addEventListener('input', (e) => {
+		seedElement.value = seedElement.value.replace(/\D/g, '');
+		if (seedElement.value.length > 10) {
+			seedElement.value = seedElement.value.substring(0, 10);
+		}
+	});
+
+	initSliders();
+
+	initImageInfo();
+	initLoginScreen();
+	initTagAutoComplete();
+}
+
+function initImageInfo() {
+	// Init image info
+	const result = document.getElementById('result');
+	const info = document.getElementById('info');
+
+	result.addEventListener('mouseenter', (e) => {
+		if (mobile) return;
+		resizeInfo();
+		info.classList.add('shown');
+	});
+	info.addEventListener('mouseenter', (e) => {
+		if (mobile) return;
+		resizeInfo();
+		info.classList.add('shown');
+	});
+
+	result.addEventListener('click', (e) => {
+		if (!mobile) return;
+		if (!info.classList.contains('shown')) {
+			resizeInfo();
+			info.classList.add('shown');
+			e.stopPropagation();
+		}
+	});
+	document.addEventListener('click', (e) => {
+		if (!document.getElementById('preset').contains(e.target) && !document.getElementById('history').contains(e.target) && e.target.id != 'presetBtn' && e.target.id != 'historyBtn') {
+			hideHistory();
+			hidePreset();
+		}
+
+		if (!mobile) return;
+		if (e.target != info) {
+			info.classList.remove('shown');
+		}
+	});
+
+	result.addEventListener('mouseleave', (e) => {
+		if (mobile) return;
+		info.classList.remove('shown');
+	});
+	info.addEventListener('mouseleave', (e) => {
+		if (mobile) return;
+		info.classList.remove('shown');
+	});
+}
+
+function initLoginScreen() {
+	document.getElementById('id').addEventListener('keyup', (e) => {
+		if (e.key === 'Enter') {
+			button.click();
+		}
+	});
+	document.getElementById('password').addEventListener('keyup', (e) => {
+		if (e.key === 'Enter') {
+			button.click();
+		}
+	});
+
+	// Init login button
+	let button = document.getElementById('loginBtn');
+	button.addEventListener('click', async (e) => {
+		let id = document.getElementById('id');
+		let pw = document.getElementById('password');
+
+		// Disable fields and button
+		id.disabled = true;
+		pw.disabled = true;
+		button.disabled = true;
+
+		// Check if ID and password are empty
+		if (id.value == '' || pw.value == '' || id.value == null || pw.value == null) {
+			id.disabled = false;
+			pw.disabled = false;
+			button.disabled = false;
+
+			document.getElementById('text').innerHTML = 'Please enter your ID and password.';
+			document.getElementById('text').classList.add('warning');
+			document.getElementById('text').classList.add('shake');
+			document.addEventListener('animationend', () => {
+				document.getElementById('text').classList.remove('shake');
+			});
+			return;
+		}
+
+		// Login
+		const res = await login(id.value, pw.value);
+		if (!res) {
+			// Failed to login
+			id.disabled = false;
+			pw.disabled = false;
+			button.disabled = false;
+
+			document.getElementById('text').innerHTML = 'Failed to login: please check your ID and password.';
+			document.getElementById('text').classList.add('warning');
+			document.getElementById('text').classList.add('shake');
+			document.addEventListener('animationend', () => {
+				document.getElementById('text').classList.remove('shake');
+			});
+		} else {
+			// Successfully logged in
+			document.getElementById('login').style.display = 'none';
+			document.getElementById('login').style.visibility = 'hidden';
+
+			document.getElementById('sidebar').classList.remove('hidden');
+			setAnals();
+		}
+	});
+}
+
+function initTagAutoComplete() {
+	// Init tag autocomplete
+	const begprompt = document.getElementById('begprompt');
+	const including = document.getElementById('including');
+	const endprompt = document.getElementById('endprompt');
+	const negprompt = document.getElementById('negprompt');
+
+	begprompt.addEventListener('input', (e) => {
+		if (e.data == '{') {
+			hideTagSuggest();
+			return;
+		}
+		if (e.data == '}') {
+			hideTagSuggest();
+			return;
+		}
+
+		suggestTags(begprompt.value.substring(0, begprompt.selectionStart), begprompt);
+	});
+	begprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	begprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	including.addEventListener('input', (e) => {
+		suggestTags(including.value.substring(0, including.selectionStart), including);
+	});
+	including.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	including.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	endprompt.addEventListener('input', (e) => {
+		suggestTags(endprompt.value.substring(0, endprompt.selectionStart), endprompt);
+	});
+	endprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	endprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+
+	negprompt.addEventListener('input', (e) => {
+		suggestTags(negprompt.value.substring(0, negprompt.selectionStart), negprompt);
+	});
+	negprompt.addEventListener('blur', (e) => {
+		hideTagSuggest();
+	});
+	negprompt.addEventListener('click', (e) => {
+		hideTagSuggest();
+	});
+}
+
+function initSliders() {
+	// Init slider input fields
+	const promptGuidanceElement = document.getElementById('pg');
+	const promptGuidanceTitleElement = document.getElementById('pgt');
+
+	const stepElement = document.getElementById('step');
+	const stepTitleElement = document.getElementById('stept');
+
+	const promptGuidanceRescaleElement = document.getElementById('pgr');
+	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
+
+	const delayElement = document.getElementById('delay');
+	const delayTitleElement = document.getElementById('delayt');
+
+	const infoExtractElement = document.getElementById('infoextract');
+	const infoExtractTitleElement = document.getElementById('infoextractt');
+
+	const refstrengthElement = document.getElementById('refstrength');
+	const refstrengthTitleElement = document.getElementById('refstrengtht');
+
+	// Show slider value on title when moved
+	promptGuidanceElement.addEventListener('input', (e) => {
+		promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
+	});
+	promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
+
+	stepElement.addEventListener('input', (e) => {
+		stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
+	});
+	stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
+
+	promptGuidanceRescaleElement.addEventListener('input', (e) => {
+		promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
+	});
+	promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
+
+	delayElement.addEventListener('input', (e) => {
+		delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
+	});
+	delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
+
+	infoExtractElement.addEventListener('input', (e) => {
+		infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
+	});
+	infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
+
+	refstrengthElement.addEventListener('input', (e) => {
+		refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
+	});
+	refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
+}
+
+function initDropdowns() {
+	// Init dropdown menus
+	const widthElement = document.getElementById('width');
+	const heightElement = document.getElementById('height');
+
+	const sidebarItems = document.getElementById('items');
+	const dropdowns = document.getElementsByClassName('dropdown');
+	Array.from(dropdowns).forEach((dropdown) => {
+		const id = dropdown.id.substring(9);
+		const option = document.getElementById('option_' + id);
+
+		moveDropdown(dropdown, option);
+
+		// When dropdown menu is clicked
+		dropdown.addEventListener('click', (e) => {
+			if (option.style.visibility == 'visible') {
+				option.style.visibility = 'hidden';
+			} else {
+				option.style.visibility = 'visible';
+				option.scrollTop = 0;
+				Array.from(option.children).forEach((child) => {
+					if (child.innerHTML === dropdown.children[0].innerHTML) {
+						child.classList.add('selected');
+					} else {
+						child.classList.remove('selected');
+					}
+
+					if (id === 'imgsize') {
+						const imgSize = findImageSize(widthElement.value, heightElement.value);
+						const imgSizeStr = imgSize[1] + ' ' + imgSize[2];
+
+						if (child.innerHTML === imgSizeStr) {
+							child.classList.add('selected');
+						}
+					}
+				});
+			}
+
+			e.stopPropagation();
+		});
+
+		// Move dropdown menu when scrolling
+		sidebarItems.addEventListener('scroll', (e) => {
+			moveDropdown(dropdown, option);
+			moveTagSuggest();
+
+			if (tagSuggestElement != null) {
+				if (sidebarItems.getBoundingClientRect().top + window.pageYOffset > tagSuggestElement.getBoundingClientRect().bottom + window.pageYOffset) {
+					hideTagSuggest();
+				}
+			}
+		});
+
+		window.addEventListener('resize', (e) => {
+			// Move dropdown menu when resizing
+			moveDropdown(dropdown, option);
+			resizeInfo();
+			moveTagSuggest();
+			checkMobile();
+			setProgressbar();
+		});
+
+		// When dropdown menu options are clicked
+		Array.from(option.children).forEach((child) => {
+			if (!child.classList.contains('title')) {
+				child.addEventListener('click', (e) => {
+					const prv = dropdown.children[0].innerHTML;
+
+					dropdown.children[0].innerHTML = child.innerHTML;
+					option.style.visibility = 'hidden';
+
+					// Image size dropdown menu
+					if (id === 'imgsize') {
+						if (child.innerHTML === 'Custom') {
+							dropdown.children[0].innerHTML = prv;
+						} else {
+							changeImageSize(child.innerHTML);
+							const imgSize = findImageSize(widthElement.value, heightElement.value);
+							dropdown.children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
+						}
+					}
+
+					// Preset dropdown menu -- Deprecated
+					if (id === 'preset') {
+						const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
+
+						if (child.id === 'ex') {
+							setOptions(example);
+						} else if (child.id === 'add') {
+							dropdown.children[0].innerHTML = prv;
+							const name = window.prompt('Please enter the name of the preset.', '');
+							if (name != null && name != '') {
+								dropdown.children[0].innerHTML = name;
+
+								let li = document.createElement('li');
+								li.innerHTML = name;
+
+								option.insertBefore(li, option.firstChild);
+							}
+						}
+					}
+
+					// Fire change event to trigger auto saving
+					sidebarItems.dispatchEvent(new Event('change'));
+				});
+			}
+		});
+
+		// Prevent dropdown options from hiding when clicked
+		option.addEventListener('click', (e) => {
+			e.stopPropagation();
+		});
+
+		// Hide dropdown menus when clicked outside
+		window.addEventListener('click', (e) => {
+			option.style.visibility = 'hidden';
+		});
+	});
+
+
+	// Select all text when clicked
+	widthElement.addEventListener('click', (e) => {
+		widthElement.select();
+	});
+	heightElement.addEventListener('click', (e) => {
+		heightElement.select();
+	});
+
+	// Only allow numbers
+	widthElement.addEventListener('input', (e) => {
+		widthElement.value = widthElement.value.replace(/\D/g, '');
+		if (widthElement.value.length > 4) {
+			widthElement.value = widthElement.value.substring(0, 4);
+		}
+
+		const imgSize = findImageSize(widthElement.value, heightElement.value);
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
+	});
+	heightElement.addEventListener('input', (e) => {
+		heightElement.value = heightElement.value.replace(/\D/g, '');
+		if (heightElement.value.length > 4) {
+			heightElement.value = heightElement.value.substring(0, 4);
+		}
+
+		const imgSize = findImageSize(widthElement.value, heightElement.value);
+		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
+	});
+
+	// Round to nearest multiple of 64
+	widthElement.addEventListener('blur', (e) => {
+		if (widthElement.value < 64) {
+			widthElement.value = 64;
+		} else {
+			widthElement.value = Math.round(widthElement.value / 64) * 64;
+		}
+	});
+	heightElement.addEventListener('blur', (e) => {
+		if (heightElement.value < 64) {
+			heightElement.value = 64;
+		} else {
+			heightElement.value = Math.round(heightElement.value / 64) * 64;
+		}
+	});
+}
 
 async function downloadLists() {
 	const fileNum = 10;
@@ -167,6 +722,21 @@ async function downloadLists() {
 	}, 100);
 }
 
+function loadWildcards() {
+	for (let i = 0; i < localStorage.length; i++) {
+		let key = localStorage.key(i);
+		if (key.startsWith('wildcard_')) {
+			let data = localStorage.getItem(key);
+			data = data.split('\n');
+
+			const name = key.substring(9);
+			wildcards[name] = data;
+
+			whitelist.push('__' + name + '__');
+		}
+	}
+}
+
 function checkOptions(option) {
 	option = JSON.parse(option);
 	let temp = JSON.parse(example);
@@ -180,19 +750,111 @@ function checkOptions(option) {
 	return JSON.stringify(option);
 }
 
-function loadWildcards() {
-	for(let i = 0; i < localStorage.length; i++) {
-		let key = localStorage.key(i);
-		if(key.startsWith('wildcard_')) {
-			let data = localStorage.getItem(key);
-			data = data.split('\n');
-
-			const name = key.substring(9);
-			wildcards[name] = data;
-
-			whitelist.push("__" + name + "__");
-		}
+function loadOptions() {
+	const options = localStorage.getItem('options');
+	if (options == null) {
+		setOptions(example);
+	} else {
+		localStorage.setItem('options', checkOptions(localStorage.getItem('options')));
+		setOptions(localStorage.getItem('options'));
 	}
+}
+
+function setOptions(options) {
+	options = JSON.parse(options);
+
+	document.getElementById('begprompt').value = options.begprompt;
+	document.getElementById('including').value = options.including;
+	document.getElementById('removeArtist').checked = options.removeArtist;
+	document.getElementById('removeCharacter').checked = options.removeCharacter;
+	document.getElementById('removeCopyright').checked = options.removeCopyright;
+	document.getElementById('removeAttire').checked = options.removeAttire;
+	document.getElementById('nonsfw').checked = options.nonsfw;
+	document.getElementById('endprompt').value = options.endprompt;
+	document.getElementById('negprompt').value = options.negativePrompt;
+
+	document.getElementById('width').value = options.width;
+	document.getElementById('height').value = options.height;
+	document.getElementById('step').value = options.step;
+	document.getElementById('pg').value = options.promptGuidance;
+	document.getElementById('pgr').value = options.promptGuidanceRescale;
+	document.getElementById('seed').value = options.seed;
+	document.getElementById('dropdown_sampler').children[0].innerHTML = options.sampler;
+	document.getElementById('SMEA').checked = options.smea;
+	document.getElementById('DYN').checked = options.dyn;
+
+	document.getElementById('infoextract').value = options.infoextract;
+	document.getElementById('refstrength').value = options.refstrength;
+
+	document.getElementById('delay').value = options.delay;
+	document.getElementById('automation').checked = options.automation;
+	document.getElementById('autodown').checked = options.autodownload;
+	document.getElementById('ignorefail').checked = options.ignorefail;
+	document.getElementById('reorderTags').checked = options.reorderTags;
+
+	const imgSize = findImageSize(options.width, options.height);
+	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
+}
+
+// Get user options
+function getOptions() {
+	var options = {};
+	options.begprompt = document.getElementById('begprompt').value;
+	options.including = document.getElementById('including').value;
+	options.removeArtist = document.getElementById('removeArtist').checked;
+	options.removeCharacter = document.getElementById('removeCharacter').checked;
+	options.removeCopyright = document.getElementById('removeCopyright').checked;
+	options.removeAttire = document.getElementById('removeAttire').checked;
+	options.nonsfw = document.getElementById('nonsfw').checked;
+	options.endprompt = document.getElementById('endprompt').value;
+	options.negativePrompt = document.getElementById('negprompt').value;
+
+	options.width = document.getElementById('width').value;
+	options.height = document.getElementById('height').value;
+	options.step = document.getElementById('step').value;
+	options.promptGuidance = document.getElementById('pg').value;
+	options.promptGuidanceRescale = document.getElementById('pgr').value;
+	options.seed = document.getElementById('seed').value;
+	options.sampler = document.getElementById('dropdown_sampler').children[0].innerHTML;
+	options.smea = document.getElementById('SMEA').checked;
+	options.dyn = document.getElementById('DYN').checked;
+
+	options.infoextract = document.getElementById('infoextract').value;
+	options.refstrength = document.getElementById('refstrength').value;
+
+	options.delay = document.getElementById('delay').value;
+	options.automation = document.getElementById('automation').checked;
+	options.autodownload = document.getElementById('autodown').checked;
+	options.ignorefail = document.getElementById('ignorefail').checked;
+	options.reorderTags = document.getElementById('reorderTags').checked;
+
+	return options;
+}
+
+function loadSettings() {
+	const settings = localStorage.getItem('settings');
+	if (settings != null) {
+		setSettings(settings);
+	}
+}
+
+function setSettings(settings) {
+	settings = JSON.parse(settings);
+
+	document.getElementById('begprompt').style.height = settings.begpromheight;
+	document.getElementById('including').style.height = settings.includingheight;
+	document.getElementById('endprompt').style.height = settings.endpromptheight;
+	document.getElementById('negprompt').style.height = settings.negpromptheight;
+}
+
+function getSettings() {
+	const settings = {};
+	settings.begpromheight = document.getElementById('begprompt').style.height;
+	settings.includingheight = document.getElementById('including').style.height;
+	settings.endpromptheight = document.getElementById('endprompt').style.height;
+	settings.negpromptheight = document.getElementById('negprompt').style.height;
+
+	return settings;
 }
 
 function checkMobile() {
@@ -297,13 +959,13 @@ function addPresetItem(name) {
 	text.classList.add('text');
 	item.appendChild(text);
 
-	if(name != 'default') {
+	if (name != 'default') {
 		let remove = document.createElement('span');
 		remove.classList.add('delete');
 
 		remove.addEventListener('click', (e) => {
 			let yes = window.confirm('Delete preset "' + name + '"?');
-			
+
 			if (!yes) {
 				return;
 			}
@@ -323,11 +985,11 @@ function addPresetItem(name) {
 
 	text.addEventListener('click', (e) => {
 		let options = localStorage.getItem('preset_' + name);
-		if(options == null) {
+		if (options == null) {
 			options = example;
 		}
 
-		loadOptions(checkOptions(options));
+		setOptions(checkOptions(options));
 		hidePreset();
 
 		document.getElementById('sidebar').classList.add('expanded');
@@ -335,637 +997,6 @@ function addPresetItem(name) {
 	});
 
 	preset.appendChild(item);
-}
-
-// Init css elements
-function css() {
-	// Vibe loader
-	let vibe = document.getElementById('vibe');
-	let vibeUpload = document.getElementById('vibeUpload');
-	vibeUpload.addEventListener('change', (e) => {
-		const file = vibeUpload.files[0];
-		vibe.style.backgroundImage = 'url("' + URL.createObjectURL(file) + '")';
-
-		document.getElementById('vibeUploader').style.display = 'none';
-		document.getElementById('vibe').style.display = 'block';
-
-		let reader = new FileReader();
-		reader.onload = (e) => {
-			vibeImage = btoa(reader.result);
-		};
-
-		reader.readAsBinaryString(file);
-
-		vibeUpload.value = '';
-	});
-
-	document.getElementById('closeVibe').addEventListener('click', (e) => {
-		document.getElementById('vibe').style.display = 'none';
-		document.getElementById('vibeUploader').style.display = 'block';
-		vibe.style.backgroundImage = 'none';
-
-		vibeImage = null;
-	});
-
-	// Wildcard Loader
-	let wildcard = document.getElementById('wildcards');
-	wildcard.addEventListener('change', (e) => {
-		const files = wildcard.files;
-
-		for (let i = 0; i < files.length; i++) {
-			const name = files[i].name.substring(0, files[i].name.length - 4);
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				let data = reader.result;
-				data = data.replace(/\r/g, '');
-				data = data.split('\n');
-
-				for (let i = 0; i < data.length; i++) {
-					data[i] = data[i].trim();
-
-					if(data[i] == '' || data[i][0] == '#') {
-						data.splice(i, 1);
-						i--;
-					}
-				}
-
-				localStorage.setItem('wildcard_' + name, data.join('\n'));
-				wildcards[name] = data;
-				whitelist.push("__" + name + "__");
-				whitelistSeparated.push(("__" + name + "__").toLowerCase().split(' '));
-			};
-
-			reader.readAsText(files[i]);
-		}
-
-		wildcard.value = '';
-	});
-
-	// Get preset data
-	let list = localStorage.getItem('preset_list');
-	if (list == null) {
-		list = 'default';
-		localStorage.setItem('preset_list', list);
-	}
-
-	list = list.split('\n');
-	for (let i = 0; i < list.length; i++) {
-		addPresetItem(list[i]);
-	}
-
-	const imageUploader = document.getElementById('imageUploader');
-	window.addEventListener('drop', (e) => {
-		imageUploader.classList.remove('shown');
-
-		const files = e.dataTransfer.files;
-		if (files.length > 0) {
-			const file = files[0];
-			if (file.type.match('image/png')) {
-				getExif(URL.createObjectURL(file)).then((data) => {
-					let options = getOptions();
-					options.begprompt = data.prompt;
-					options.negativePrompt = data.uc;
-					let optionsStr = JSON.stringify(options, null, 4);
-					loadOptions(optionsStr);
-					localStorage.setItem('options', optionsStr);
-				});
-			}
-		}
-
-		e.preventDefault();
-	});
-
-	window.addEventListener('dragover', (e) => {
-		if (e.dataTransfer.types.includes('Files')) {
-			imageUploader.classList.add('shown');
-			e.preventDefault();
-		}
-	});
-
-	imageUploader.addEventListener('dragleave', (e) => {
-		imageUploader.classList.remove('shown');
-		e.preventDefault();
-	});
-
-	const image = document.getElementById('image');
-
-	// Move maid
-	let maid = document.getElementById('maid');
-	setInterval(() => {
-		if (maid.style.visibility == 'visible') {
-			let maidPos = Number(maid.style.right.substring(0, maid.style.right.length - 2));
-			maidPos += 1;
-			maid.style.right = maidPos + 'px';
-
-			if (maidPos > image.clientWidth + 200) {
-				maid.style.right = '-100px';
-			}
-		}
-	}, 10);
-
-	//Set minimum height for textareas
-	const textareas = document.getElementsByTagName('textarea');
-	Array.from(textareas).forEach((textarea) => {
-		let minHeight = textarea.rows * 25 + 24;
-		textarea.style.minHeight = minHeight + 'px';
-
-		new ResizeObserver(() => {
-			localStorage.setItem('settings', JSON.stringify(getSettings()));
-		}).observe(textarea);
-	});
-
-	// Sidebar event listener for auto saving parameter changes
-	const sidebarItems = document.getElementById('items');
-	sidebarItems.addEventListener('change', (e) => {
-		const options = getOptions();
-		const optionsStr = JSON.stringify(options, null, 4);
-		checkDYN();
-		localStorage.setItem('options', optionsStr);
-	});
-
-	// Init dropdown menus
-	const dropdowns = document.getElementsByClassName('dropdown');
-	Array.from(dropdowns).forEach((dropdown) => {
-		const id = dropdown.id.substring(9);
-		const option = document.getElementById('option_' + id);
-
-		moveDropdown(dropdown, option);
-
-		// When dropdown menu is clicked
-		dropdown.addEventListener('click', (e) => {
-			if (option.style.visibility == 'visible') {
-				option.style.visibility = 'hidden';
-			} else {
-				option.style.visibility = 'visible';
-				option.scrollTop = 0;
-				Array.from(option.children).forEach((child) => {
-					if (child.innerHTML === dropdown.children[0].innerHTML) {
-						child.classList.add('selected');
-					} else {
-						child.classList.remove('selected');
-					}
-
-					if (id === 'imgsize') {
-						const imgSize = findImageSize(widthElement.value, heightElement.value);
-						const imgSizeStr = imgSize[1] + ' ' + imgSize[2];
-
-						if (child.innerHTML === imgSizeStr) {
-							child.classList.add('selected');
-						}
-					}
-				});
-			}
-
-			e.stopPropagation();
-		});
-
-		// Move dropdown menu when scrolling
-		sidebarItems.addEventListener('scroll', (e) => {
-			moveDropdown(dropdown, option);
-			moveTagSuggest();
-
-			if (tagSuggestElement != null) {
-				if (sidebarItems.getBoundingClientRect().top + window.pageYOffset > tagSuggestElement.getBoundingClientRect().bottom + window.pageYOffset) {
-					hideTagSuggest();
-				}
-			}
-		});
-
-		window.addEventListener('resize', (e) => {
-			// Move dropdown menu when resizing
-			moveDropdown(dropdown, option);
-			resizeInfo();
-			moveTagSuggest();
-			checkMobile();
-			setProgressbar();
-		});
-
-		// When dropdown menu options are clicked
-		Array.from(option.children).forEach((child) => {
-			if (!child.classList.contains('title')) {
-				child.addEventListener('click', (e) => {
-					const prv = dropdown.children[0].innerHTML;
-
-					dropdown.children[0].innerHTML = child.innerHTML;
-					option.style.visibility = 'hidden';
-
-					// Image size dropdown menu
-					if (id === 'imgsize') {
-						if (child.innerHTML === 'Custom') {
-							dropdown.children[0].innerHTML = prv;
-						} else {
-							changeImageSize(child.innerHTML);
-							const imgSize = findImageSize(widthElement.value, heightElement.value);
-							dropdown.children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
-						}
-					}
-
-					// Preset dropdown menu -- Deprecated
-					if (id === 'preset') {
-						const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{{{worst quality, bad quality}}}}}}, {{{{bad hands}}}}, {{{bad eyes, bad pupils, bad glabella}}},{{{undetailed eyes}}}},{{abs,rib,abdominal,rib line,muscle definition,muscle separation,sharp body line}},{{wide hips,narrow waist}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, {{unfinished}},{{unclear fingertips}}, {{twist}}, {{Squiggly}}, {{Grumpy}} , {{incomplete}}, {{Imperfect Fingers}}, Disorganized colors ,Cheesy, {{very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}},{{{{{futanari, dickgirl}}}}}","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","automation":false,"autodownload":false}';
-
-						if (child.id === 'ex') {
-							loadOptions(example);
-						} else if (child.id === 'add') {
-							dropdown.children[0].innerHTML = prv;
-							const name = window.prompt('Please enter the name of the preset.', '');
-							if (name != null && name != '') {
-								dropdown.children[0].innerHTML = name;
-
-								let li = document.createElement('li');
-								li.innerHTML = name;
-
-								option.insertBefore(li, option.firstChild);
-							}
-						}
-					}
-
-					// Fire change event to trigger auto saving
-					sidebarItems.dispatchEvent(new Event('change'));
-				});
-			}
-		});
-
-		// Prevent dropdown options from hiding when clicked
-		option.addEventListener('click', (e) => {
-			e.stopPropagation();
-		});
-
-		// Hide dropdown menus when clicked outside
-		window.addEventListener('click', (e) => {
-			option.style.visibility = 'hidden';
-		});
-	});
-
-	// Init size input fields
-	const widthElement = document.getElementById('width');
-	const heightElement = document.getElementById('height');
-
-	// Select all text when clicked
-	widthElement.addEventListener('click', (e) => {
-		widthElement.select();
-	});
-	heightElement.addEventListener('click', (e) => {
-		heightElement.select();
-	});
-
-	// Only allow numbers
-	widthElement.addEventListener('input', (e) => {
-		widthElement.value = widthElement.value.replace(/\D/g, '');
-		if (widthElement.value.length > 4) {
-			widthElement.value = widthElement.value.substring(0, 4);
-		}
-
-		const imgSize = findImageSize(widthElement.value, heightElement.value);
-		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
-	});
-	heightElement.addEventListener('input', (e) => {
-		heightElement.value = heightElement.value.replace(/\D/g, '');
-		if (heightElement.value.length > 4) {
-			heightElement.value = heightElement.value.substring(0, 4);
-		}
-
-		const imgSize = findImageSize(widthElement.value, heightElement.value);
-		document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
-	});
-
-	// Round to nearest multiple of 64
-	widthElement.addEventListener('blur', (e) => {
-		if (widthElement.value < 64) {
-			widthElement.value = 64;
-		} else {
-			widthElement.value = Math.round(widthElement.value / 64) * 64;
-		}
-	});
-	heightElement.addEventListener('blur', (e) => {
-		if (heightElement.value < 64) {
-			heightElement.value = 64;
-		} else {
-			heightElement.value = Math.round(heightElement.value / 64) * 64;
-		}
-	});
-
-	// Init input fields
-	const seedElement = document.getElementById('seed');
-
-	// Select all text when clicked
-	seedElement.addEventListener('click', (e) => {
-		seedElement.select();
-	});
-
-	// Only allow numbers
-	seedElement.addEventListener('input', (e) => {
-		seedElement.value = seedElement.value.replace(/\D/g, '');
-		if (seedElement.value.length > 10) {
-			seedElement.value = seedElement.value.substring(0, 10);
-		}
-	});
-
-	// Init slider input fields
-	const promptGuidanceElement = document.getElementById('pg');
-	const promptGuidanceTitleElement = document.getElementById('pgt');
-
-	const stepElement = document.getElementById('step');
-	const stepTitleElement = document.getElementById('stept');
-
-	const promptGuidanceRescaleElement = document.getElementById('pgr');
-	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
-
-	const delayElement = document.getElementById('delay');
-	const delayTitleElement = document.getElementById('delayt');
-
-	const infoExtractElement = document.getElementById('infoextract');
-	const infoExtractTitleElement = document.getElementById('infoextractt');
-
-	const refstrengthElement = document.getElementById('refstrength');
-	const refstrengthTitleElement = document.getElementById('refstrengtht');
-
-	// Show slider value on title when moved
-	promptGuidanceElement.addEventListener('input', (e) => {
-		promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
-	});
-	promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
-
-	stepElement.addEventListener('input', (e) => {
-		stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
-	});
-	stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
-
-	promptGuidanceRescaleElement.addEventListener('input', (e) => {
-		promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
-	});
-	promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
-
-	delayElement.addEventListener('input', (e) => {
-		delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
-	});
-	delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
-
-	infoExtractElement.addEventListener('input', (e) => {
-		infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
-	});
-	infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
-
-	refstrengthElement.addEventListener('input', (e) => {
-		refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
-	});
-	refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
-		
-	// Disable dragging for h2 elements
-	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
-		h2.setAttribute('draggable', 'false');
-	});
-
-	// Init image info
-	const result = document.getElementById('result');
-	const info = document.getElementById('info');
-
-	result.addEventListener('mouseenter', (e) => {
-		if (mobile) return;
-		resizeInfo();
-		info.classList.add('shown');
-	});
-	info.addEventListener('mouseenter', (e) => {
-		if (mobile) return;
-		resizeInfo();
-		info.classList.add('shown');
-	});
-
-	result.addEventListener('click', (e) => {
-		if (!mobile) return;
-		if (!info.classList.contains('shown')) {
-			resizeInfo();
-			info.classList.add('shown');
-			e.stopPropagation();
-		}
-	});
-	document.addEventListener('click', (e) => {
-		if (!document.getElementById('preset').contains(e.target) && !document.getElementById('history').contains(e.target) && e.target.id != 'presetBtn' && e.target.id != 'historyBtn') {
-			hideHistory();
-			hidePreset();
-		}
-
-		if (!mobile) return;
-		if (e.target != info) {
-			info.classList.remove('shown');
-		}
-	});
-
-	result.addEventListener('mouseleave', (e) => {
-		if (mobile) return;
-		info.classList.remove('shown');
-	});
-	info.addEventListener('mouseleave', (e) => {
-		if (mobile) return;
-		info.classList.remove('shown');
-	});
-
-	document.getElementById('id').addEventListener('keyup', (e) => {
-		if (e.key === 'Enter') {
-			button.click();
-		}
-	});
-	document.getElementById('password').addEventListener('keyup', (e) => {
-		if (e.key === 'Enter') {
-			button.click();
-		}
-	});
-
-	// Init login button
-	let button = document.getElementById('loginBtn');
-	button.addEventListener('click', async (e) => {
-		let id = document.getElementById('id');
-		let pw = document.getElementById('password');
-
-		// Disable fields and button
-		id.disabled = true;
-		pw.disabled = true;
-		button.disabled = true;
-
-		// Check if ID and password are empty
-		if (id.value == '' || pw.value == '' || id.value == null || pw.value == null) {
-			id.disabled = false;
-			pw.disabled = false;
-			button.disabled = false;
-
-			document.getElementById('text').innerHTML = 'Please enter your ID and password.';
-			document.getElementById('text').classList.add('warning');
-			document.getElementById('text').classList.add('shake');
-			document.addEventListener('animationend', () => {
-				document.getElementById('text').classList.remove('shake');
-			});
-			return;
-		}
-
-		// Login
-		const res = await login(id.value, pw.value);
-		if (!res) {
-			// Failed to login
-			id.disabled = false;
-			pw.disabled = false;
-			button.disabled = false;
-
-			document.getElementById('text').innerHTML = 'Failed to login: please check your ID and password.';
-			document.getElementById('text').classList.add('warning');
-			document.getElementById('text').classList.add('shake');
-			document.addEventListener('animationend', () => {
-				document.getElementById('text').classList.remove('shake');
-			});
-		} else {
-			// Successfully logged in
-			document.getElementById('login').style.display = 'none';
-			document.getElementById('login').style.visibility = 'hidden';
-
-			document.getElementById('sidebar').classList.remove('hidden');
-			setAnals();
-		}
-	});
-
-	// Init tag autocomplete
-	const begprompt = document.getElementById('begprompt');
-	const including = document.getElementById('including');
-	const endprompt = document.getElementById('endprompt');
-	const negprompt = document.getElementById('negprompt');
-
-	begprompt.addEventListener('input', (e) => {
-		if (e.data == '{') {
-			hideTagSuggest();
-			return;
-		}
-		if (e.data == '}') {
-			hideTagSuggest();
-			return;
-		}
-
-		suggestTags(begprompt.value.substring(0, begprompt.selectionStart), begprompt);
-	});
-	begprompt.addEventListener('blur', (e) => {
-		hideTagSuggest();
-	});
-	begprompt.addEventListener('click', (e) => {
-		hideTagSuggest();
-	});
-
-	including.addEventListener('input', (e) => {
-		suggestTags(including.value.substring(0, including.selectionStart), including);
-	});
-	including.addEventListener('blur', (e) => {
-		hideTagSuggest();
-	});
-	including.addEventListener('click', (e) => {
-		hideTagSuggest();
-	});
-
-	endprompt.addEventListener('input', (e) => {
-		suggestTags(endprompt.value.substring(0, endprompt.selectionStart), endprompt);
-	});
-	endprompt.addEventListener('blur', (e) => {
-		hideTagSuggest();
-	});
-	endprompt.addEventListener('click', (e) => {
-		hideTagSuggest();
-	});
-
-	negprompt.addEventListener('input', (e) => {
-		suggestTags(negprompt.value.substring(0, negprompt.selectionStart), negprompt);
-	});
-	negprompt.addEventListener('blur', (e) => {
-		hideTagSuggest();
-	});
-	negprompt.addEventListener('click', (e) => {
-		hideTagSuggest();
-	});
-}
-
-/* load user options */
-function loadOptions(options) {
-	options = JSON.parse(options);
-
-	document.getElementById('begprompt').value = options.begprompt;
-	document.getElementById('including').value = options.including;
-	document.getElementById('removeArtist').checked = options.removeArtist;
-	document.getElementById('removeCharacter').checked = options.removeCharacter;
-	document.getElementById('removeCopyright').checked = options.removeCopyright;
-	document.getElementById('removeAttire').checked = options.removeAttire;
-	document.getElementById('nonsfw').checked = options.nonsfw;
-	document.getElementById('endprompt').value = options.endprompt;
-	document.getElementById('negprompt').value = options.negativePrompt;
-
-	document.getElementById('width').value = options.width;
-	document.getElementById('height').value = options.height;
-	document.getElementById('step').value = options.step;
-	document.getElementById('pg').value = options.promptGuidance;
-	document.getElementById('pgr').value = options.promptGuidanceRescale;
-	document.getElementById('seed').value = options.seed;
-	document.getElementById('dropdown_sampler').children[0].innerHTML = options.sampler;
-	document.getElementById('SMEA').checked = options.smea;
-	document.getElementById('DYN').checked = options.dyn;
-
-	document.getElementById('infoextract').value = options.infoextract;
-	document.getElementById('refstrength').value = options.refstrength;
-
-	document.getElementById('delay').value = options.delay;
-	document.getElementById('automation').checked = options.automation;
-	document.getElementById('autodown').checked = options.autodownload;
-	document.getElementById('ignorefail').checked = options.ignorefail;
-	document.getElementById('reorderTags').checked = options.reorderTags;
-
-	const imgSize = findImageSize(options.width, options.height);
-	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
-}
-
-function loadSettings(settings) {
-	settings = JSON.parse(settings);
-
-	document.getElementById('begprompt').style.height = settings.begpromheight;
-	document.getElementById('including').style.height = settings.includingheight;
-	document.getElementById('endprompt').style.height = settings.endpromptheight;
-	document.getElementById('negprompt').style.height = settings.negpromptheight;
-}
-
-function getSettings() {
-	const settings = {};
-	settings.begpromheight = document.getElementById('begprompt').style.height;
-	settings.includingheight = document.getElementById('including').style.height;
-	settings.endpromptheight = document.getElementById('endprompt').style.height;
-	settings.negpromptheight = document.getElementById('negprompt').style.height;
-
-	return settings;
-}
-
-// Get user options
-function getOptions() {
-	var options = {};
-	options.begprompt = document.getElementById('begprompt').value;
-	options.including = document.getElementById('including').value;
-	options.removeArtist = document.getElementById('removeArtist').checked;
-	options.removeCharacter = document.getElementById('removeCharacter').checked;
-	options.removeCopyright = document.getElementById('removeCopyright').checked;
-	options.removeAttire = document.getElementById('removeAttire').checked;
-	options.nonsfw = document.getElementById('nonsfw').checked;
-	options.endprompt = document.getElementById('endprompt').value;
-	options.negativePrompt = document.getElementById('negprompt').value;
-
-	options.width = document.getElementById('width').value;
-	options.height = document.getElementById('height').value;
-	options.step = document.getElementById('step').value;
-	options.promptGuidance = document.getElementById('pg').value;
-	options.promptGuidanceRescale = document.getElementById('pgr').value;
-	options.seed = document.getElementById('seed').value;
-	options.sampler = document.getElementById('dropdown_sampler').children[0].innerHTML;
-	options.smea = document.getElementById('SMEA').checked;
-	options.dyn = document.getElementById('DYN').checked;
-
-	options.infoextract = document.getElementById('infoextract').value;
-	options.refstrength = document.getElementById('refstrength').value;
-
-	options.delay = document.getElementById('delay').value;
-	options.automation = document.getElementById('automation').checked;
-	options.autodownload = document.getElementById('autodown').checked;
-	options.ignorefail = document.getElementById('ignorefail').checked;
-	options.reorderTags = document.getElementById('reorderTags').checked;
-
-	return options;
 }
 
 function resizeInfo() {
@@ -1199,8 +1230,7 @@ async function setAnals() {
 	anals.innerHTML = amt;
 }
 
-// init server connection
-async function init() {
+async function loginWithAccessToken() {
 	// Auto login.
 	let accessToken = localStorage.getItem('key');
 	if (accessToken == null) {
@@ -1232,16 +1262,14 @@ function applyDynamicPrompt(prompt) {
 	let buffer = '';
 	let indexStart = 0;
 	for (let i = 0; i < prompt.length; i++) {
-		if(prompt[i] == '<') {
+		if (prompt[i] == '<') {
 			buffer = '';
 			indexStart = i;
-		}
-		else if (prompt[i] == '>') {
+		} else if (prompt[i] == '>') {
 			let tags = buffer.split('|');
 			let index = Math.floor(Math.random() * tags.length);
 			prompt = prompt.substring(0, indexStart) + tags[index] + prompt.substring(i + 1);
-		}
-		else {
+		} else {
 			buffer += prompt[i];
 		}
 	}
@@ -1253,14 +1281,14 @@ function applyWildcards(prompt) {
 	let regex = /__\w+__/g;
 	let match = prompt.match(regex);
 
-	if(match == null) {
+	if (match == null) {
 		return prompt;
 	}
 
-	for(let i = 0; i < match.length; i++) {
+	for (let i = 0; i < match.length; i++) {
 		let name = match[i].substring(2, match[i].length - 2);
 		let data = wildcards[name];
-		if(data != null) {
+		if (data != null) {
 			let index = Math.floor(Math.random() * data.length);
 			prompt = prompt.replace(match[i], data[index]);
 		}
@@ -1326,10 +1354,9 @@ async function randomizePrompt() {
 	let negative = removeEmptyElements(strToList(options.negativePrompt.replace(/\n/g, ',')));
 
 	if (including.length == 0) {
-		if(excluding.length == 0) {
+		if (excluding.length == 0) {
 			return begprompt.concat(endprompt).join(', ');
-		}
-		else {
+		} else {
 			including.push('1girl');
 		}
 	}
@@ -1338,9 +1365,8 @@ async function randomizePrompt() {
 
 	if (prompt == null || prompt === '') {
 		return null;
-	}
-	else if(prompt === "DNE") {
-		return "DNE";
+	} else if (prompt === 'DNE') {
+		return 'DNE';
 	}
 
 	prompt = strToList(prompt);
@@ -1381,7 +1407,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 	process = 0;
 
 	if (including.length == 0) {
-		return "";
+		return '';
 	}
 
 	for (var i = 0; i < including.length; i++) {
@@ -1390,7 +1416,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 		}, including[i]);
 
 		if (index == -1) {
-			return "";
+			return '';
 		}
 	}
 
@@ -1427,8 +1453,8 @@ async function getRandomPrompt(including, excluding, searchString) {
 
 	document.getElementById('generate').innerHTML = 'Generate';
 
-	if(pos.length === 0) {
-		return "DNE";
+	if (pos.length === 0) {
+		return 'DNE';
 	}
 
 	previousIncluding = inc;
@@ -1612,8 +1638,7 @@ async function generate() {
 		document.getElementById('generate').disabled = false;
 		document.getElementById('image').classList.remove('generating');
 		return;
-	}
-	else if(prompt === "DNE") {
+	} else if (prompt === 'DNE') {
 		alert('Cannot find any matching prompt');
 		document.getElementById('maid').style.visibility = 'hidden';
 		document.getElementById('generate').disabled = false;
@@ -1708,10 +1733,10 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get(host + "/stat")).avgTime + 2000;
+	let eta = (await get(host + '/stat')).avgTime + 2000;
 
 	const interval = setInterval(async () => {
-		let time = (new Date().getTime() - generateTime);
+		let time = new Date().getTime() - generateTime;
 
 		generateProgress = time / eta;
 		setProgressbar();
