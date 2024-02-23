@@ -23,6 +23,8 @@ let previousMinute = 0;
 let previousDay = 0;
 
 let rateLimited = false;
+let que = [];
+let lastQueTime = 0;
 
 /* Production Detection */
 let production = false;
@@ -209,11 +211,6 @@ app.get('/statusList', function (req, res, next) {
 });
 
 app.post('/generate-image', function (req, res, next) {
-	if (rateLimited) {
-		res.send('Rate limited');
-		return;
-	}
-
 	if (checkBlacklist(req, res)) {
 		return;
 	}
@@ -253,25 +250,39 @@ app.post('/generate-image', function (req, res, next) {
 		}
 	}
 
+	que.push({ json: req.body, authorization: req.headers.authorization, res: res, prompt: req.body.input });
+});
+
+setInterval(function () {
+	if (rateLimited) {
+		return;
+	}
+
+	if (que.length == 0) {
+		return;
+	}
+
+	if (new Date().getTime() - lastQueTime < 1000) {
+		return;
+	}
+
+	lastQueTime = new Date().getTime();
+
+	let data = que.shift();
+
 	request(
 		'https://image.novelai.net/ai/generate-image',
 		{
 			method: 'POST',
-			json: req.body,
+			json: data.json,
 			headers: {
-				Authorization: req.headers.authorization,
+				Authorization: data.authorization,
 				'Content-Type': 'application/json',
 			},
 		},
 		function (error, response, body) {
 			if (response && response.statusCode != 200) {
-				if (body.message == undefined) {
-					// include ip address
-					log('(' + String(response.statusCode) + ') (' + req.socket.remoteAddress + ') Generate image error: ' + body);
-				}
-				else {
-					log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
-				}
+				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 
 				if (response.statusCode == 429) {
@@ -284,11 +295,11 @@ app.post('/generate-image', function (req, res, next) {
 					}
 				}
 			} else {
-				log('Generate image: ' + req.body.input);
+				log('Generate image: ' + data.prompt);
 			}
 		},
-	).pipe(res);
-});
+	).pipe(data.res);
+}, 100);
 
 app.get('/api*', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
