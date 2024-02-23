@@ -1381,10 +1381,10 @@ async function randomizePrompt() {
 	}
 
 	if (removeCharacter) {
-		prompt = removeListFromList(characterList, prompt);
 		prompt = removeListFromList(characteristicList, prompt);
+		prompt = removeListFromList(characterList, prompt);
 	}
-
+	
 	if (removeCopyright) {
 		prompt = removeListFromList(copyrightList, prompt);
 	}
