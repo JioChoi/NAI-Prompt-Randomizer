@@ -291,7 +291,7 @@ setInterval(function () {
 						rateLimited = true;
 						setTimeout(function () {
 							rateLimited = false;
-						}, 15000);
+						}, 1 * 60 * 1000);
 					}
 				}
 			} else {
