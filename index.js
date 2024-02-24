@@ -294,7 +294,7 @@ setInterval(function () {
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
-				errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + data.json);
+				errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json));
 
 				if (response.statusCode == 429) {
 					// Wait a bit to avoid rate limit
