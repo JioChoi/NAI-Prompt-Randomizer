@@ -8,6 +8,7 @@ const http = require('http');
 const path = require('path');
 
 let logs = [];
+let errorLogs = [];
 
 let app = express();
 let tagDataLength = 0;
@@ -135,6 +136,15 @@ app.get('/logs', function (req, res, next) {
 	let str = '';
 	for (let i = 0; i < logs.length; i++) {
 		str += '<p>' + logs[i] + '</p>';
+	}
+
+	res.send(str);
+});
+
+app.get('/error', function (req, res, next) {
+	let str = '';
+	for (let i = 0; i < errorLogs.length; i++) {
+		str += '<p>' + errorLogs[i] + '</p>';
 	}
 
 	res.send(str);
@@ -284,6 +294,7 @@ setInterval(function () {
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
+				errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + data.json);
 
 				if (response.statusCode == 429) {
 					// Wait a bit to avoid rate limit
@@ -385,6 +396,17 @@ function log(str) {
 
 	if (logs.length > 30) {
 		logs.pop();
+	}
+}
+
+function errorLog(str) {
+	let date = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+
+	str = '(' + date + ') ' + str;
+	errorLogs.unshift(str);
+
+	if (errorLogs.length > 200) {
+		errorLogs.pop();
 	}
 }
 
