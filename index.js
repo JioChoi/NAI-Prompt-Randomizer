@@ -20,14 +20,12 @@ let statusList = [];
 let blacklist = [];
 let requestList = {};
 
-let previousMinute = 0;
-let previousDay = 0;
-
 let rateLimited = false;
 let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
+let MAX_GENERATING = 5;
 
 /* Production Detection */
 let production = false;
@@ -206,7 +204,7 @@ app.get('/stat', function (req, res, next) {
 		}
 	}
 
-	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess});
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess, generating: generating});
 });
 
 function checkBlacklist(req, res) {
@@ -278,7 +276,7 @@ setInterval(function () {
 		return;
 	}
 
-	if(generating >= 2) {
+	if(generating >= MAX_GENERATING) {
 		return;
 	}
 
@@ -301,17 +299,25 @@ setInterval(function () {
 			generating--;
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
-				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
-				errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json));
 
+				if(response.statusCode != 402) {
+					status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
+					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json));	
+				}
+				
 				if (response.statusCode == 401) {
-					// Wait a bit to avoid rate limit
-					if (!rateLimited) {
-						rateLimited = true;
-						setTimeout(function () {
-							rateLimited = false;
-						}, 1 * 60 * 1000);
-					}
+					// Restart server to avoid rate limit
+					rateLimited = true;
+					setTimeout(function () {
+						process.on("exit", function () {
+							require("child_process").spawn(process.argv.shift(), process.argv, {
+								cwd: process.cwd(),
+								detached : true,
+								stdio: "inherit"
+							});
+						});
+						process.exit();
+					}, 5000);
 				}
 			} else {
 				log('Generate image: ' + data.prompt);
