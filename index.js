@@ -363,7 +363,7 @@ app.get('/', function (req, res, next) {
 app.get('/update', function (req, res, next) {
 	res.send('Update Started');
 
-	shell.exec('bash update.sh');
+	shell.exec('sudo bash update.sh');
 });
 
 /* Functions */
