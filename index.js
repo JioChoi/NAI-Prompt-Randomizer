@@ -266,6 +266,7 @@ app.post('/generate-image', function (req, res, next) {
 
 setInterval(function () {
 	if (rateLimited) {
+		que = [];
 		return;
 	}
 
@@ -278,7 +279,7 @@ setInterval(function () {
 	}
 
 	if(generating >= MAX_GENERATING) {
-	//	return;
+		return;
 	}
 
 	lastQueTime = new Date().getTime();
@@ -307,8 +308,8 @@ setInterval(function () {
 				}
 				
 				if (response.statusCode == 429) {
-					// // Restart server to avoid rate limit
-					// rateLimited = true;
+					// Restart server to avoid rate limit
+					rateLimited = true;
 					// setTimeout(function () {
 					// 	process.on("exit", function () {
 					// 		require("child_process").spawn(process.argv.shift(), process.argv, {
@@ -319,6 +320,10 @@ setInterval(function () {
 					// 	});
 					// 	process.exit();
 					// }, 5000);
+
+					setTimeout(function () {
+						rateLimited = false;
+					}, 1000 * 60 * 1);
 				}
 			} else {
 				log('Generate image: ' + data.prompt);
