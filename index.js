@@ -26,7 +26,7 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-// let MAX_GENERATING = 12;
+let MAX_GENERATING = 12;
 
 /* Production Detection */
 let production = false;
