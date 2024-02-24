@@ -27,6 +27,8 @@ let rateLimited = false;
 let que = [];
 let lastQueTime = 0;
 
+let generating = 0;
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -276,9 +278,14 @@ setInterval(function () {
 		return;
 	}
 
+	if(generating >= 2) {
+		return;
+	}
+
 	lastQueTime = new Date().getTime();
 
 	let data = que.shift();
+	generating++;
 
 	request(
 		'https://image.novelai.net/ai/generate-image',
@@ -291,12 +298,13 @@ setInterval(function () {
 			},
 		},
 		function (error, response, body) {
+			generating--;
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 				errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json));
 
-				if (response.statusCode == 429) {
+				if (response.statusCode == 401) {
 					// Wait a bit to avoid rate limit
 					if (!rateLimited) {
 						rateLimited = true;
