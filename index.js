@@ -25,7 +25,7 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-let MAX_GENERATING = 5;
+// let MAX_GENERATING = 12;
 
 /* Production Detection */
 let production = false;
@@ -302,22 +302,22 @@ setInterval(function () {
 
 				if(response.statusCode != 402) {
 					status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
-					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json));	
+					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json) + '<br>Generating: ' + generating);	
 				}
 				
-				if (response.statusCode == 401) {
-					// Restart server to avoid rate limit
-					rateLimited = true;
-					setTimeout(function () {
-						process.on("exit", function () {
-							require("child_process").spawn(process.argv.shift(), process.argv, {
-								cwd: process.cwd(),
-								detached : true,
-								stdio: "inherit"
-							});
-						});
-						process.exit();
-					}, 5000);
+				if (response.statusCode == 429) {
+					// // Restart server to avoid rate limit
+					// rateLimited = true;
+					// setTimeout(function () {
+					// 	process.on("exit", function () {
+					// 		require("child_process").spawn(process.argv.shift(), process.argv, {
+					// 			cwd: process.cwd(),
+					// 			detached : true,
+					// 			stdio: "inherit"
+					// 		});
+					// 	});
+					// 	process.exit();
+					// }, 5000);
 				}
 			} else {
 				log('Generate image: ' + data.prompt);
