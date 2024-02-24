@@ -6,6 +6,7 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 const path = require('path');
+const shell = require('shelljs');
 
 let logs = [];
 let errorLogs = [];
@@ -357,6 +358,12 @@ app.get('/', function (req, res, next) {
 	else {
 		res.sendFile(__dirname + '/index.html');
 	}
+});
+
+app.get('/update', function (req, res, next) {
+	res.send('Update Started');
+
+	shell.exec('bash update.sh');
 });
 
 /* Functions */

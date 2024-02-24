@@ -28,6 +28,7 @@
     "https": "^1.0.0",
     "rate-limiter-flexible": "^4.0.0",
     "request": "^2.88.2",
+    "shelljs": "^0.8.5",
     "unzipit": "^1.4.3"
   }
 }
