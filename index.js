@@ -277,7 +277,7 @@ setInterval(function () {
 	}
 
 	if(generating >= MAX_GENERATING) {
-		return;
+	//	return;
 	}
 
 	lastQueTime = new Date().getTime();
