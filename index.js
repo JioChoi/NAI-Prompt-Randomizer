@@ -7,16 +7,15 @@ const https = require('https');
 const http = require('http');
 const path = require('path');
 const shell = require('shelljs');
+const mysql = require('mysql2');
 
 let logs = [];
 let errorLogs = [];
 
 let app = express();
 let tagDataLength = 0;
-let posDataLength = 0;
 
 let status = [];
-let statusList = [];
 
 let blacklist = [];
 let requestList = {};
@@ -26,7 +25,7 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-let MAX_GENERATING = 12;
+let MAX_GENERATING = 14;
 
 /* Production Detection */
 let production = false;
@@ -36,6 +35,36 @@ if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
 if (process.argv[2] == 'dev') {
 	production = false;
 }
+
+/* Database Detection */
+let database = true;
+
+// Database for status
+let db_info;
+let connection;
+if(database) {
+	db_info = {
+		host: 'zcj.h.filess.io',
+		port: '3306',
+		user: 'Prombot_machineboy',
+		password: process.env.DB_PASSWORD,
+		database: 'Prombot_machineboy',
+	}
+
+	connection = mysql.createConnection(db_info);
+}
+
+connection.connect(function(err) {
+	if (err) {
+		console.error('Database connection failed: ' + err.stack);
+		return;
+	}
+
+	// Set timezone
+	connection.query('SET time_zone = "Asia/Seoul"');
+
+	console.log('Database connected as id ' + connection.threadId);
+});
 
 /* HTTPS */
 let privateKey;
@@ -82,34 +111,32 @@ app.use('/node_modules/argon2-browser/dist', express.static(__dirname + '/node_m
 app.use('/node_modules/unzipit/dist', express.static(__dirname + '/node_modules/unzipit/dist'));
 
 setInterval(function () {
-	let date = new Date();
-	let minute = date.getMinutes();
-	let day = date.getDate();
-
-	let total = status.length;
-	let totalSuccess = 0;
-	let totalTime = 0;
-	let failed = 0;
-
-	for (let i = 0; i < status.length; i++) {
-		if (status[i].status == 'success') {
-			totalSuccess++;
-			totalTime += status[i].time;
-		} else {
-			failed++;
-		}
-	}
-
-	statusList.push({ at: date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }), total: total, totalSuccess: totalSuccess, avgTime: totalTime / totalSuccess, failed: failed });
-	
-	for (let i = 0; i < statusList.length; i++) {
-		let temp = new Date(statusList[i].at).getTime();
-		if (date.getTime() - temp > 48 * 60 * 60 * 1000) {
-			statusList.splice(i, 1);
-			i--;
-		}
+	if (database) {
+		addServerStatus();
+		removeOldStatus();
 	}
 }, 10 * 60 * 1000);
+
+function removeOldStatus() {
+	// Remove after third day
+	let query = `DELETE FROM ServerStatus WHERE at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 3 DAY)`;
+	connection.query(query, function (err, results, fields) {
+		if (err) {
+			console.log('Error: ' + err);
+			return;
+		}
+	});
+}
+
+function createTestData() {
+	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), 1, 0, 0, 0)`;
+	connection.query(query, function (err, results, fields) {
+		if (err) {
+			console.log('Error: ' + err);
+			return;
+		}
+	});
+}
 
 // sitemap.xml
 app.get('/sitemap.xml', function (req, res) {
@@ -218,8 +245,47 @@ function checkBlacklist(req, res) {
 }
 
 app.get('/statusList', function (req, res, next) {
-	res.send(statusList);
+	if(database) {
+		// Select recent two days including today
+		let query = `SELECT * FROM ServerStatus ORDER BY at DESC`;
+		connection.query(query, function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+
+			res.send(results);
+		});
+	}
+	else {
+		res.send([]);
+	}
 });
+
+function addServerStatus() {
+	let total = status.length;
+	let totalSuccess = 0;
+	let totalTime = 0;
+	let failed = 0;
+
+	for (let i = 0; i < status.length; i++) {
+		if (status[i].status == 'success') {
+			totalSuccess++;
+			totalTime += status[i].time;
+		} else {
+			failed++;
+		}
+	}
+
+	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${totalTime / totalSuccess}, ${failed})`;
+
+	connection.query(query, function (err, results, fields) {
+		if (err) {
+			console.log('Error: ' + err);
+			return;
+		}
+	});
+}
 
 app.post('/generate-image', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
@@ -401,8 +467,6 @@ function init() {
 	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
 	console.log('Tag data length: ' + tagDataLength);
 
-	posDataLength = fs.statSync(path.join(__dirname, '..', 'pos.csv')).size;
-
 	// Load key.csv
 	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
 	key = key.split('\n');
@@ -452,6 +516,7 @@ if (production) {
 		app.listen(7860, function () {
 			console.log('Listening on port 7860! (dev)');
 			init();
+			removeOldStatus();
 		});
 	} else {
 		app.listen(80, function () {

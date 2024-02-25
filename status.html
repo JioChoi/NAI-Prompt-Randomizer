@@ -221,7 +221,7 @@
 					}
 
 					// Create chart dataset
-					for(let i = 0; i < keys.length; i++) {
+					for(let i = 0; i < Math.min(keys.length, 2); i++) {
 						for(let temp of dataset[keys[i]]) {
 							let time = temp.at;
 							chartDataset[i][time] = temp.successRate;
