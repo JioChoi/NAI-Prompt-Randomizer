@@ -1630,6 +1630,18 @@ async function generate() {
 	} catch {
 		console.log('Failed to get prompt');
 		prompt = null;
+
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('generate').disabled = false;
+		document.getElementById('image').classList.remove('generating');
+		document.getElementById('generate').innerHTML = 'Generate';
+		document.getElementById('progressBar').style.visibility = 'hidden';
+		
+		if (getOptions().automation) {
+			document.getElementById('generate').disabled = true;
+			worker.postMessage({ type: 'automation' });
+		}
+		return;
 	}
 
 	if (prompt == null && !options.ignorefail) {
