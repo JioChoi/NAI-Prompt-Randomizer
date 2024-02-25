@@ -25,7 +25,11 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-let MAX_GENERATING = 15;
+
+const SERVER_LIST = [
+	"https://jio7-imagen-a.hf.space",
+	"https://jio7-imagen-b.hf.space"
+];
 
 /* Production Detection */
 let production = false;
@@ -232,7 +236,7 @@ app.get('/stat', function (req, res, next) {
 		}
 	}
 
-	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess, generating: generating});
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess});
 });
 
 function checkBlacklist(req, res) {
@@ -288,38 +292,9 @@ function addServerStatus() {
 }
 
 app.post('/generate-image', function (req, res, next) {
-	if (checkBlacklist(req, res)) {
-		return;
-	}
-
 	let now = new Date().getTime();
 
-	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
-
-	if (requestList[ip] != undefined) {
-		const time = now - requestList[ip].last;
-		if (time < 500) {
-			requestList[ip].count++;
-		}
-		else {
-			requestList[ip].count = 0;
-		}
-
-		if (requestList[ip].count > 20) {
-			log('Blacklisted IP: ' + ip);
-			blacklist.push(ip);
-		}
-	}
-
-	if (requestList[ip] == undefined) {
-		requestList[ip] = {last: now, count: 0};
-	}
-	else {
-		requestList[ip].last = now;
-	}
-
 	// Remove old status
-
 	for (let i = 0; i < status.length; i++) {
 		if (now - status[i].at > 10 * 60 * 1000) {
 			status.splice(i, 1);
@@ -327,69 +302,30 @@ app.post('/generate-image', function (req, res, next) {
 		}
 	}
 
-	que.push({ json: req.body, authorization: req.headers.authorization, res: res, prompt: req.body.input });
-});
-
-setInterval(function () {
-	if (rateLimited) {
-		for (let i = 0; i < que.length; i++) {
-			que[i].res.send('Rate limited');
-		}
-		que = [];
-		return;
-	}
-
-	if (que.length == 0) {
-		return;
-	}
-
-	if (new Date().getTime() - lastQueTime < 1000) {
-		return;
-	}
-
-	if(generating >= MAX_GENERATING) {
-		return;
-	}
-
-	lastQueTime = new Date().getTime();
-
-	let data = que.shift();
 	generating++;
+	let server = SERVER_LIST[generating % SERVER_LIST.length];
 
-	request(
-		'https://image.novelai.net/ai/generate-image',
-		{
-			method: 'POST',
-			json: data.json,
-			headers: {
-				Authorization: data.authorization,
-				'Content-Type': 'application/json',
-			},
+	request({
+		url: server + '/generate-image',
+		method: 'POST',
+		json: req.body,
+		headers: {
+			Authorization: req.headers.authorization,
+			'Content-Type': 'application/json',
 		},
-		function (error, response, body) {
-			generating--;
-			if (response && response.statusCode != 200) {
-				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+	}, function (error, response, body) {
+		if (response && response.statusCode != 200) {
+			log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
-				if(response.statusCode != 402 && body.message == undefined) {
-					status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
-					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json) + '<br>Generating: ' + generating);	
-				}
-				
-				if (response.statusCode == 429 && body.message == undefined) {
-					// Restart server to avoid rate limit
-					// rateLimited = true;
-
-					// setTimeout(function () {
-					// 	rateLimited = false;
-					// }, 1000 * 60 * 1);
-				}
-			} else {
-				log('Generate image: ' + data.prompt);
+			if(response.statusCode != 402 && body.message == undefined) {
+				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 			}
-		},
-	).pipe(data.res);
-}, 100);
+		} else {
+			log('Generate image: ' + req.body.input);
+		}
+	}).pipe(res);
+});
 
 app.get('/api*', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
