@@ -1,5 +1,6 @@
 // Server HOST Address (Change this to your server address)
 let host = 'https://jio7-prombot.hf.space';
+// host = 'http://127.0.0.1';
 let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
@@ -1630,6 +1631,18 @@ async function generate() {
 	} catch {
 		console.log('Failed to get prompt');
 		prompt = null;
+
+		document.getElementById('maid').style.visibility = 'hidden';
+		document.getElementById('generate').disabled = false;
+		document.getElementById('image').classList.remove('generating');
+		document.getElementById('generate').innerHTML = 'Generate';
+		document.getElementById('progressBar').style.visibility = 'hidden';
+		
+		if (getOptions().automation) {
+			document.getElementById('generate').disabled = true;
+			worker.postMessage({ type: 'automation' });
+		}
+		return;
 	}
 
 	if (prompt == null && !options.ignorefail) {
