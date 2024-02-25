@@ -25,7 +25,7 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-let MAX_GENERATING = 14;
+let MAX_GENERATING = 15;
 
 /* Production Detection */
 let production = false;
@@ -371,28 +371,18 @@ setInterval(function () {
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
-				if(response.statusCode != 402 && response.statusCode != 429) {
+				if(response.statusCode != 402 && body.message == undefined) {
 					status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json) + '<br>Generating: ' + generating);	
 				}
 				
-				if (response.statusCode == 429 && body.message.substring(0, 10) != 'Concurrent') {
+				if (response.statusCode == 429 && body.message == undefined) {
 					// Restart server to avoid rate limit
-					rateLimited = true;
-					// setTimeout(function () {
-					// 	process.on("exit", function () {
-					// 		require("child_process").spawn(process.argv.shift(), process.argv, {
-					// 			cwd: process.cwd(),
-					// 			detached : true,
-					// 			stdio: "inherit"
-					// 		});
-					// 	});
-					// 	process.exit();
-					// }, 5000);
+					// rateLimited = true;
 
-					setTimeout(function () {
-						rateLimited = false;
-					}, 1000 * 60 * 1);
+					// setTimeout(function () {
+					// 	rateLimited = false;
+					// }, 1000 * 60 * 1);
 				}
 			} else {
 				log('Generate image: ' + data.prompt);
