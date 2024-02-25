@@ -332,6 +332,9 @@ app.post('/generate-image', function (req, res, next) {
 
 setInterval(function () {
 	if (rateLimited) {
+		for (let i = 0; i < que.length; i++) {
+			que[i].res.send('Rate limited');
+		}
 		que = [];
 		return;
 	}
