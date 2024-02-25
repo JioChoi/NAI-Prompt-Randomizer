@@ -368,12 +368,12 @@ setInterval(function () {
 			if (response && response.statusCode != 200) {
 				log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
-				if(response.statusCode != 402) {
+				if(response.statusCode != 402 && response.statusCode != 429) {
 					status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
 					errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message + '<br>' + JSON.stringify(data.json) + '<br>Generating: ' + generating);	
 				}
 				
-				if (response.statusCode == 429) {
+				if (response.statusCode == 429 && body.message.substring(0, 10) != 'Concurrent') {
 					// Restart server to avoid rate limit
 					rateLimited = true;
 					// setTimeout(function () {
