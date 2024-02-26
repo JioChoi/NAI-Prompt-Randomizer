@@ -18,12 +18,6 @@ let tagDataLength = 0;
 let status = [];
 
 let blacklist = [];
-let requestList = {};
-
-let rateLimited = false;
-let que = [];
-let lastQueTime = 0;
-
 let generating = 0;
 
 const SERVER_LIST = [
@@ -216,7 +210,8 @@ app.get('/naistat', function (req, res, next) {
 
 app.post('/time', function (req, res, next) {
 	let time = req.body.time;
-	status.push({at: new Date().getTime(), time: time, status: 'success'});
+	let settings = req.body.settings;
+	status.push({at: new Date().getTime(), time: time, settings: settings, status: 'success'});
 
 	res.send('OK');
 });
@@ -225,18 +220,27 @@ app.get('/stat', function (req, res, next) {
 	let total = status.length;
 	let totalSuccess = 0;
 	let totalTime = 0;
+	let totalTimeTotal = 0;
 	let failed = 0;
 
 	for (let i = 0; i < status.length; i++) {
 		if (status[i].status == 'success') {
 			totalSuccess++;
-			totalTime += status[i].time;
+
+			let steps = status[i].settings.steps;
+			let width = status[i].settings.width;
+			let height = status[i].settings.height;
+
+			if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
+				totalTime += status[i].time;
+				totalTimeTotal++;
+			}
 		} else {
 			failed++;
 		}
 	}
 
-	res.send({ failed: failed, total: total, avgTime: totalTime / totalSuccess});
+	res.send({ failed: failed, total: total, avgTime: totalTime / totalTimeTotal });
 });
 
 function checkBlacklist(req, res) {
@@ -270,12 +274,21 @@ function addServerStatus() {
 	let total = status.length;
 	let totalSuccess = 0;
 	let totalTime = 0;
+	let totalTimeTotal = 0;
 	let failed = 0;
 
 	for (let i = 0; i < status.length; i++) {
 		if (status[i].status == 'success') {
 			totalSuccess++;
-			totalTime += status[i].time;
+
+			let steps = status[i].settings.steps;
+			let width = status[i].settings.width;
+			let height = status[i].settings.height;
+
+			if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
+				totalTime += status[i].time;
+				totalTimeTotal++;
+			}
 		} else {
 			failed++;
 		}
@@ -319,7 +332,7 @@ app.post('/generate-image', function (req, res, next) {
 			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
 			if(response.statusCode != 402 && body.message == undefined) {
-				status.push({ at: new Date().getTime(), time: 0, status: 'failed' });
+				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
 			}
 		} else {
 			log('Generate image: ' + req.body.input);

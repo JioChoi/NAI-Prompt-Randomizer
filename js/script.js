@@ -1798,7 +1798,8 @@ async function generate() {
 		document.getElementById('support').style.display = 'none';
 		initInfo(result);
 
-		await post(host + '/time', { time: new Date().getTime() - time }, null, 'text');
+		
+		await post(host + '/time', { time: new Date().getTime() - time, settings: params }, null, 'text');
 
 		if (options.autodownload) {
 			download(result, prompt.substring(0, 80) + '_' + seed + '.png');
