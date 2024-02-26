@@ -624,6 +624,24 @@ function initDropdowns() {
 			heightElement.value = Math.round(heightElement.value / 64) * 64;
 		}
 	});
+
+	document.getElementById("optionsLock").addEventListener("click", function (e) {
+		document.getElementById("optionsLock").classList.toggle("locked");
+		localStorage.setItem('settings', JSON.stringify(getSettings()));
+
+		lockOptions();
+	});
+}
+
+function lockOptions() {
+	if (document.getElementById("optionsLock").classList.contains("locked")) {
+		document.getElementById("options").style.pointerEvents = "none";
+		document.getElementById("options").style.opacity = "0.4";
+	}
+	else {
+		document.getElementById("options").style.pointerEvents = "auto";
+		document.getElementById("options").style.opacity = "1";
+	}
 }
 
 async function downloadLists() {
@@ -838,6 +856,7 @@ function loadSettings() {
 	const settings = localStorage.getItem('settings');
 	if (settings != null) {
 		setSettings(settings);
+		lockOptions();
 	}
 }
 
@@ -848,6 +867,7 @@ function setSettings(settings) {
 	document.getElementById('including').style.height = settings.includingheight;
 	document.getElementById('endprompt').style.height = settings.endpromptheight;
 	document.getElementById('negprompt').style.height = settings.negpromptheight;
+	document.getElementById('optionsLock').classList = settings.locked ? 'locked' : '';
 }
 
 function getSettings() {
@@ -856,6 +876,7 @@ function getSettings() {
 	settings.includingheight = document.getElementById('including').style.height;
 	settings.endpromptheight = document.getElementById('endprompt').style.height;
 	settings.negpromptheight = document.getElementById('negprompt').style.height;
+	settings.locked = document.getElementById('optionsLock').classList.contains('locked');
 
 	return settings;
 }
@@ -1587,6 +1608,29 @@ function removeListFromList(list1, list2) {
 	return list2;
 }
 
+function getCost() {
+	let options = getOptions();
+
+	let width = options.width;
+	let height = options.height;
+	let resolution = Math.max(width * height, 65536);
+
+	let steps = options.step;
+	let sema = options.smea;
+	let dyn = options.dyn;
+
+	let semaFactor = 1.0;
+	if (sema) {
+		semaFactor = 1.2;
+	}
+	if (dyn) {
+		semaFactor = 1.4;
+	}
+
+	// TODO: FIGURE OUT THIS
+	return Math.ceil(2951823174884865e-21 * resolution + 5.753298233447344e-7 * resolution * steps) * semaFactor;
+}
+
 async function startGenerate() {
 	worker.postMessage({ type: 'requestGenerate' });
 }
@@ -1798,7 +1842,6 @@ async function generate() {
 		document.getElementById('support').style.display = 'none';
 		initInfo(result);
 
-		
 		await post(host + '/time', { time: new Date().getTime() - time, settings: params }, null, 'text');
 
 		if (options.autodownload) {
