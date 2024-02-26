@@ -80,7 +80,9 @@
 	margin: 10px 30px;
 }
 .rowcb label {
-	margin-right: 20px;
+	/* margin-right: 20px; */
+	display: inline-block;
+	width: 160px;
 }
 
 .nobottom {

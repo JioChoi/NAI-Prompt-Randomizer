@@ -3,7 +3,7 @@ let host = 'https://jio7-prombot.hf.space';
 // host = 'http://127.0.0.1';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCharacteristic":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let artistList;
 let characterList;
@@ -768,6 +768,7 @@ function setOptions(options) {
 	document.getElementById('including').value = options.including;
 	document.getElementById('removeArtist').checked = options.removeArtist;
 	document.getElementById('removeCharacter').checked = options.removeCharacter;
+	document.getElementById('removeCharacteristic').checked = options.removeCharacteristic;
 	document.getElementById('removeCopyright').checked = options.removeCopyright;
 	document.getElementById('removeAttire').checked = options.removeAttire;
 	document.getElementById('nonsfw').checked = options.nonsfw;
@@ -804,6 +805,7 @@ function getOptions() {
 	options.including = document.getElementById('including').value;
 	options.removeArtist = document.getElementById('removeArtist').checked;
 	options.removeCharacter = document.getElementById('removeCharacter').checked;
+	options.removeCharacteristic = document.getElementById('removeCharacteristic').checked;
 	options.removeCopyright = document.getElementById('removeCopyright').checked;
 	options.removeAttire = document.getElementById('removeAttire').checked;
 	options.nonsfw = document.getElementById('nonsfw').checked;
@@ -1348,6 +1350,7 @@ async function randomizePrompt() {
 
 	let removeArtist = options.removeArtist;
 	let removeCharacter = options.removeCharacter;
+	let removeCharacteristic = options.removeCharacteristic;
 	let removeCopyright = options.removeCopyright;
 	let removeAttire = options.removeAttire;
 
@@ -1382,8 +1385,11 @@ async function randomizePrompt() {
 	}
 
 	if (removeCharacter) {
-		prompt = removeListFromList(characteristicList, prompt);
 		prompt = removeListFromList(characterList, prompt);
+	}
+
+	if (removeCharacteristic) {
+		prompt = removeListFromList(characteristicList, prompt);
 	}
 	
 	if (removeCopyright) {
