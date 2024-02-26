@@ -81,10 +81,15 @@
 	margin: 10px 30px;
 }
 .rowcb label {
-	/* margin-right: 20px; */
+	margin-right: 20px;
 	display: inline-block;
-	width: 160px;
 }
+
+.w160 label {
+	width: 160px;
+	margin-right: 0px;
+}
+
 
 .nobottom {
 	margin-bottom: 0px;
