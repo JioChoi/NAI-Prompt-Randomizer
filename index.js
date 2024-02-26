@@ -227,13 +227,15 @@ app.get('/stat', function (req, res, next) {
 		if (status[i].status == 'success') {
 			totalSuccess++;
 
-			let steps = status[i].settings.steps;
-			let width = status[i].settings.width;
-			let height = status[i].settings.height;
+			if (status[i].settings != undefined) {
+				let steps = status[i].settings.steps;
+				let width = status[i].settings.width;
+				let height = status[i].settings.height;
 
-			if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
-				totalTime += status[i].time;
-				totalTimeTotal++;
+				if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
+					totalTime += status[i].time;
+					totalTimeTotal++;
+				}	
 			}
 		} else {
 			failed++;
@@ -281,13 +283,15 @@ function addServerStatus() {
 		if (status[i].status == 'success') {
 			totalSuccess++;
 
-			let steps = status[i].settings.steps;
-			let width = status[i].settings.width;
-			let height = status[i].settings.height;
+			if (status[i].settings != undefined) {
+				let steps = status[i].settings.steps;
+				let width = status[i].settings.width;
+				let height = status[i].settings.height;
 
-			if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
-				totalTime += status[i].time;
-				totalTimeTotal++;
+				if (steps == 28 && ((width == 832 && height == 1216) || (width == 1216 && height == 832) || (width == 1024 && height == 1024))) {
+					totalTime += status[i].time;
+					totalTimeTotal++;
+				}	
 			}
 		} else {
 			failed++;
