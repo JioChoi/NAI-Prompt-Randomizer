@@ -287,20 +287,18 @@
 	cursor: pointer;
 	
 	color: #f9f9f9;
-	/* border: 2px solid #3c3c3c; */
 	border: 2px solid #3c3c3c;
-	background: #313131 linear-gradient(90deg, #313131 0%, #313131 100%);
+	background-color: #313131;
 
-	opacity: 0.35;
+	opacity: 0.6;
 	border-radius: 5px;
 }
 .grid input[type="checkbox"]:checked + checkbtn {
-	border-image: linear-gradient(-45deg, rgba(0,120,212,1) 5%, rgba(60,60,60,1) 5%, rgba(60,60,60,1) 95%, rgba(0,120,212,1) 95%);
-	border-image-slice: 1;
 	opacity: 1;
+	border: 2px solid #7c7c7c;
 }
 @media (hover: hover) and (pointer: fine) {
 	.grid checkbtn:hover {
-		filter: brightness(1.2);
+		opacity: 0.9 !important;
 	}
 }
