@@ -743,6 +743,10 @@ async function downloadLists() {
 	}, 100);
 }
 
+function toggle(element) {
+	document.getElementById(element).checked = !document.getElementById(element).checked;
+}
+
 function loadWildcards() {
 	for (let i = 0; i < localStorage.length; i++) {
 		let key = localStorage.key(i);
