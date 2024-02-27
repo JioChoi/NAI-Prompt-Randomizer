@@ -8,7 +8,7 @@ let que = [];
 let lastQueTime = 0;
 
 let generating = 0;
-let MAX_GENERATING = 15;
+let MAX_GENERATING = 10;
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({
