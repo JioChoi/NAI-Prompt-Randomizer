@@ -106,6 +106,13 @@ function css() {
 }
 
 function addEventListeners() {
+	// Init clicklistener
+	document.querySelectorAll('[clicklistener]').forEach((element) => {
+		element.addEventListener('click', (e) => {
+			eval(element.getAttribute('clicklistener'));
+		});
+	});
+
 	window.addEventListener('beforeunload', (e) => {
 		if (preventReload) {
 			e.preventDefault();
