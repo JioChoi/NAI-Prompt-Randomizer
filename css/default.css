@@ -680,7 +680,7 @@ input[type='file'] + label:hover {
 	top: 0;
 	left: 0;
 
-	width: 90%;
+	width: 100%;
 	aspect-ratio: 1/1;
 
 	z-index: 1;
