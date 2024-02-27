@@ -112,12 +112,6 @@ function addEventListeners() {
 			eval(element.getAttribute('clicklistener'));
 		});
 	});
-	document.querySelectorAll('[clicklistener]').forEach((element) => {
-		element.addEventListener('touchend', (e) => {
-			eval(element.getAttribute('clicklistener'));
-			e.preventDefault();
-		});
-	});
 
 	window.addEventListener('beforeunload', (e) => {
 		if (preventReload) {
