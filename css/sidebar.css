@@ -299,6 +299,8 @@
 	border-image-slice: 1;
 	opacity: 1;
 }
-.grid checkbtn:hover {
-	filter: brightness(1.2);
+@media (hover: hover) and (pointer: fine) {
+	.grid checkbtn:hover {
+		filter: brightness(1.2);
+	}
 }
