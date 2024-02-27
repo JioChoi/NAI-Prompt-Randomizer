@@ -95,6 +95,7 @@
 
 #seed {
 	margin: 0px;
+	max-width: 130px;
 }
 
 .noleft {
@@ -239,4 +240,65 @@
 	mask-repeat: no-repeat;
 	-webkit-mask-size: 100% 100%;
 	mask-size: 100% 100%;
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-gap: 10px;
+
+	justify-content: space-between;
+
+	margin: 15px 30px;
+}
+
+.grid input[type="checkbox"] {
+	display: none;
+}
+.grid label div {
+	display: grid;
+	width: calc(100% - 55px);
+	height: calc(100% - 55px);
+	margin-bottom: 5px;
+}
+.grid label div span {
+	grid-column: 1;
+	grid-row: 1;
+	justify-self: center;
+	align-self: center;
+}
+
+.grid label {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	justify-content: flex-end;
+
+	padding: 5px;
+
+	width: 100%;
+	aspect-ratio: 1/1;
+
+	border-radius: 5px;
+
+	font-size: 15px;
+	cursor: pointer;
+	
+	color: #f9f9f9;
+	/* border: 2px solid #3c3c3c; */
+	border: 2px solid #3c3c3c;
+	background: #313131 linear-gradient(90deg, #313131 0%, #313131 100%);
+
+	opacity: 0.35;
+	border-radius: 5px;
+}
+.grid input[type="checkbox"]:checked + label {
+	border-image: linear-gradient(-45deg, rgba(0,120,212,1) 5%, rgba(60,60,60,1) 5%, rgba(60,60,60,1) 95%, rgba(0,120,212,1) 95%);
+	border-image-slice: 1;
+	opacity: 1;
+}
+.grid label:hover {
+	filter: brightness(1.2);
 }

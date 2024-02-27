@@ -77,117 +77,14 @@ body {
 
 /* Mobile */
 @media (max-width:480px) {
-	h1 {
-		margin-top: 40px;
-	}
-	#firstTitle {
-		margin-top: 5px;
-	}
-
-	#sidebar {
-		position: fixed;
-		bottom: 0px;
-
-		width: 100vw;
-		height: 120px;
-
-		border: none;
-
-		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.4);
-
-		transition: height 0.4s;
-	}
-	#sidebar.expanded {
-		height: 70%;
-		bottom: 70px;
-	}
-
-	#dropdown_imgsize {
-		width: 220px;
-	}
-
-	h1, h2, textarea, .row, input[type="range"], .rowcb {
-		margin-left: 20px;
-		margin-right: 20px;
-	}
-
-	#generate {
-		margin: 0px 20px;
-	}
-	
-	#maid {
-		display: none;
-	}
-
-	.up {
-		content: url('https://api.iconify.design/mingcute/up-small-fill.svg?color=%23f9f9f9');
-		width: 40px;
-	}
-	.up.rotate {
-		transform: rotate(180deg);
-	}
-
-	#expand {
-		display: flex;
-		width: 100%;
-		height: 45px;
-
-		justify-content: center;
-	}
-
-	#sidebar .footer {
-		position: fixed;
-		bottom: 0px;
-		height: 90px;
-
-		border-top: 2px solid #1f1f1f;
-
-		box-shadow: 0 40px 0px 0 #1f1f1f;
-	}
-
-	#image {
-		position: fixed;
-
-		top: 0px;
-		left: 0px;
-		
-		width: 100vw !important;
-		height: calc(100% - 120px);
-	}
-
-	#info {
-		padding: 10px;
-	}
-
 	#login {
 		width: 100vw;
 		height: 100%;
 	}
-
-	#presetBtn {
-		left: 15px;
-	}
-
-	#preset {
-		left: 0px;
-		z-index: 999;
-	}
-
-	input[type='file'] + label {
-		margin-left: 20px;
-	}
-
-	.upload {
-		margin-left: 20px;
-	}
-
-	#vibe {
-		margin: 0 20px;
-	}
 }
 
 /* Tablet */
-@media (min-width: 480px) and (max-width:1023px) {
+@media (max-width:1023px) {
 	h1 {
 		margin-top: 40px;
 	}
@@ -215,15 +112,6 @@ body {
 
 	#dropdown_imgsize {
 		width: 220px;
-	}
-
-	h1, h2, textarea, .row, input[type="range"], .rowcb {
-		margin-left: 20px;
-		margin-right: 20px;
-	}
-
-	#generate {
-		margin: 0px 20px;
 	}
 	
 	#maid {
@@ -281,14 +169,15 @@ body {
 		z-index: 999;
 	}
 
-	input[type='file'] + label {
+	h1, h2, textarea, .row, input[type="range"], .rowcb,
+	input[type='file'] + label, .upload, #vibe, .grid
+	{
+	
 		margin-left: 20px;
-	}
-	.upload {
-		margin-left: 20px;
+		margin-right: 20px;
 	}
 
-	#vibe {
-		margin: 0 20px;
+	#generate {
+		margin: 0px 20px;
 	}
 }

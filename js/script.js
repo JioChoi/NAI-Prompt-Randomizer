@@ -44,6 +44,7 @@ window.onload = async function () {
 	await loginWithAccessToken();
 
 	checkMobile();
+	resizeOptions();
 
 	loadOptions();
 	loadSettings();
@@ -521,6 +522,7 @@ function initDropdowns() {
 			moveTagSuggest();
 			checkMobile();
 			setProgressbar();
+			resizeOptions();
 		});
 
 		// When dropdown menu options are clicked
@@ -1033,6 +1035,20 @@ function resizeInfo() {
 	info.style.left = rect.left + window.pageXOffset + 'px';
 
 	info.style.width = rect.width - window.pageXOffset + 'px';
+}
+
+function resizeOptions() {
+	// Resize size input fields
+	let width = document.getElementById('items').getBoundingClientRect().width - 40;
+	let dropdownWidth = document.getElementById('dropdown_imgsize').getBoundingClientRect().width;
+	let etcWidth = 5 * 2 + 15;
+	document.getElementById('width').style.width = (width - dropdownWidth - 5) / 2 - etcWidth + 'px';
+	document.getElementById('height').style.width = (width - dropdownWidth - 5) / 2 - etcWidth + 'px';
+
+	// Resize seed input field
+	dropdownWidth = document.getElementById('dropdown_sampler').getBoundingClientRect().width;
+	etcWidth = 5 * 2;
+	document.getElementById('seed').style.width = width - dropdownWidth - etcWidth - 15 + 'px';
 }
 
 function initInfo(url) {
