@@ -39,13 +39,13 @@ setInterval(function () {
 		return;
 	}
 
-	if (new Date().getTime() - lastQueTime < 1000) {
+	if (new Date().getTime() - lastQueTime < 3000) {
 		return;
 	}
 
-	if(generating >= MAX_GENERATING) {
-		return;
-	}
+	// if(generating >= MAX_GENERATING) {
+	// 	return;
+	// }
 
 	lastQueTime = new Date().getTime();
 
