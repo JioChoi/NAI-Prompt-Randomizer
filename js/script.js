@@ -218,6 +218,13 @@ function addEventListeners() {
 		checkDYN();
 		localStorage.setItem('options', optionsStr);
 	});
+	sidebarItems.addEventListener('click', (e) => {
+		console.log("CLI");
+		const options = getOptions();
+		const optionsStr = JSON.stringify(options, null, 4);
+		checkDYN();
+		localStorage.setItem('options', optionsStr);
+	});
 
 	initDropdowns();
 
