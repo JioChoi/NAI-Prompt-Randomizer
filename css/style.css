@@ -180,8 +180,4 @@ body {
 	#generate {
 		margin: 0px 20px;
 	}
-
-	.grid label:hover {
-		filter: none;
-	}
 }
