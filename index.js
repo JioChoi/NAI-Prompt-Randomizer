@@ -51,21 +51,21 @@ if(database) {
 		user: 'avnadmin',
 		password: process.env.DB_PASSWORD,
 		database: 'defaultdb',
+		connectionLimit: 3,
 	}
 
-	connection = mysql.createConnection(db_info);
+	pool = mysql.createPool(db_info);
 }
 
-connection.connect(function(err) {
-	if (err) {
-		console.error('Database connection failed: ' + err.stack);
-		return;
-	}
+pool.getConnection(function(err, connection) {
+	if (err) 
+    	throw err;
+	else {
+		connection.query('SET time_zone = "Asia/Seoul"');
+		console.log('Database connected as id ' + connection.threadId);
 
-	// Set timezone
-	connection.query('SET time_zone = "Asia/Seoul"');
-
-	console.log('Database connected as id ' + connection.threadId);
+		connection.release();
+    }
 });
 
 /* HTTPS */
@@ -122,11 +122,19 @@ setInterval(function () {
 function removeOldStatus() {
 	// Remove after third day
 	let query = `DELETE FROM ServerStatus WHERE at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 3 DAY)`;
-	connection.query(query, function (err, results, fields) {
+	pool.getConnection(function (err, connection) {
 		if (err) {
 			console.log('Error: ' + err);
-			return;
+			return
 		}
+
+		connection.query(query, function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+		});
 	});
 }
 
@@ -262,13 +270,22 @@ app.get('/statusList', function (req, res, next) {
 	if(database) {
 		// Select recent two days including today
 		let query = `SELECT * FROM ServerStatus ORDER BY at DESC`;
-		connection.query(query, function (err, results, fields) {
+		
+		pool.getConnection(function (err, connection) {
 			if (err) {
 				console.log('Error: ' + err);
-				return;
+				return
 			}
+	
+			connection.query(query, function (err, results, fields) {
+				if (err) {
+					console.log('Error: ' + err);
+					return;
+				}
 
-			res.send(results);
+				res.send(results);
+				connection.release();
+			});
 		});
 	}
 	else {
@@ -304,11 +321,19 @@ function addServerStatus() {
 
 	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${totalTime / totalSuccess}, ${failed})`;
 
-	connection.query(query, function (err, results, fields) {
+	pool.getConnection(function (err, connection) {
 		if (err) {
 			console.log('Error: ' + err);
-			return;
+			return
 		}
+
+		connection.query(query, function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+		});
 	});
 }
 
