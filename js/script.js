@@ -1494,7 +1494,7 @@ async function getRandomPrompt(including, excluding, searchString) {
 		}, including[i]);
 
 		if (index == -1) {
-			return '';
+			return 'DNE';
 		}
 	}
 
@@ -1751,7 +1751,9 @@ async function generate() {
 		document.getElementById('generate').disabled = false;
 		document.getElementById('image').classList.remove('generating');
 		return;
-	} else if (prompt === 'DNE') {
+	}
+	
+	if (prompt === 'DNE') {
 		alert('Cannot find any matching prompt');
 		document.getElementById('maid').style.visibility = 'hidden';
 		document.getElementById('generate').disabled = false;
@@ -1879,6 +1881,11 @@ async function generate() {
 	}
 
 	clearInterval(interval);
+
+	if (result === '429') {
+		await sleep(30000);
+		result = null;
+	}
 
 	setAnals();
 	document.getElementById('maid').style.visibility = 'hidden';
@@ -2160,6 +2167,10 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 
 	let result = await post(host + '/generate-image', data, accessToken, 'blob');
 
+	if (result == '429') {
+		return '429';
+	}
+
 	const { entries } = await unzipit.unzip(result);
 
 	let blob = null;
@@ -2279,6 +2290,10 @@ async function post(url, data, authorization = null, resultType = 'json') {
 			body: JSON.stringify(data),
 		})
 			.then((response) => {
+				if (response.status == 429) {
+					resolve('429');
+				}
+
 				if (resultType == 'json') {
 					resolve(response.json());
 				} else if (resultType == 'blob') {
