@@ -39,7 +39,7 @@ setInterval(function () {
 		return;
 	}
 
-	if (new Date().getTime() - lastQueTime < 3000) {
+	if (new Date().getTime() - lastQueTime < 2000) {
 		return;
 	}
 
