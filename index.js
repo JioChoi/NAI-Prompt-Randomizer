@@ -386,20 +386,25 @@ app.post('/generate-image', function (req, res, next) {
 				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
 			}
 
-			if (response.statusCode == 429 && body.message != "Concurrent generation is locked") {
+			if (response.statusCode == 429) {
 				if (delay[currentServer] == 0) {
-					delay[currentServer] = 1;
+					if (body.message != "Concurrent generation is locked") {
+						delay[currentServer] = 2;
+						disabled[currentServer] = true;
+					}
 				}
 				else {
-					delay[currentServer] *= 2;
+					delay[currentServer] *= delay[currentServer];
+					disabled[currentServer] = true;
 				}
-				disabled[currentServer] = true;
 
-				errorLog('Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
-				setTimeout(function () {
-					disabled[currentServer] = false;
-					errorLog('Server ' + currentServer + ' is enabled!');
-				}, 1000 * delay[currentServer]);
+				if (disabled[currentServer]) {
+					errorLog('Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
+					setTimeout(function () {
+						disabled[currentServer] = false;
+						errorLog('Server ' + currentServer + ' is enabled!');
+					}, 1000 * delay[currentServer]);
+				}
 			}
 		} else {
 			if (delay[currentServer] != 0) {
