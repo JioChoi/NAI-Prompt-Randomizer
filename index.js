@@ -382,7 +382,7 @@ app.post('/generate-image', function (req, res, next) {
 			log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
-			if(response.statusCode != 402 && body.message == undefined) {
+			/*if(response.statusCode != 402 && body.message == undefined) {
 				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
 			}
 
@@ -403,7 +403,7 @@ app.post('/generate-image', function (req, res, next) {
 						errorLog('Server ' + currentServer + ' is enabled!');
 					}, 1000 * delay[currentServer]);
 				}
-			}
+			}*/
 		} else {
 			if (delay[currentServer] != 0) {
 				delay[currentServer] = 0;
