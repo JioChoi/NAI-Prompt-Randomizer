@@ -401,7 +401,7 @@ app.post('/generate-image', function (req, res, next) {
 				}
 
 				if (disabled[currentServer]) {
-					errorLog(ip + ') Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
+					errorLog('Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
 					setTimeout(function () {
 						disabled[currentServer] = false;
 						errorLog('Server ' + currentServer + ' is enabled!');
