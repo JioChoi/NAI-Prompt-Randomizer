@@ -26,6 +26,9 @@ const SERVER_LIST = [
 	"https://jio7-imagen-c.hf.space",
 ];
 
+let delay = [];
+let disabled = [];
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -321,7 +324,25 @@ app.post('/generate-image', function (req, res, next) {
 	}
 
 	generating++;
-	let server = SERVER_LIST[generating % SERVER_LIST.length];
+	if (generating >= SERVER_LIST.length) {
+		generating = 0;
+	}
+
+	let currentServer = generating;
+	let server = SERVER_LIST[currentServer];
+
+	// Choose different server if delay is not 0
+	if (disabled[currentServer] == true) {
+		for (let i = 0; i < SERVER_LIST.length; i++) {
+			if (disabled[i] == false) {
+				errorLog('Server ' + currentServer + ' is disabled. Choosing server ' + i);
+				currentServer = i;
+				server = SERVER_LIST[currentServer];
+				break;
+			}
+		}
+		return;
+	}
 
 	request({
 		url: server + '/generate-image',
@@ -339,7 +360,27 @@ app.post('/generate-image', function (req, res, next) {
 			if(response.statusCode != 402 && body.message == undefined) {
 				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
 			}
+
+			if (response.statusCode == 429 && body.message != "Concurrent generation is locked") {
+				if (delay[currentServer] == 0) {
+					delay[currentServer] = 1;
+				}
+				else {
+					delay[currentServer] *= 2;
+				}
+				disabled[currentServer] = true;
+
+				errorLog('Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
+				setTimeout(function () {
+					disabled[currentServer] = false;
+					errorLog('Server ' + currentServer + ' is enabled!');
+				}, 1000 * delay[currentServer]);
+			}
 		} else {
+			if (delay[currentServer] != 0) {
+				delay[currentServer] = 0;
+			}
+
 			log('Generate image: ' + req.body.input);
 		}
 	}).pipe(res);
@@ -413,6 +454,12 @@ async function read(fileName, start, end) {
 function init() {
 	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
 	console.log('Tag data length: ' + tagDataLength);
+
+	// Create delay with 0 seconds
+	for (let i = 0; i < SERVER_LIST.length; i++) {
+		delay.push(0);
+		disabled.push(false);
+	}
 
 	// Load key.csv
 	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');

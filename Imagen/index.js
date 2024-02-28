@@ -64,6 +64,9 @@ setInterval(function () {
 		},
 		function (error, response, body) {
 			generating--;
+			if (response.statusCode == 429 && response.body != "Concurrent generation is locked") {
+				que = [];
+			}
 		},
 	).pipe(data.res);
 }, 100);
