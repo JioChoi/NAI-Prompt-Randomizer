@@ -65,6 +65,9 @@ setInterval(function () {
 		function (error, response, body) {
 			generating--;
 			if (response.statusCode == 429 && response.body != "Concurrent generation is locked") {
+				for (let i = 0; i < que.length; i++) {
+					que[i].res.status(429).send("Server stopped generating images due to high load. Please try again later.");
+				}
 				que = [];
 			}
 		},
