@@ -46,11 +46,11 @@ let db_info;
 let connection;
 if(database) {
 	db_info = {
-		host: 'zcj.h.filess.io',
-		port: '3306',
-		user: 'Prombot_machineboy',
+		host: 'prombot-prombot.a.aivencloud.com',
+		port: '14180',
+		user: 'avnadmin',
 		password: process.env.DB_PASSWORD,
-		database: 'Prombot_machineboy',
+		database: 'defaultdb',
 	}
 
 	connection = mysql.createConnection(db_info);
