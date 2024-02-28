@@ -369,6 +369,8 @@ app.post('/generate-image', function (req, res, next) {
 		return;
 	}
 
+	const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
+
 	request({
 		url: server + '/generate-image',
 		method: 'POST',
@@ -379,7 +381,7 @@ app.post('/generate-image', function (req, res, next) {
 		},
 	}, function (error, response, body) {
 		if (response && response.statusCode != 200) {
-			log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
+			log(ip + ') (' + String(response.statusCode) + ') Generate image error: ' + body.message);
 			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
 			if(response.statusCode != 402 && body.message == undefined) {
@@ -399,7 +401,6 @@ app.post('/generate-image', function (req, res, next) {
 				}
 
 				if (disabled[currentServer]) {
-					const ip = req.header["x-forwarded-for"] || req.socket.remoteAddress;
 					errorLog(ip + ') Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
 					setTimeout(function () {
 						disabled[currentServer] = false;
