@@ -334,7 +334,18 @@ function addServerStatus() {
 	});
 }
 
-app.post('/generate-image', function (req, res, next) {
+async function checkDisabled(server) {
+	try {
+		let response = await fetch(server + '/status');
+		let json = await response.json();
+	
+		return !(json.disabled == false);
+	} catch (e) {
+		return true;
+	}
+}
+
+app.post('/generate-image', async function (req, res, next) {
 	let now = new Date().getTime();
 
 	// Remove old status
@@ -353,17 +364,23 @@ app.post('/generate-image', function (req, res, next) {
 	let currentServer = generating;
 	let server = SERVER_LIST[currentServer];
 
-	// Choose different server if delay is not 0
-	if (disabled[currentServer] == true) {
+	let disabled = await checkDisabled(server);
+	if (disabled) {
 		for (let i = 0; i < SERVER_LIST.length; i++) {
-			if (disabled[i] == false) {
-				errorLog('Server ' + currentServer + ' is disabled. Choosing server ' + i);
+			disabled = await checkDisabled(SERVER_LIST[i]);
+			if (!disabled) {
+				errorLog('Server ' + currentServer + ' is disabled. Switching to server ' + i);
 				currentServer = i;
-				server = SERVER_LIST[currentServer];
+				server = SERVER_LIST[i];
 				break;
 			}
 		}
-		return;
+
+		if (disabled) {
+			errorLog('All servers are disabled.');
+			res.send("Server stopped generating images due to high load. Please try again later.");
+			return;
+		}
 	}
 
 	request({
@@ -378,35 +395,7 @@ app.post('/generate-image', function (req, res, next) {
 		if (response && response.statusCode != 200) {
 			log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
-
-			/*if(response.statusCode != 402 && body.message == undefined) {
-				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
-			}
-
-			if (response.statusCode == 429 && body.message != "Concurrent generation is locked") {
-				if (delay[currentServer] == 0) {
-					delay[currentServer] = 5;
-					disabled[currentServer] = true;
-				}
-				else {
-					delay[currentServer] *= delay[currentServer];
-					disabled[currentServer] = true;
-				}
-
-				if (disabled[currentServer]) {
-					errorLog('Server ' + currentServer + ' is disabled for ' + delay[currentServer] + ' seconds!');
-					setTimeout(function () {
-						disabled[currentServer] = false;
-						errorLog('Server ' + currentServer + ' is enabled!');
-					}, 1000 * delay[currentServer]);
-				}
-			}*/
 		} else {
-			if (delay[currentServer] != 0) {
-				delay[currentServer] = 0;
-				errorLog('Reset delay for server ' + currentServer);
-			}
-
 			log('Generate image: ' + req.body.input);
 		}
 	}).pipe(res);
@@ -480,12 +469,6 @@ async function read(fileName, start, end) {
 function init() {
 	tagDataLength = fs.statSync(path.join(__dirname, '..', 'tags.csv')).size;
 	console.log('Tag data length: ' + tagDataLength);
-
-	// Create delay with 0 seconds
-	for (let i = 0; i < SERVER_LIST.length; i++) {
-		delay.push(0);
-		disabled.push(false);
-	}
 
 	// Load key.csv
 	key = fs.readFileSync(path.join(__dirname, '..', 'key.csv'), 'utf8');
