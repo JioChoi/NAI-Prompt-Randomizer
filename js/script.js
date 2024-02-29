@@ -1894,7 +1894,7 @@ async function generate() {
 			return;
 		}
 	}
-
+	
 	clearInterval(interval);
 
 	if (result === '429') {

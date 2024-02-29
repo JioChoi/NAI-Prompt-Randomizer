@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Server Status</title>
+</head>
+<body>
+	<style>
+		#main {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-around;
+			align-items: center;
+			height: 100vh;
+		}
+	</style>
+	<div id="main">
+		<div>
+			<h1>Imagen-A</h1>
+			<h2 id="1stat">Running</h2>
+			<h2 id="1delay">30sec</h2>
+		</div>
+		<div>
+			<h1>Imagen-B</h1>
+			<h2 id="2stat">Running</h2>
+			<h2 id="2delay">30sec</h2>
+		</div>
+		<div>
+			<h1>Imagen-C</h1>
+			<h2 id="3stat">Running</h2>
+			<h2 id="3delay">30sec</h2>
+		</div>
+	</div>
+
+	<script>
+		const SERVER_LIST = [
+			"https://jio7-imagen-a.hf.space/disabled",
+			"https://jio7-imagen-b.hf.space/disabled",
+			"https://jio7-imagen-c.hf.space/disabled",
+		];
+
+		load();
+		setInterval(() => {
+			load();
+		}, 1000);
+
+		function load() {
+			for(let i = 0; i < SERVER_LIST.length; i++) {
+				get(SERVER_LIST[i], i +1);
+			}
+		}
+
+		function get(url, i) {
+			fetch(url)
+				.then(response => response.json())
+				.then(data => {
+					if(!data.status) {
+						document.getElementById(String(i) + "stat").innerText = "Running";
+					}
+					else {
+						document.getElementById(String(i) + "stat").innerText = "Disabled";
+					}
+
+					document.getElementById(String(i) + "delay").innerText = data.delay + "sec";
+				});
+		}
+	</script>
+</body>
+</html>
