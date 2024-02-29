@@ -336,7 +336,7 @@ function addServerStatus() {
 
 async function checkDisabled(server) {
 	try {
-		let response = await fetch(server + '/status');
+		let response = await fetch(server + '/disabled');
 		let json = await response.json();
 	
 		return !(json.disabled == false);
