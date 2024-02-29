@@ -43,18 +43,18 @@ let wildcards = {};
 // On page load
 window.onload = async function () {
 	// Check if huggingface is down
-	try {
-		let res = await fetch('https://huggingface.co/', { method: 'HEAD' });
-		if (!res.ok) {
-			console.log("HUGGINGFACE IS DOWN!!!!");
-			document.getElementById('maintenance').style.display = 'flex';
-			return;
-		}
-	} catch (e) {
-		console.log("HUGGINGFACE IS DOWN!!!!");
-		document.getElementById('maintenance').style.display = 'flex';
-		return;
-	}
+	// try {
+	// 	let res = await fetch('https://huggingface.co/', { method: 'HEAD' });
+	// 	if (!res.ok) {
+	// 		console.log("HUGGINGFACE IS DOWN!!!!");
+	// 		document.getElementById('maintenance').style.display = 'flex';
+	// 		return;
+	// 	}
+	// } catch (e) {
+	// 	console.log("HUGGINGFACE IS DOWN!!!!");
+	// 	document.getElementById('maintenance').style.display = 'flex';
+	// 	return;
+	// }
 	
 
 	downloadLists();
