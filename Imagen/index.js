@@ -10,6 +10,9 @@ let lastQueTime = 0;
 let generating = 0;
 let MAX_GENERATING = 10;
 
+let disabled = false;
+let delay = 0;
+
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({
     limit:"100mb",
@@ -34,6 +37,10 @@ app.get('/', function(req, res) {
 	res.send('Imagine Server running on port 7860');
 });
 
+app.get('/disabled', function (req, res) {
+	res.send({ disabled: disabled, delay: delay });
+});
+
 setInterval(function () {
 	if (que.length == 0) {
 		return;
@@ -43,9 +50,14 @@ setInterval(function () {
 		return;
 	}
 
-	// if(generating >= MAX_GENERATING) {
-	// 	return;
-	// }
+	if (disabled) {
+		for (let i = 0; i < que.length; i++) {
+			que[i].res.send("Server stopped generating images due to high load. Please try again later.");
+		}
+		que = [];
+
+		return;
+	}
 
 	lastQueTime = new Date().getTime();
 
@@ -65,10 +77,27 @@ setInterval(function () {
 		function (error, response, body) {
 			generating--;
 			if (response.statusCode == 429 && response.body != "Concurrent generation is locked") {
+				if (delay == 0) {
+					delay = 5;
+					disabled = true;
+				}
+				else {
+					delay *= 2;
+					disabled = true;
+				}
+
+				setTimeout(function () {
+					disabled = false;
+				}, delay * 1000);
+
 				for (let i = 0; i < que.length; i++) {
-					que[i].res.status(429).send("Server stopped generating images due to high load. Please try again later.");
+					que[i].res.send("Server stopped generating images due to high load. Please try again later.");
 				}
 				que = [];
+			}
+			
+			if (response.statusCode == 200) {
+				delay = 0;
 			}
 		},
 	).pipe(data.res);

@@ -26,9 +26,6 @@ const SERVER_LIST = [
 	"https://jio7-imagen-c.hf.space",
 ];
 
-let delay = [];
-let disabled = [];
-
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
