@@ -379,16 +379,14 @@ app.post('/generate-image', function (req, res, next) {
 			log('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 			errorLog('(' + String(response.statusCode) + ') Generate image error: ' + body.message);
 
-			if(response.statusCode != 402 && body.message == undefined) {
+			/*if(response.statusCode != 402 && body.message == undefined) {
 				status.push({ at: new Date().getTime(), time: 0, settings: null, status: 'failed' });
 			}
 
-			if (response.statusCode == 429) {
+			if (response.statusCode == 429 && body.message != "Concurrent generation is locked") {
 				if (delay[currentServer] == 0) {
-					if (body.message != "Concurrent generation is locked") {
-						delay[currentServer] = 2;
-						disabled[currentServer] = true;
-					}
+					delay[currentServer] = 5;
+					disabled[currentServer] = true;
 				}
 				else {
 					delay[currentServer] *= delay[currentServer];
@@ -402,10 +400,11 @@ app.post('/generate-image', function (req, res, next) {
 						errorLog('Server ' + currentServer + ' is enabled!');
 					}, 1000 * delay[currentServer]);
 				}
-			}
+			}*/
 		} else {
 			if (delay[currentServer] != 0) {
 				delay[currentServer] = 0;
+				errorLog('Reset delay for server ' + currentServer);
 			}
 
 			log('Generate image: ' + req.body.input);
