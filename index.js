@@ -368,7 +368,7 @@ app.post('/generate-image', async function (req, res, next) {
 	if (disabled) {
 		for (let i = 0; i < SERVER_LIST.length; i++) {
 			disabled = await checkDisabled(SERVER_LIST[i]);
-			if (!disabled) {
+			if (!disabled &&  i != currentServer) {
 				errorLog('Server ' + currentServer + ' is disabled. Switching to server ' + i);
 				currentServer = i;
 				server = SERVER_LIST[i];
