@@ -26,6 +26,9 @@ const SERVER_LIST = [
 	"https://jio7-imagen-c.hf.space",
 ];
 
+/* Database Detection */
+let database = true;
+
 /* Production Detection */
 let production = false;
 if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
@@ -34,9 +37,9 @@ if (fs.existsSync('/etc/letsencrypt/live/prombot.net/privkey.pem')) {
 if (process.argv[2] == 'dev') {
 	production = false;
 }
-
-/* Database Detection */
-let database = true;
+if(process.argv[2] == 'local') {
+	database = false;
+}
 
 // Database for status
 let db_info;
@@ -52,18 +55,19 @@ if(database) {
 	}
 
 	pool = mysql.createPool(db_info);
+
+
+	pool.getConnection(function(err, connection) {
+		if (err) 
+			throw err;
+		else {
+			connection.query('SET time_zone = "Asia/Seoul"');
+			console.log('Database connected as id ' + connection.threadId);
+	
+			connection.release();
+		}
+	});
 }
-
-pool.getConnection(function(err, connection) {
-	if (err) 
-    	throw err;
-	else {
-		connection.query('SET time_zone = "Asia/Seoul"');
-		console.log('Database connected as id ' + connection.threadId);
-
-		connection.release();
-    }
-});
 
 /* HTTPS */
 let privateKey;

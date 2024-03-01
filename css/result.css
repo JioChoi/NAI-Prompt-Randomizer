@@ -87,6 +87,45 @@
 	visibility: visible;
 }
 
+#download {
+	position: absolute;
+
+	display: flex;
+	visibility: hidden;
+
+	align-items: center;
+	justify-content: center;
+
+	width: 30px;
+	height: 30px;
+
+	background-color: #000000c3;
+
+	color: #f9f9f9;
+	font-size: 17px;
+
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+	user-select: text;
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	-o-user-select: text;
+
+	border-radius: 10px;
+}
+#download.shown {
+	opacity: 1;
+	visibility: visible;
+}
+
+#download:hover {
+	cursor: pointer;
+	filter: brightness(0.8);
+	-webkit-filter: brightness(0.8);
+}
+
 #maid {
 	position: fixed;
 	display: block;

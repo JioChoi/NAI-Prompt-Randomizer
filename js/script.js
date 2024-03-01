@@ -287,22 +287,42 @@ function addEventListeners() {
 	initImageInfo();
 	initLoginScreen();
 	initTagAutoComplete();
+
+	// Init download button
+	const download = document.getElementById('download');
+	download.addEventListener('click', (e) => {
+		if (document.getElementById('result').src != '') {
+			let a = document.createElement('a');
+			a.href = document.getElementById('result').src;
+			a.download = 'image.png';
+			a.click();
+		}
+	});
 }
 
 function initImageInfo() {
 	// Init image info
 	const result = document.getElementById('result');
 	const info = document.getElementById('info');
+	const download = document.getElementById('download');
 
 	result.addEventListener('mouseenter', (e) => {
 		if (mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
+		download.classList.add('shown');
 	});
 	info.addEventListener('mouseenter', (e) => {
 		if (mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
+		download.classList.add('shown');
+	});
+	download.addEventListener('mouseenter', (e) => {
+		if (mobile) return;
+		resizeInfo();
+		info.classList.add('shown');
+		download.classList.add('shown');
 	});
 
 	result.addEventListener('click', (e) => {
@@ -310,6 +330,7 @@ function initImageInfo() {
 		if (!info.classList.contains('shown')) {
 			resizeInfo();
 			info.classList.add('shown');
+			download.classList.add('shown');
 			e.stopPropagation();
 		}
 	});
@@ -322,16 +343,24 @@ function initImageInfo() {
 		if (!mobile) return;
 		if (e.target != info) {
 			info.classList.remove('shown');
+			download.classList.remove('shown');
 		}
 	});
 
 	result.addEventListener('mouseleave', (e) => {
 		if (mobile) return;
 		info.classList.remove('shown');
+		download.classList.remove('shown');
 	});
 	info.addEventListener('mouseleave', (e) => {
 		if (mobile) return;
 		info.classList.remove('shown');
+		download.classList.remove('shown');
+	});
+	download.addEventListener('mouseleave', (e) => {
+		if (mobile) return;
+		info.classList.remove('shown');
+		download.classList.remove('shown');
 	});
 }
 
@@ -1077,6 +1106,7 @@ function addPresetItem(name) {
 function resizeInfo() {
 	const result = document.getElementById('result');
 	const info = document.getElementById('info');
+	const download = document.getElementById('download');
 
 	const rect = result.getBoundingClientRect();
 
@@ -1084,6 +1114,9 @@ function resizeInfo() {
 	info.style.left = rect.left + window.pageXOffset + 'px';
 
 	info.style.width = rect.width - window.pageXOffset + 'px';
+
+	download.style.top = rect.top  + window.pageYOffset + 5 + 'px';
+	download.style.left = rect.right + window.pageXOffset - 30 - 5 +  'px';
 }
 
 function resizeOptions() {
