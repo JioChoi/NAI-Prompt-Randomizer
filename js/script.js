@@ -302,6 +302,7 @@ function addEventListeners() {
 
 function initImageInfo() {
 	// Init image info
+	const image = document.getElementById('image');
 	const result = document.getElementById('result');
 	const info = document.getElementById('info');
 	const download = document.getElementById('download');
@@ -311,18 +312,21 @@ function initImageInfo() {
 		resizeInfo();
 		info.classList.add('shown');
 		download.classList.add('shown');
+		image.classList.add('top');
 	});
 	info.addEventListener('mouseenter', (e) => {
 		if (mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
 		download.classList.add('shown');
+		image.classList.add('top');
 	});
 	download.addEventListener('mouseenter', (e) => {
 		if (mobile) return;
 		resizeInfo();
 		info.classList.add('shown');
 		download.classList.add('shown');
+		image.classList.add('top');
 	});
 
 	result.addEventListener('click', (e) => {
@@ -331,6 +335,14 @@ function initImageInfo() {
 			resizeInfo();
 			info.classList.add('shown');
 			download.classList.add('shown');
+			image.classList.add('top');
+			result.classList.add('top');
+			hideHistory();
+			hidePreset();
+
+			document.getElementById('sidebar').classList.remove('expanded');
+			document.getElementById('upico').classList.remove('rotate');
+
 			e.stopPropagation();
 		}
 	});
@@ -344,6 +356,7 @@ function initImageInfo() {
 		if (e.target != info) {
 			info.classList.remove('shown');
 			download.classList.remove('shown');
+			image.classList.remove('top');
 		}
 	});
 
@@ -351,16 +364,19 @@ function initImageInfo() {
 		if (mobile) return;
 		info.classList.remove('shown');
 		download.classList.remove('shown');
+		image.classList.remove('top');
 	});
 	info.addEventListener('mouseleave', (e) => {
 		if (mobile) return;
 		info.classList.remove('shown');
 		download.classList.remove('shown');
+		image.classList.remove('top');
 	});
 	download.addEventListener('mouseleave', (e) => {
 		if (mobile) return;
 		info.classList.remove('shown');
 		download.classList.remove('shown');
+		image.classList.remove('top');
 	});
 }
 
@@ -508,31 +524,52 @@ function initSliders() {
 	promptGuidanceElement.addEventListener('input', (e) => {
 		promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
 	});
-	promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
 
 	stepElement.addEventListener('input', (e) => {
 		stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
 	});
-	stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
 
 	promptGuidanceRescaleElement.addEventListener('input', (e) => {
 		promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
 	});
-	promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
 
 	delayElement.addEventListener('input', (e) => {
 		delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
 	});
-	delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
 
 	infoExtractElement.addEventListener('input', (e) => {
 		infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
 	});
-	infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
 
 	refstrengthElement.addEventListener('input', (e) => {
 		refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
 	});
+}
+
+function initSliderValues() {
+	const promptGuidanceElement = document.getElementById('pg');
+	const promptGuidanceTitleElement = document.getElementById('pgt');
+
+	const stepElement = document.getElementById('step');
+	const stepTitleElement = document.getElementById('stept');
+
+	const promptGuidanceRescaleElement = document.getElementById('pgr');
+	const promptGuidanceRescaleTitleElement = document.getElementById('pgrt');
+
+	const delayElement = document.getElementById('delay');
+	const delayTitleElement = document.getElementById('delayt');
+
+	const infoExtractElement = document.getElementById('infoextract');
+	const infoExtractTitleElement = document.getElementById('infoextractt');
+
+	const refstrengthElement = document.getElementById('refstrength');
+	const refstrengthTitleElement = document.getElementById('refstrengtht');
+
+	promptGuidanceTitleElement.innerHTML = 'Prompt Guidance: ' + promptGuidanceElement.value;
+	stepTitleElement.innerHTML = 'Steps: ' + stepElement.value;
+	promptGuidanceRescaleTitleElement.innerHTML = 'Prompt Guidance Rescale: ' + promptGuidanceRescaleElement.value;
+	delayTitleElement.innerHTML = 'Delay: ' + delayElement.value + ' seconds';
+	infoExtractTitleElement.innerHTML = 'Information Extracted: ' + infoExtractElement.value;
 	refstrengthTitleElement.innerHTML = 'Reference Strength: ' + refstrengthElement.value;
 }
 
@@ -894,6 +931,8 @@ function setOptions(options) {
 
 	const imgSize = findImageSize(options.width, options.height);
 	document.getElementById('dropdown_imgsize').children[0].innerHTML = imgSize[0] + ' ' + imgSize[1];
+
+	initSliderValues();
 }
 
 // Get user options
