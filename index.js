@@ -24,6 +24,7 @@ const SERVER_LIST = [
 	"https://jio7-imagen-a.hf.space",
 	"https://jio7-imagen-b.hf.space",
 	"https://jio7-imagen-c.hf.space",
+	"https://jio7-imagen-d.hf.space",
 ];
 
 /* Database Detection */
