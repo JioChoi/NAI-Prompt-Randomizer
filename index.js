@@ -321,7 +321,12 @@ function addServerStatus() {
 		}
 	}
 
-	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${totalTime / totalSuccess}, ${failed})`;
+	let avgTime = totalTime / totalSuccess;
+	if (isNaN(avgTime)) {
+		avgTime = 0;
+	}
+
+	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${avgTime}, ${failed})`;
 
 	pool.getConnection(function (err, connection) {
 		if (err) {
