@@ -24,6 +24,7 @@ const SERVER_LIST = [
 	"https://jio7-imagen-a.hf.space",
 	"https://jio7-imagen-b.hf.space",
 	"https://jio7-imagen-c.hf.space",
+	"https://jio7-imagen-d.hf.space",
 ];
 
 /* Database Detection */
@@ -320,7 +321,12 @@ function addServerStatus() {
 		}
 	}
 
-	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${totalTime / totalSuccess}, ${failed})`;
+	let avgTime = totalTime / totalSuccess;
+	if (isNaN(avgTime)) {
+		avgTime = 0;
+	}
+
+	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${avgTime}, ${failed})`;
 
 	pool.getConnection(function (err, connection) {
 		if (err) {

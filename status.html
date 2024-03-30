@@ -162,7 +162,6 @@
 									return '';
 								}
 								else {
-									console.log(val, index);
 									// 24 hour time format to 12 hour time format
 									let time = val.split(':');
 									let hour = parseInt(time[0]);
@@ -250,7 +249,10 @@
 					let failed = data.failed;
 					let total = data.total;
 
-					let star = (total - failed) / total * 5;
+					// let star = (total - failed) / total * 5;
+					let avgtime = (data.avgTime / 1000).toFixed(2);
+					let star = Math.max(5 - (Math.max(0, avgtime - 15) / 2), 0);
+					console.log(star);
 
 					let starLine = document.createElement("span");
 					starLine.classList.add("mingcute--star-line");
@@ -265,7 +267,7 @@
 					starDiv.innerHTML = "";
 
 					for (let i = 0; i < 5; i++) {
-						if (star >= 0.5) {
+						if (star > 0.5) {
 							starDiv.appendChild(starFill.cloneNode(true));
 						} else if (star > 0) {
 							starDiv.appendChild(starHalfFill.cloneNode(true));
@@ -275,7 +277,6 @@
 						star -= 1;
 					}
 
-					let avgtime = (data.avgTime / 1000).toFixed(2);
 					let recenttime = (data.recentTime / 1000).toFixed(2);
 
 					let msg = document.getElementById("msg");

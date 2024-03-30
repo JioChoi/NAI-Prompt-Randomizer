@@ -1432,6 +1432,7 @@ function applyDynamicPrompt(prompt) {
 			let tags = buffer.split('|');
 			let index = Math.floor(Math.random() * tags.length);
 			prompt = prompt.substring(0, indexStart) + tags[index] + prompt.substring(i + 1);
+			i = indexStart + tags[index].length - 1;
 		} else {
 			buffer += prompt[i];
 		}
