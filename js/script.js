@@ -222,8 +222,10 @@ function addEventListeners() {
 		const files = e.dataTransfer.files;
 		if (files.length > 0) {
 			const file = files[0];
-			if (file.type.match('image/png')) {
+			if (file.type.match('image/*')) {
 				getExif(URL.createObjectURL(file)).then((data) => {
+					console.log(data);
+
 					let options = getOptions();
 					options.begprompt = data.prompt;
 					options.negativePrompt = data.uc;
@@ -1949,7 +1951,7 @@ async function generate() {
 
 	let time = new Date().getTime();
 	try {
-		result = await generateImage(key, prompt, 'nai-diffusion-3', 'generate', params);
+		result = await generateImage(key, prompt, 'nai-diffusion-3', 'generate', params, options);
 	} catch {
 		console.log('Failed to generate image');
 		result = null;
@@ -2244,7 +2246,7 @@ function downloadHistory() {
 }
 
 // Generate image
-async function generateImage(accessToken, prompt, model, action, parameters) {
+async function generateImage(accessToken, prompt, model, action, parameters, options) {
 	let data = {
 		input: prompt,
 		model: model,
@@ -2266,12 +2268,43 @@ async function generateImage(accessToken, prompt, model, action, parameters) {
 		blob = data;
 	});
 
+	// // Edit exif
+	// let pngdata = await UPNG.decode(await blob.arrayBuffer());
+	// let exif = pngdata.tabs.tEXt.Comment;
+	// exif = JSON.parse(exif);
+
+	// exif.begprompt = options.begprompt;
+	// exif.including = options.including;
+	// exif.endprompt = options.endprompt;
+	// exif.removeArtist = options.removeArtist;
+	// exif.removeCharacter = options.removeCharacter;
+	// exif.removeCharacteristic = options.removeCharacteristic;
+	// exif.removeAttire = options.removeAttire;
+	// exif.removeCopyright = options.removeCopyright;
+	// exif.nonsfw = options.nonsfw;
+
+	// pngdata.tabs.tEXt.Comment = JSON.stringify(exif);
+
+	// console.log(pngdata);
+
+	// try {
+	// 	blob = new Blob([UPNG.encode([pngdata], pngdata.width, pngdata.height, 0)], { type: 'image/png' });
+	// }
+	// catch(e) {
+	// 	console.log(e);
+	// }
+
 	return window.URL.createObjectURL(blob);
 }
 
 async function getExif(url) {
 	const response = await fetch(url);
 	const data = await response.blob();
+
+	if(data.type != 'image/png') {
+		return JSON.parse((await getStealthExif(url)).Comment);
+	}
+
 	let pnginfo = UPNG.decode(await data.arrayBuffer());
 	let text = pnginfo.tabs.tEXt;
 
