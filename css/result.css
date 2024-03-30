@@ -423,7 +423,12 @@
 }
 
 #support {
-	display: block;
+	display: flex;
+
+	flex-direction: column;
+
+	justify-content: center;
+	align-items: center;
 }
 
 #support h2 {
