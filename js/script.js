@@ -3,7 +3,7 @@ let host = 'https://jio7-prombot.hf.space';
 // host = 'http://127.0.0.1';
 let key = null;
 
-const example = '{"begprompt":"1girl, {{kirisame marisa}}, {{kakure eria, sangbob}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCharacteristic":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
+const example = '{"begprompt":"1girl, {{kirisame marisa}}, [fu-ta], {{gsusart}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCharacteristic":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
 
 let scrolled = false;
 
@@ -40,6 +40,8 @@ let controller = new AbortController();
 
 let wildcards = {};
 
+let uid = null;
+
 // On page load
 window.onload = async function () {
 	// Check if huggingface is down
@@ -56,6 +58,7 @@ window.onload = async function () {
 	// 	return;
 	// }
 	
+	uid = localStorage.getItem('uid');
 
 	downloadLists();
 	await loginWithAccessToken();
@@ -421,7 +424,10 @@ function initLoginScreen() {
 		}
 
 		// Login
-		const res = await login(id.value, pw.value);
+		const id_value = id.value;
+		const pw_value = pw.value;
+
+		const res = await login(id_value, pw_value);
 		if (!res) {
 			// Failed to login
 			id.disabled = false;
@@ -435,6 +441,9 @@ function initLoginScreen() {
 				document.getElementById('text').classList.remove('shake');
 			});
 		} else {
+			uid = await getUID(id_value);
+			localStorage.setItem('uid', uid);
+
 			// Successfully logged in
 			document.getElementById('login').style.display = 'none';
 			document.getElementById('login').style.visibility = 'hidden';
@@ -1396,7 +1405,8 @@ async function setAnals() {
 async function loginWithAccessToken() {
 	// Auto login.
 	let accessToken = localStorage.getItem('key');
-	if (accessToken == null) {
+
+	if (accessToken == null || uid == null) {
 		// Not logged in.
 		document.getElementById('id').disabled = false;
 		document.getElementById('password').disabled = false;
@@ -1419,6 +1429,10 @@ async function loginWithAccessToken() {
 			document.getElementById('password').disabled = false;
 		}
 	}
+}
+
+async function getUID(id) {
+	return await sha256(id);
 }
 
 function applyDynamicPrompt(prompt) {
