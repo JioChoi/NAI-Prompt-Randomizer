@@ -8,6 +8,9 @@ const http = require('http');
 const path = require('path');
 const shell = require('shelljs');
 const mysql = require('mysql2');
+const crypto = require('crypto');
+
+require('dotenv').config();
 
 let logs = [];
 let errorLogs = [];
@@ -56,7 +59,6 @@ if(database) {
 	}
 
 	pool = mysql.createPool(db_info);
-
 
 	pool.getConnection(function(err, connection) {
 		if (err) 
@@ -293,6 +295,94 @@ app.get('/statusList', function (req, res, next) {
 	else {
 		res.send([]);
 	}
+});
+
+app.post('/getPresets', function (req, res, next) {
+	let uid = req.body.uid;
+	if (uid.length != 64) {
+		res.send('Invalid data');
+		return;
+	}
+
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			res.send('Error');
+			return
+		}
+
+		connection.query('SELECT * FROM Presets WHERE uid = ?', [uid], function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				res.send('Error');
+				return;
+			}
+			res.send(results);
+			connection.release();
+		});
+	});
+});
+
+app.post('/deletePreset', function (req, res, next) {
+	let id = req.body.id;
+	let uid = req.body.uid;
+
+	if (id == undefined || uid == undefined || id.length != 64 || uid.length != 64) {
+		res.send('Invalid data');
+		return;
+	}
+
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return;
+		}
+
+		connection.query('DELETE FROM Presets WHERE id = ? AND uid = ?', [id, uid], function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+		});
+	});
+
+	res.send('OK');
+});
+
+app.post('/addPreset', function (req, res, next) {
+	let name = req.body.name;
+	if (name == undefined || name.length == 0 || name == "default") {
+		res.send('Invalid data');
+		return;
+	}
+	name = name.trim();
+
+	let data = req.body.data;
+	let uid = req.body.uid;
+	let id = crypto.createHash('sha256').update(uid + name).digest('hex');
+
+	if (name.length == 0 || data.length == 0 || uid.length != 64) {
+		res.send('Invalid data');
+		return;
+	}
+
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return
+		}
+
+		connection.query('REPLACE INTO Presets (id, name, data, uid) VALUES (?, ?, ?, ?)', [id, name, data, uid], function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+		});
+	});
+
+	res.send({ id: id });
 });
 
 function addServerStatus() {

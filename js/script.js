@@ -1,6 +1,8 @@
 // Server HOST Address (Change this to your server address)
 let host = 'https://jio7-prombot.hf.space';
-// host = 'http://127.0.0.1';
+
+//host = 'http://127.0.0.1'; //// MUST BE CHANGED!!!!!!!!
+
 let key = null;
 
 const example = '{"begprompt":"1girl, {{kirisame marisa}}, [fu-ta], {{gsusart}}","including":"1girl, ~speech bubble, ~commentary, ~blood, ~gun, ~guro, ~bdsm, ~shibari, ~butt plug, ~object insertion, ~pregnant","removeArtist":true,"removeCharacter":true,"removeCharacteristic":true,"removeCopyright":true,"removeAttire":true,"nonsfw": true, "endprompt":"{{{volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres}}}","negativePrompt":"{{{worst quality, bad quality}}}, text, error, extra digit, fewer digits, jpeg artifacts, signature, watermark, username, reference, unfinished, unclear fingertips, twist, Squiggly, Grumpy, incomplete, {{Imperfect Fingers}}, Cheesy, very displeasing}}, {{mess}}, {{Approximate}}, {{Sloppiness}}, Glazed eyes, watermark, username, text, signature, fat, sagged breasts","width":"832","height":"1216","step":"28","promptGuidance":"5","promptGuidanceRescale":"0","seed":"","sampler":"Euler Ancestral","smea":true,"dyn":false,"delay":"8","infoextract":"1","refstrength":"0.6","automation":false,"autodownload":false,"ignorefail":false,"reorderTags":true}';
@@ -41,6 +43,7 @@ let controller = new AbortController();
 let wildcards = {};
 
 let uid = null;
+let presets = new Map();
 
 // On page load
 window.onload = async function () {
@@ -57,9 +60,10 @@ window.onload = async function () {
 	// 	document.getElementById('maintenance').style.display = 'flex';
 	// 	return;
 	// }
+
 	
 	uid = localStorage.getItem('uid');
-
+	
 	downloadLists();
 	await loginWithAccessToken();
 
@@ -81,16 +85,7 @@ window.onload = async function () {
 // Init css elements
 function css() {
 	// Get preset data
-	let list = localStorage.getItem('preset_list');
-	if (list == null) {
-		list = 'default';
-		localStorage.setItem('preset_list', list);
-	}
-
-	list = list.split('\n');
-	for (let i = 0; i < list.length; i++) {
-		addPresetItem(list[i]);
-	}
+	getPresets();
 
 	const image = document.getElementById('image');
 
@@ -450,6 +445,7 @@ function initLoginScreen() {
 
 			document.getElementById('sidebar').classList.remove('hidden');
 			setAnals();
+			migratePresets();
 		}
 	});
 }
@@ -1084,21 +1080,52 @@ async function getStealthExif(src) {
 	return null;
 }
 
+function migratePresets() {
+	let list = localStorage.getItem('preset_list');
+
+	if (list != null) {
+		list = list.split('\n');
+
+		for (let i = 1; i < list.length; i++) {
+			let preset = localStorage.getItem('preset_' + list[i]);
+			post(host + '/addPreset', {name: list[i], data: preset, uid: uid});
+
+			localStorage.removeItem('preset_' + list[i]);
+		}
+
+		localStorage.removeItem('preset_list');
+		location.reload();
+	}
+};
+
+async function getPresets() {
+	presets["default"] = { data: example };
+
+	data = await post(host + '/getPresets', { uid: uid });
+	data.forEach((item) => {
+		presets[item.name] = { data: item.data, id: item.id };
+	});
+
+	Object.keys(presets).forEach((key) => {
+		addPresetItem(key);
+	});
+}
+
 function addPreset() {
 	let name = window.prompt('Please enter the name of the preset.', '');
+	if(name == null) return;
+	if(name == "default") return;
+
 	name = name.trim();
 
 	if (name != null && name != '') {
-		let list = localStorage.getItem('preset_list');
-
-		if (!list.split('\n').includes(name)) {
-			list += '\n' + name;
-			localStorage.setItem('preset_list', list);
+		let options = getOptions();
+		if (presets[name] == null) {
 			addPresetItem(name);
 		}
-
-		let options = getOptions();
-		localStorage.setItem('preset_' + name, JSON.stringify(options, null, 4));
+		post(host + '/addPreset', {name: name, data: JSON.stringify(options, null, 4), uid: uid}).then((data) => {
+			presets[name] = { data: JSON.stringify(options, null, 4), id: data.id };
+		});
 	}
 }
 
@@ -1124,13 +1151,8 @@ function addPresetItem(name) {
 				return;
 			}
 
-			let list = localStorage.getItem('preset_list');
-			list = list.split('\n');
-			list.splice(list.indexOf(name), 1);
-			list = list.join('\n');
-			localStorage.setItem('preset_list', list);
-
-			localStorage.removeItem('preset_' + name);
+			post(host + '/deletePreset', {id: presets[name].id, uid: uid}, null, 'text');
+			presets[name] = null;
 
 			preset.removeChild(item);
 		});
@@ -1138,7 +1160,7 @@ function addPresetItem(name) {
 	}
 
 	text.addEventListener('click', (e) => {
-		let options = localStorage.getItem('preset_' + name);
+		let options = presets[name].data;
 		if (options == null) {
 			options = example;
 		}
@@ -1422,6 +1444,7 @@ async function loginWithAccessToken() {
 
 			document.getElementById('sidebar').classList.remove('hidden');
 			setAnals();
+			migratePresets();
 		} catch (err) {
 			// Failed to auto login.
 			console.log('Failed to login');
