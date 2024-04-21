@@ -1479,11 +1479,6 @@ async function randomizePrompt() {
 	options.begprompt = applyDynamicPrompt(options.begprompt);
 	options.endprompt = applyDynamicPrompt(options.endprompt);
 
-	let nonsfw = options.nonsfw;
-	if (nonsfw) {
-		options.including += ', rating:g';
-	}
-
 	// replace ratings
 	options.including = options.including.replace(/rating:general/g, 'rating:g');
 	options.including = options.including.replace(/rating:questionable/g, 'rating:q');
@@ -1494,6 +1489,11 @@ async function randomizePrompt() {
 	options.including = options.including.replace(/rating: questionable/g, 'rating:q');
 	options.including = options.including.replace(/rating: explicit/g, 'rating:e');
 	options.including = options.including.replace(/rating: sensitive/g, 'rating:s');
+
+	let nonsfw = options.nonsfw;
+	if (nonsfw && options.including != '') {
+		options.including += ', rating:g';
+	}
 
 	let begprompt = removeEmptyElements(strToList(options.begprompt.replace(/\n/g, ',')));
 	let including = removeEmptyElements(strToList(options.including.replace(/\n/g, ',')));

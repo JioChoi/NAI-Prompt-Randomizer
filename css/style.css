@@ -169,7 +169,7 @@ body {
 		z-index: 999;
 	}
 
-	h1, h2, textarea, .row, input[type="range"], .rowcb,
+	h1, h2, .h2, textarea, .row, input[type="range"], .rowcb,
 	input[type='file'] + label, .upload, #vibe, .grid
 	{
 	

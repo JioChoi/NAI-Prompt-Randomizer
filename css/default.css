@@ -41,6 +41,21 @@ h2 {
 	user-select: none;
 }
 
+.h2 {
+	font-size: 16px;
+	font-weight: 500;
+	color: #f9f9f9;
+	margin: 10px 30px;
+	background-color: transparent;
+
+	margin-top: 15px;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
 	width: 16px;
