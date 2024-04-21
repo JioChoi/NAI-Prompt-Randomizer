@@ -84,9 +84,6 @@ window.onload = async function () {
 
 // Init css elements
 function css() {
-	// Get preset data
-	getPresets();
-
 	const image = document.getElementById('image');
 
 	// Move maid
@@ -446,6 +443,7 @@ function initLoginScreen() {
 			document.getElementById('sidebar').classList.remove('hidden');
 			setAnals();
 			migratePresets();
+			getPresets();
 		}
 	});
 }
@@ -1445,6 +1443,7 @@ async function loginWithAccessToken() {
 			document.getElementById('sidebar').classList.remove('hidden');
 			setAnals();
 			migratePresets();
+			getPresets();
 		} catch (err) {
 			// Failed to auto login.
 			console.log('Failed to login');
