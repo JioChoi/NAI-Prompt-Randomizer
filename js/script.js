@@ -48,19 +48,14 @@ let presets = new Map();
 // On page load
 window.onload = async function () {
 	// Check if huggingface is down
-	// try {
-	// 	let res = await fetch('https://huggingface.co/', { method: 'HEAD' });
-	// 	if (!res.ok) {
-	// 		console.log("HUGGINGFACE IS DOWN!!!!");
-	// 		document.getElementById('maintenance').style.display = 'flex';
-	// 		return;
-	// 	}
-	// } catch (e) {
-	// 	console.log("HUGGINGFACE IS DOWN!!!!");
-	// 	document.getElementById('maintenance').style.display = 'flex';
-	// 	return;
-	// }
 
+	var img = document.body.appendChild(document.createElement("img"));
+	img.onerror = function () {
+		console.log("HUGGINGFACE IS DOWN!!!!");
+		document.getElementById('maintenance').style.display = 'flex';
+		return;
+    };
+    img.src = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
 	
 	uid = localStorage.getItem('uid');
 	
