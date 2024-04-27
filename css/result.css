@@ -14,7 +14,7 @@
 	width: calc(100vw - 450px);
 	outline: 100px solid #181818;
 
-	height: calc(100% - 28px);
+	height: calc(100% - 32px);
 	background-color: #181818;
 }
 
@@ -272,6 +272,8 @@
 }
 
 #presetBtn {
+	display: none;
+
 	position: fixed;
 	left: calc(450px + 15px);
 	top: 43px;

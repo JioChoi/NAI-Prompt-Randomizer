@@ -45,6 +45,8 @@ let wildcards = {};
 let uid = null;
 let presets = new Map();
 
+let logined = false;
+
 // On page load
 window.onload = async function () {
 	// Check if huggingface is down
@@ -434,8 +436,12 @@ function initLoginScreen() {
 			// Successfully logged in
 			document.getElementById('login').style.display = 'none';
 			document.getElementById('login').style.visibility = 'hidden';
+			document.getElementById('background').style.display = 'none';
+			document.getElementById('presetBtn').style.display = 'block';
 
+			document.getElementById('generate').innerHTML = 'Generate';
 			document.getElementById('sidebar').classList.remove('hidden');
+			logined = true;
 			setAnals();
 			migratePresets();
 			getPresets();
@@ -848,7 +854,12 @@ async function downloadLists() {
 				whitelistSeparated.push(temp.toLowerCase().split(' '));
 			}
 
-			document.getElementById('generate').innerHTML = 'Generate';
+			if (logined) {
+				document.getElementById('generate').innerHTML = "Generate";
+			}
+			else {
+				document.getElementById('generate').innerHTML = "Continue with NAI Account";
+			}
 			document.getElementById('generate').disabled = false;
 		}
 	}, 100);
@@ -1152,7 +1163,7 @@ function addPresetItem(name) {
 		item.appendChild(remove);
 	}
 
-	text.addEventListener('click', (e) => {
+	item.addEventListener('click', (e) => {
 		let options = presets[name].data;
 		if (options == null) {
 			options = example;
@@ -1209,11 +1220,13 @@ function initInfo(url) {
 temp = '1girl, [fu-ta], {{gsusart}}, anya (spy x family), damian desmond, spy x family, 1boy, ^^^, black hair, blush, brown eyes, buttons, child, crossed arms, eden academy school uniform, full body, green background, green eyes, long sleeves, medium hair, pink hair, school uniform, shaded face, shoes, short hair, shorts, simple background, socks, standing, volumetric lighting, depth of field, best quality, amazing quality, very aesthetic, highres, incredibly absurdres';
 
 function logout() {
-	const yes = window.confirm('Logout from your Novel AI account?');
+	if (logined) {
+		const yes = window.confirm('Logout from your Novel AI account?');
 
-	if (yes) {
-		localStorage.removeItem('key');
-		location.reload();
+		if (yes) {
+			localStorage.removeItem('key');
+			location.reload();
+		}
 	}
 }
 
@@ -1422,28 +1435,22 @@ async function loginWithAccessToken() {
 	let accessToken = localStorage.getItem('key');
 
 	if (accessToken == null || uid == null) {
-		// Not logged in.
-		document.getElementById('id').disabled = false;
-		document.getElementById('password').disabled = false;
+		logined = false;
 	} else {
 		key = accessToken;
 		try {
 			await testAccessToken(accessToken);
 			// Successfully auto logged in.
 			console.log('Logged in');
-			document.getElementById('login').style.display = 'none';
-			document.getElementById('login').style.visibility = 'hidden';
-			document.getElementById('background').style.display = 'none';
-
-			document.getElementById('sidebar').classList.remove('hidden');
+			logined = true;
+			
+			document.getElementById('presetBtn').style.display = 'block';
 			setAnals();
 			migratePresets();
 			getPresets();
 		} catch (err) {
 			// Failed to auto login.
-			console.log('Failed to login');
-			document.getElementById('id').disabled = false;
-			document.getElementById('password').disabled = false;
+			logined = false;
 		}
 	}
 }
@@ -1803,7 +1810,15 @@ function getCost() {
 }
 
 async function startGenerate() {
-	worker.postMessage({ type: 'requestGenerate' });
+	if (logined) {
+		worker.postMessage({ type: 'requestGenerate' });
+	}
+	else {
+		document.getElementById('background').style.display = 'block';
+		document.getElementById('login').classList.add('shown');
+		document.getElementById('id').disabled = false;
+		document.getElementById('password').disabled = false;
+	}
 }
 
 worker.onmessage = function (e) {
@@ -2367,7 +2382,7 @@ async function login(id, pw) {
 		// Successfully logged in.
 		localStorage.setItem('key', key);
 		console.log('Logged in');
-		document.getElementById('background').style.display = 'none';
+		
 		return true;
 	}
 }

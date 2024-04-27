@@ -420,6 +420,11 @@ input[type='password'] {
 	}
 }
 
+.spinner {
+	width: 13px;
+	height: 13px;
+}
+
 .spinner:before {
 	content: '';
 	box-sizing: border-box;
