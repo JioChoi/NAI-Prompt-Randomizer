@@ -14,7 +14,7 @@
 	width: calc(100vw - 450px);
 	outline: 100px solid #181818;
 
-	height: 100vh;
+	height: calc(100% - 28px);
 	background-color: #181818;
 }
 
@@ -157,7 +157,7 @@
 #historyBtn {
 	position: fixed;
 	right: 15px;
-	top: 15px;
+	top: 43px;
 
 	content: url('https://api.iconify.design/mingcute/history-anticlockwise-line.svg?color=%23f9f9f9&width=30&height=30');
 
@@ -177,13 +177,13 @@
 	display: flex;
 	position: fixed;
 
-	top: 0px;
+	top: 28px;
 	right: 0px;
 
 	flex-direction: column;
 
 	width: 200px;
-	height: 100%;
+	height: calc(100% - 28px);
 
 	background-color: #1f1f1f;
 	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
@@ -274,7 +274,7 @@
 #presetBtn {
 	position: fixed;
 	left: calc(450px + 15px);
-	top: 15px;
+	top: 43px;
 
 	content: url('https://api.iconify.design/mingcute/settings-2-line.svg?color=%23f9f9f9&width=30&height=30');
 
@@ -294,13 +294,13 @@
 	display: flex;
 	position: fixed;
 
-	top: 0px;
+	top: 28px;
 	left: 450px;
 
 	flex-direction: column;
 
 	width: 200px;
-	height: 100%;
+	height: calc(100% - 28px);
 
 	background-color: #1f1f1f;
 	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);

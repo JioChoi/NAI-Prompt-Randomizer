@@ -17,8 +17,11 @@ body {
 }
 
 .container {
+	position: fixed;
 	display: block;
 
+	top: 28px;
+	
 	width: 100vw;
 	height: 100%;
 
@@ -26,6 +29,43 @@ body {
 
 	padding: 0;
 	margin: 0;
+}
+
+#header {
+	position: fixed;
+	display: flex;
+
+	top: 0;
+	left: 0;
+
+	width: 100vw;
+	height: 32px;
+
+	background-color: #131313;
+	z-index: 9999;
+}
+
+.tab {
+	display: flex;
+
+	color: #ffffff8f;
+	font-size: 14px;
+
+	width: 90px;
+	height: 100%;
+
+	justify-content: center;
+	align-items: center;
+}
+
+#tab_generator.select {
+	background-color: #1f1f1f;
+	color: #FFFFFF;
+}
+
+#tab_search.select {
+	background-color: #1f1f1f;
+	color: #FFFFFF;
 }
 
 #background {
@@ -179,5 +219,9 @@ body {
 
 	#generate {
 		margin: 0px 20px;
+	}
+
+	#tab_generator.select {
+		background-color: #181818;
 	}
 }

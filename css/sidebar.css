@@ -10,7 +10,7 @@
 	flex-direction: column;
 
 	width: 450px;
-	height: 100vh;
+	height: calc(100vh - 28px);
 	float: left;
 	background-color: #1f1f1f;
 	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
