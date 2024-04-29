@@ -17,6 +17,7 @@
 	<script src="js/UPNG.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/js-sha256@0.11.0/src/sha256.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
 
 	<script src="js/URL.js"></script>
 	<script src="js/script.js"></script>
@@ -63,11 +64,37 @@
 	</div>
 	
 	<div id="header">
-		<div id="tab_generator" class="tab select">Generator</div>
-		<!-- <div id="tab_search" class="tab">Search</div> -->
+		<div id="tab_generator" class="tab selected">Generator</div>
+		<div id="tab_search" class="tab">Community</div>
 	</div>
 
-	<div class="container">
+	<div class="container" id="search">
+		<div id="searchBar">
+			<input type="text" id="searchInput" placeholder="Search Tags">
+			<div id="searchButton"><span class="mingcute--search-line"></span></div>
+		</div>
+	
+		<div id="contents">
+			<div id="sort">
+				<span>Most Recent</span>
+				<span class="mingcute--down-small-line"></span>
+			</div>
+
+			<div id="tags">
+				<div class="selected">ALL</div>
+				<div>SFW</div>
+				<div>NSFW</div>
+				<div>GURO</div>
+				<div>FURRY</div>
+			</div>
+
+			<div id="gallery">
+				
+			</div>
+		</div>
+	</div>
+
+	<div class="container" id="generator">
 		<div id="sidebar">
 			<div id="expand" onclick="expand()"><span id="upico" class="up"></span></div>
 			<div id="items">
@@ -263,6 +290,7 @@
 		
 		<div id="historyBtn" onclick="showHistory()"></div>
 		<div id="presetBtn" onclick="showPreset()"></div>
+		<div id="uploadBtn" onclick=""></div>
 		
 		<div id="preset">
 			<div class="title" onclick="hidePreset()">

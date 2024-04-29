@@ -9,6 +9,7 @@ const path = require('path');
 const shell = require('shelljs');
 const mysql = require('mysql2');
 const crypto = require('crypto');
+const cloudinary = require('cloudinary').v2;
 
 require('dotenv').config();
 
@@ -71,6 +72,13 @@ if(database) {
 		}
 	});
 }
+
+// Image Server          
+cloudinary.config({ 
+	cloud_name: 'dy0bjirxc', 
+	api_key: process.env.CLOUDINARY_API_KEY, 
+	api_secret: process.env.CLOUDINARY_API_SECRET 
+});
 
 /* HTTPS */
 let privateKey;
@@ -362,7 +370,7 @@ app.post('/addPreset', function (req, res, next) {
 	let uid = req.body.uid;
 	let id = crypto.createHash('sha256').update(uid + name).digest('hex');
 
-	if (name.length == 0 || data.length == 0 || uid.length != 64) {
+	if (name.length == 0 || data.length == 0 || uid.length != 64 || name.length > 100) {
 		res.send('Invalid data');
 		return;
 	}
@@ -416,7 +424,7 @@ function addServerStatus() {
 		avgTime = 0;
 	}
 
-	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ${total}, ${totalSuccess}, ${avgTime}, ${failed})`;
+	let query = `INSERT INTO ServerStatus (at, total, totalSuccess, avgTime, failed) VALUES (UTC_TIMESTAMP(), ?, ?, ?, ?)`;
 
 	pool.getConnection(function (err, connection) {
 		if (err) {
@@ -424,7 +432,7 @@ function addServerStatus() {
 			return
 		}
 
-		connection.query(query, function (err, results, fields) {
+		connection.query(query, [total, totalSuccess, avgTime, failed], function (err, results, fields) {
 			if (err) {
 				console.log('Error: ' + err);
 				return;
@@ -538,6 +546,163 @@ app.get('/update', function (req, res, next) {
 	res.send('Update Started');
 
 	shell.exec('sudo bash update.sh');
+});
+
+/* Community */
+app.post('/community/post', async function (req, res, next) {
+	// Data validation
+	let uid = req.body.uid;
+	let data = req.body.data;
+	let img = req.body.img;
+	let rating = req.body.rating;
+	let title = req.body.title;
+	let prompt = req.body.prompt;
+
+	if (uid == undefined || data == undefined || img == undefined || rating == undefined || title == undefined || prompt == undefined) {
+		res.send('Invalid data');
+		return;
+	}
+
+	let id = crypto.createHash('sha256').update(img).digest('hex');
+
+	if (uid.length != 64 || data.length == 0 || img.length == 0 || title.length == 0 || rating.length != 1 || prompt.length == 0) {
+		res.send('Invalid data');
+		return;
+	}
+
+	if (img.length * 3 / 4 > 1024 * 1024 * 2) {
+		res.send('Image too large');
+		return;
+	}
+
+	if (img.substring(0, 22) !== 'data:image/webp;base64') {
+		return res.status(400).send('Invalid image format');
+	}
+
+	// upload image to server
+	const result = await cloudinary.uploader.upload(img, { folder: "community", public_id: id });
+
+	if (result.existing) {
+		return res.status(400).send('Image already exists');
+	}
+
+	// Save to database
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return
+		}
+
+		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, now(), ?)', [id, uid, data, result.secure_url, rating, prompt], function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+
+			res.send('OK');
+		});
+	});
+});
+
+app.post('/community/get', function (req, res, next) {
+	let start = req.body.start;
+	let count = req.body.count;
+	let sort = req.body.sort;
+
+	// Create search query
+	let searchMode = true;
+	let searchKeywords = req.body.search;
+	if (searchKeywords == '' || searchKeywords == undefined) {
+		searchMode = false;
+	}
+
+	if (start == undefined || count == undefined || start < 0 || count < 0 || count > 100 || sort == undefined) {
+		res.send('Invalid data');
+		return;
+	}
+
+	let query;
+	let sortQuery = '';
+	switch (sort) {
+		case 'new':
+			sortQuery = 'ORDER BY date DESC';
+			break;
+		case 'rating':
+			sortQuery = 'ORDER BY upvote DESC';
+			break;
+		case 'download':
+			sortQuery = 'ORDER BY download DESC';
+			break;
+		default:
+			res.send('Invalid data');
+			return;
+	}
+
+	query = `SELECT * FROM Community ${sortQuery} LIMIT ?, ?`;
+	let search = '';
+
+	// Search
+	if (searchMode) {
+		searchKeywords = searchKeywords.split(',');
+
+		for (let i = 0; i < searchKeywords.length; i++) {
+			search += '+"' + searchKeywords[i] + '" ';
+		}
+
+		query = `SELECT * FROM Community WHERE MATCH (title, prompt) AGAINST (? IN BOOLEAN MODE) ${sortQuery} LIMIT ?, ?`;
+	}
+
+
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return
+		}
+
+		if (searchMode) {
+			connection.query(query, [search, start, count], function (err, results, fields) {
+
+				if (err) {
+					console.log('Error: ' + err);
+					return;
+				}
+				connection.release();
+	
+				res.send(results);
+			});
+		}
+		else {
+			connection.query(query, [start, count], function (err, results, fields) {
+				if (err) {
+					console.log('Error: ' + err);
+					return;
+				}
+				connection.release();
+	
+				res.send(results);
+			});
+		}		
+	});
+});
+
+app.get('/community/length', function (req, res, next) {
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return
+		}
+
+		connection.query('SELECT COUNT(*) as cnt FROM Community', function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+
+			res.send(results);
+		});
+	});
 });
 
 /* Functions */

@@ -3,6 +3,7 @@
 @import "sidebar.css";
 @import "result.css";
 @import "login.css";
+@import "search.css";
 
 body {
 	width: 100vw;
@@ -48,7 +49,7 @@ body {
 .tab {
 	display: flex;
 
-	color: #ffffff8f;
+	color: #f9f9f98f;
 	font-size: 14px;
 
 	width: 90px;
@@ -58,14 +59,19 @@ body {
 	align-items: center;
 }
 
-#tab_generator.select {
-	background-color: #1f1f1f;
-	color: #FFFFFF;
+.tab:hover {
+	background-color: #181818;
+	cursor: pointer;
 }
 
-#tab_search.select {
+#tab_generator.selected {
 	background-color: #1f1f1f;
-	color: #FFFFFF;
+	color: #f9f9f9;
+}
+
+#tab_search.selected {
+	background-color: #1f1f1f;
+	color: #f9f9f9;
 }
 
 #background {
@@ -221,7 +227,7 @@ body {
 		margin: 0px 20px;
 	}
 
-	#tab_generator.select {
+	#tab_generator.selected {
 		background-color: #181818;
 	}
 }

@@ -1,7 +1,7 @@
 // Server HOST Address (Change this to your server address)
 let host = 'https://jio7-prombot.hf.space';
 
-//host = 'http://127.0.0.1'; //// MUST BE CHANGED!!!!!!!!
+host = 'http://127.0.0.1'; //// MUST BE CHANGED!!!!!!!!
 
 let key = null;
 
@@ -46,6 +46,8 @@ let uid = null;
 let presets = new Map();
 
 let logined = false;
+let max = 0;
+let sort = "new";
 
 // On page load
 window.onload = async function () {
@@ -57,7 +59,8 @@ window.onload = async function () {
 		document.getElementById('maintenance').style.display = 'flex';
 		return;
     };
-    img.src = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
+	img.src = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
+	img.style.display = "none";
 	
 	uid = localStorage.getItem('uid');
 	
@@ -74,10 +77,18 @@ window.onload = async function () {
 	addEventListeners();
 	checkDYN();
 
+	max = (await get(host + '/community/length'))[0].cnt;
+
+	/* Get Posts */
+	loadPosts(0, 48, sort);
+
 	// Remove Loading Screen
 	document.getElementById('loading').style.display = 'none';
-};
 
+	/* TEMP */
+	document.getElementById('generator').style.display = 'none';
+	document.getElementById('search').style.display = 'flex';
+};
 
 // Init css elements
 function css() {
@@ -292,6 +303,91 @@ function addEventListeners() {
 			a.click();
 		}
 	});
+
+	// Tabs
+	document.getElementById('tab_generator').addEventListener('click', (e) => {
+		document.getElementById('generator').style.display = 'flex';
+		document.getElementById('search').style.display = 'none';
+		
+		document.getElementById('tab_generator').classList.add('selected');
+		document.getElementById('tab_search').classList.remove('selected');
+	});
+
+	document.getElementById('tab_search').addEventListener('click', (e) => {
+		document.getElementById('generator').style.display = 'none';
+		document.getElementById('search').style.display = 'flex';
+
+		document.getElementById('tab_generator').classList.remove('selected');
+		document.getElementById('tab_search').classList.add('selected');
+	});
+
+	let contents = document.getElementById('contents');
+	contents.addEventListener('scroll', (e) => {
+		if (contents.scrollTop + contents.clientHeight >= contents.scrollHeight - 1000) {
+			let gallery = document.getElementById('gallery');
+
+			let current = gallery.children.length;
+			let size = 48;
+
+			if (current + size > max) {
+				size = max - current;
+			}
+
+			if (current == max) {
+				return;
+			}
+
+			loadPosts(current, size, sort);
+		}
+	});
+}
+
+async function addCommunityItem(offset, sort) {
+	let gallery = document.getElementById('gallery');
+
+	const item = document.createElement('div');
+	item.classList.add('item');
+	
+	const img = document.createElement('img');
+	const overlay = document.createElement('div');
+
+	item.appendChild(img);
+	item.appendChild(overlay);
+
+	gallery.appendChild(item);
+
+	let data = await post('/community/get', { start: offset, count: 1, sort: sort });
+	data = data[0];
+
+	if (data == undefined) {
+		return;
+	}
+
+	img.src = data.img;
+	
+	const div = document.createElement('div');
+	const titleEle = document.createElement('span');
+	titleEle.innerHTML = data.title;
+
+	const upvote = document.createElement('span');
+	upvote.classList.add('mingcute--thumb-up-2-line');
+	const upvoteCount = document.createElement('span');
+	upvoteCount.innerHTML = data.upvote;
+
+	const download = document.createElement('span');
+	download.classList.add('mingcute--download-2-line');
+	const downloadCount = document.createElement('span');
+	downloadCount.innerHTML = data.download;
+
+	div.appendChild(titleEle);
+	div.appendChild(document.createElement('br'));
+	div.appendChild(upvote);
+	div.appendChild(upvoteCount);
+	div.appendChild(download);
+	div.appendChild(downloadCount);
+
+	item.appendChild(div);
+	return item;
 }
 
 function initImageInfo() {
@@ -1186,12 +1282,12 @@ function resizeInfo() {
 
 	const rect = result.getBoundingClientRect();
 
-	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset + 'px';
+	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset - 32 + 'px';
 	info.style.left = rect.left + window.pageXOffset + 'px';
 
 	info.style.width = rect.width - window.pageXOffset + 'px';
 
-	download.style.top = rect.top  + window.pageYOffset + 5 + 'px';
+	download.style.top = rect.top  + window.pageYOffset + 5 - 32 + 'px';
 	download.style.left = rect.right + window.pageXOffset - 30 - 5 +  'px';
 }
 
@@ -2368,6 +2464,64 @@ async function getExif(url) {
 	} catch {
 		return null;
 	}
+}
+
+async function uploadCommunity(title, image, data, rating) {
+	let url = host + '/community/post';
+
+	// Get image blob
+	const response = await fetch(image);
+	const blob = await response.blob();
+
+	// Compress image
+	const option = {
+		maxWidthOrHeight: 1024,
+		fileType: 'image/webp',
+		initialQuality: 0.5,
+	}
+
+	result = await imageCompression(blob, option);
+	result = await blobToBase64(result);
+
+	let prompt = '';
+	including = data.including.split(',');
+	for (let i = 0; i < including.length; i++) {
+		including[i] = including[i].trim();
+		if (including[i][0] == '~') {
+			including.splice(i, 1);
+			i--;
+		}
+	}
+	including = including.join(', ');
+
+	prompt = data.begprompt + ', ' + including + ', ' + data.endprompt;
+	prompt = prompt.replaceAll('{', '');
+	prompt = prompt.replaceAll('}', '');
+	prompt = prompt.replaceAll('[', '');
+	prompt = prompt.replaceAll(']', '');
+
+	post(url, { title: title, img: result, data: data, uid: uid, rating: rating });
+}
+
+function blobToBase64(blob) {
+	return new Promise((resolve, _) => {
+		const reader = new FileReader();
+		reader.onloadend = () => resolve(reader.result);
+		reader.readAsDataURL(blob);
+	});
+}
+
+async function loadPosts(start, count, sort) {
+	for (let i = 0; i < count; i++) {
+		addCommunityItem(start + i, sort);
+	}
+}
+
+function changeSort(s) {
+	sort = s;
+	document.getElementById('gallery').innerHTML = '';
+	document.getElementById('gallery').scrollTop = 0;
+	loadPosts(0, 48, sort);
 }
 
 // Login to server

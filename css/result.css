@@ -36,17 +36,17 @@
 	0% {
 		box-shadow:
 		0px 0px 0px 200px #181818 inset,
-		0px 0px 0px 202px #FFFFFF00 inset;
+		0px 0px 0px 202px #f9f9f900 inset;
 	}
 	50% {
 		box-shadow:
 		0px 0px 0px -2px #181818 inset,
-		0px 0px 0px 0px #FFFFFF40 inset;
+		0px 0px 0px 0px #f9f9f940 inset;
 	}
 	100% {
 		box-shadow:
 		0px 0px 0px -2px #181818 inset,
-		0px 0px 0px 0px #FFFFFF40 inset;
+		0px 0px 0px 0px #f9f9f940 inset;
 	}
 }
 
@@ -152,6 +152,27 @@
 	z-index: 99;
 
 	filter: drop-shadow(5px 5px 5px #00000030);
+}
+
+
+#uploadBtn {
+	position: fixed;
+	right: 15px;
+	top: 93px;
+
+	content: url('https://api.iconify.design/mingcute/upload-3-line.svg?color=%23f9f9f9&width=30&height=30');
+
+	background-color: #1f1f1f;
+
+	border-radius: 10px;
+	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
+
+	padding: 5px;
+}
+
+#uploadBtn:hover {
+	cursor: pointer;
+	background-color: #252525;
 }
 
 #historyBtn {
