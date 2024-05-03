@@ -4,6 +4,7 @@
 @import "result.css";
 @import "login.css";
 @import "search.css";
+@import "popup.css";
 
 body {
 	width: 100vw;

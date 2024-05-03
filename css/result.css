@@ -19,7 +19,6 @@
 }
 
 #image.top {
-	z-index: 9999;
 	background-color: transparent;
 	outline: none;
 }
@@ -432,7 +431,7 @@
 }
 
 #progressBar {
-	top: 0px;
+	top: 32px;
 	left: 0px;
 
 	position: fixed;

@@ -575,7 +575,7 @@ app.post('/community/post', async function (req, res, next) {
 		return;
 	}
 
-	if (img.substring(0, 22) !== 'data:image/webp;base64') {
+	if (img.substring(0, 22) !== 'data:image/webp;base64' && img.substring(0, 21) !== 'data:image/png;base64') {
 		return res.status(400).send('Invalid image format');
 	}
 
@@ -593,7 +593,7 @@ app.post('/community/post', async function (req, res, next) {
 			return
 		}
 
-		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, now(), ?)', [id, uid, data, result.secure_url, rating, prompt], function (err, results, fields) {
+		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, now(), ?)', [id, uid, data, result.secure_url, rating, title, prompt], function (err, results, fields) {
 			if (err) {
 				console.log('Error: ' + err);
 				return;
@@ -626,7 +626,7 @@ app.post('/community/get', function (req, res, next) {
 	let sortQuery = '';
 	switch (sort) {
 		case 'new':
-			sortQuery = 'ORDER BY date DESC';
+			sortQuery = 'ORDER BY UNIX_TIMESTAMP(date) DESC';
 			break;
 		case 'rating':
 			sortQuery = 'ORDER BY upvote DESC';

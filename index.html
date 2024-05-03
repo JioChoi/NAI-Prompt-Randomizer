@@ -49,6 +49,13 @@
 <body>
 	<div id="maintenance"><img width="300px" height="300px" src="assets/noimg.png" style="margin-bottom: 10px"><h1>503</h1>Prombot server is under maintenance</div>
 	
+	<!-- <div id="popup">
+		<div>
+			<h1>Upload Settings to Prombot Community</h1>
+			<input type="text" id="title" placeholder="Title">
+		</div>
+	</div> -->
+
 	<div id="background"></div>
 	<div id="loading">
 		<div class="spinner"></div>
@@ -75,9 +82,15 @@
 		</div>
 	
 		<div id="contents">
-			<div id="sort">
-				<span>Most Recent</span>
+			<div id="sort" onclick="showSortDropdown();">
+				<span id="sortText">Most Recent</span>
 				<span class="mingcute--down-small-line"></span>
+			</div>
+
+			<div id="sortDropdown">
+				<div onclick="setSort('new')">Most Recent</div>
+				<div onclick="setSort('rating')">Most Liked</div>
+				<div onclick="setSort('download')">Most Downloaded</div>
 			</div>
 
 			<div id="tags">
@@ -290,7 +303,7 @@
 		
 		<div id="historyBtn" onclick="showHistory()"></div>
 		<div id="presetBtn" onclick="showPreset()"></div>
-		<div id="uploadBtn" onclick=""></div>
+		<div id="uploadBtn" onclick="upload()"></div>
 		
 		<div id="preset">
 			<div class="title" onclick="hidePreset()">

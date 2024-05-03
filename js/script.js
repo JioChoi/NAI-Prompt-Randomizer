@@ -18,6 +18,7 @@ let copyrightList;
 let numberList;
 let qualityList;
 let attireList;
+let nsfwList;
 
 let vibeImage = null;
 
@@ -45,9 +46,11 @@ let wildcards = {};
 let uid = null;
 let presets = new Map();
 
-let logined = false;
+let logined = true;
 let max = 0;
 let sort = "new";
+
+let currentOptions = null;
 
 // On page load
 window.onload = async function () {
@@ -78,9 +81,6 @@ window.onload = async function () {
 	checkDYN();
 
 	max = (await get(host + '/community/length'))[0].cnt;
-
-	/* Get Posts */
-	loadPosts(0, 48, sort);
 
 	// Remove Loading Screen
 	document.getElementById('loading').style.display = 'none';
@@ -123,6 +123,8 @@ function css() {
 	Array.from(document.getElementsByTagName('h2')).forEach((h2) => {
 		h2.setAttribute('draggable', 'false');
 	});
+
+
 }
 
 function addEventListeners() {
@@ -327,7 +329,7 @@ function addEventListeners() {
 			let gallery = document.getElementById('gallery');
 
 			let current = gallery.children.length;
-			let size = 48;
+			let size = 24;
 
 			if (current + size > max) {
 				size = max - current;
@@ -860,12 +862,18 @@ function lockOptions() {
 }
 
 async function downloadLists() {
-	const fileNum = 10;
+	const fileNum = 11;
 
 	let downloaded = 0;
 	downloadFile('https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/artist_list.txt', null, 'text').then((data) => {
 		artistList = data.split('\n');
 		console.log('downloaded artist_list.txt');
+		downloaded++;
+	});
+
+	downloadFile('https://huggingface.co/Jio7/NAI-Prompt-Randomizer/raw/main/nsfw_list.txt', null, 'text').then((data) => {
+		nsfwList = data.split('\n');
+		console.log('downloaded nsfw_list.txt');
 		downloaded++;
 	});
 
@@ -945,6 +953,9 @@ async function downloadLists() {
 
 			// Load wildcards
 			loadWildcards();
+
+			// Load posts
+			loadPosts(0, 24, sort);
 
 			for (let temp of whitelist) {
 				whitelistSeparated.push(temp.toLowerCase().split(' '));
@@ -2137,9 +2148,12 @@ async function generate() {
 			download(result, prompt.substring(0, 80) + '_' + seed + '.png');
 		}
 
+		currentOptions = options;
+
 		// Add to history
 		let ele = document.createElement('img');
 		ele.src = result;
+		
 		ele.addEventListener('click', (e) => {
 			document.getElementById('result').src = ele.src;
 			initInfo(ele.src);
@@ -2150,6 +2164,8 @@ async function generate() {
 			});
 
 			ele.classList.add('selected');
+
+			currentOptions = options;
 		});
 
 		const child = document.getElementById('historyItem').children;
@@ -2158,8 +2174,8 @@ async function generate() {
 		});
 		ele.classList.add('selected');
 
-		const history = document.getElementById('historyItem');
-		history.insertBefore(ele, history.firstChild);
+		const historyElement = document.getElementById('historyItem');
+		historyElement.insertBefore(ele, historyElement.firstChild);
 	}
 
 	if (getOptions().automation) {
@@ -2466,21 +2482,114 @@ async function getExif(url) {
 	}
 }
 
+async function upload() {
+	if (currentOptions == null) {
+		alert('Please generate an image first.');
+		return;
+	}
+	let image = document.getElementById("result").src;
+	let options = currentOptions;
+
+	let exif = await getExif(image);
+	let rating = 's';
+	if (checkNSFW(exif.prompt)) {
+		rating = 'e';
+	}
+	
+	// TODO: show better popup
+
+	const response = window.prompt('Please enter the name of the post.', '');
+	if (response == null || response.trim() == '') {
+		return;
+	}
+
+	let title = response;
+
+	uploadCommunity(title, image, options, rating);
+}
+
+function checkNSFW(prompt) {
+	prompt = prompt.split(',');
+
+	for (let i = 0; i < prompt.length; i++) {
+		let tag = prompt[i].toLowerCase().trim();
+
+		for(let j = 0; j < nsfwList.length; j++) {
+			if (tag == nsfwList[j]) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+async function censor(url) {
+	const resizer = 30.0;
+	let size = await getImageSize(url);
+	
+	let canvas = document.createElement('canvas');
+	let ctx = canvas.getContext('2d');
+
+	ctx.msImageSmoothingEnabled = false;
+	ctx.mozImageSmoothingEnabled = false;
+	ctx.webkitImageSmoothingEnabled = false;
+	ctx.imageSmoothingEnabled = false;
+
+	canvas.width = size.width / resizer;
+	canvas.height = size.height / resizer;
+
+	let img = new Image();
+
+	return new Promise((resolve, reject) => {
+		img.onload = () => {
+			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+			canvas.toBlob((blob) => {
+				resolve(URL.createObjectURL(blob));
+			}, 'image/png');
+		}
+
+		img.src = url;
+	});
+}
+
+async function getImageSize(url) {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.src = url;
+
+		img.onload = () => {
+			resolve({ width: img.width, height: img.height });
+		};
+	});
+}
+
 async function uploadCommunity(title, image, data, rating) {
 	let url = host + '/community/post';
+
+	if (rating == 'e') {
+		image = await censor(image);
+	}
 
 	// Get image blob
 	const response = await fetch(image);
 	const blob = await response.blob();
+	let result = null;
 
 	// Compress image
-	const option = {
+	let option = {
 		maxWidthOrHeight: 1024,
 		fileType: 'image/webp',
 		initialQuality: 0.5,
+	};
+
+	if (rating == 's') {
+		result = await imageCompression(blob, option);
+	}
+	else {
+		result = blob;
 	}
 
-	result = await imageCompression(blob, option);
 	result = await blobToBase64(result);
 
 	let prompt = '';
@@ -2500,7 +2609,7 @@ async function uploadCommunity(title, image, data, rating) {
 	prompt = prompt.replaceAll('[', '');
 	prompt = prompt.replaceAll(']', '');
 
-	post(url, { title: title, img: result, data: data, uid: uid, rating: rating });
+	post(url, { title: title, img: result, data: JSON.stringify(data), uid: uid, rating: rating, prompt: prompt }, null, 'text');
 }
 
 function blobToBase64(blob) {
@@ -2509,6 +2618,46 @@ function blobToBase64(blob) {
 		reader.onloadend = () => resolve(reader.result);
 		reader.readAsDataURL(blob);
 	});
+}
+
+function setSort(sort) {
+	sort = sort;
+
+	switch (sort) {
+		case 'new':
+			document.getElementById('sortText').innerHTML = 'Most Recent';
+			break;
+		case 'rating':
+			document.getElementById('sortText').innerHTML = 'Most Liked';
+			break;
+		case 'download':
+			document.getElementById('sortText').innerHTML = 'Most Downloaded';
+			break;
+	}
+
+	window.removeEventListener('click', sortDropdownClick);
+	document.getElementById('sortDropdown').classList.remove('show');
+	document.getElementById('gallery').innerHTML = '';
+	document.getElementById('gallery').scrollTop = 0;
+	loadPosts(0, 24, sort);
+}
+
+function showSortDropdown() {
+	document.getElementById('sortDropdown').classList.toggle('show');
+	if (document.getElementById('sortDropdown').classList.contains('show')) {
+		window.addEventListener('click', sortDropdownClick);
+	}
+	else {
+		window.removeEventListener('click', sortDropdownClick);
+	}
+}
+
+function sortDropdownClick(e) {
+	console.log(e.target);
+	if (!e.target.matches('#sortDropdown') && !e.target.parentNode.matches('#sort')) {
+		document.getElementById('sortDropdown').classList.remove('show');
+		window.removeEventListener('click', sortDropdownClick);
+	}
 }
 
 async function loadPosts(start, count, sort) {
@@ -2521,7 +2670,7 @@ function changeSort(s) {
 	sort = s;
 	document.getElementById('gallery').innerHTML = '';
 	document.getElementById('gallery').scrollTop = 0;
-	loadPosts(0, 48, sort);
+	loadPosts(0, 24, sort);
 }
 
 // Login to server

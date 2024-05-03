@@ -91,6 +91,37 @@
 	color: #dfdfdf;
 }
 
+#sortDropdown {
+	display: none;
+	position: absolute;
+	top: 30px;
+	left: 0px;
+
+	width: fit-content;
+	height: fit-content;
+
+	box-shadow: 0 0px 20px rgba(0, 0, 0, 0.20);
+
+	background-color: #181818;
+	color: #f9f9f9;
+
+	z-index: 999;
+}
+
+#sortDropdown.show {
+	display: block;
+}
+
+#sortDropdown div {
+	font-size: 15px;
+	padding: 4px 10px;
+}
+
+#sortDropdown div:hover {
+	cursor: pointer;
+	background-color: #1F1F1F;
+}
+
 #tags {
 	display: flex;
 
@@ -160,6 +191,8 @@
 	width: 100%;
 	height: -webkit-fill-available;
 	object-fit: cover;
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
 }
 
 #gallery .item div:nth-of-type(1) {
