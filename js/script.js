@@ -344,54 +344,6 @@ function addEventListeners() {
 	});
 }
 
-async function addCommunityItem(offset, sort) {
-	let gallery = document.getElementById('gallery');
-
-	const item = document.createElement('div');
-	item.classList.add('item');
-	
-	const img = document.createElement('img');
-	const overlay = document.createElement('div');
-
-	item.appendChild(img);
-	item.appendChild(overlay);
-
-	gallery.appendChild(item);
-
-	let data = await post('/community/get', { start: offset, count: 1, sort: sort });
-	data = data[0];
-
-	if (data == undefined) {
-		return;
-	}
-
-	img.src = data.img;
-	
-	const div = document.createElement('div');
-	const titleEle = document.createElement('span');
-	titleEle.innerHTML = data.title;
-
-	const upvote = document.createElement('span');
-	upvote.classList.add('mingcute--thumb-up-2-line');
-	const upvoteCount = document.createElement('span');
-	upvoteCount.innerHTML = data.upvote;
-
-	const download = document.createElement('span');
-	download.classList.add('mingcute--download-2-line');
-	const downloadCount = document.createElement('span');
-	downloadCount.innerHTML = data.download;
-
-	div.appendChild(titleEle);
-	div.appendChild(document.createElement('br'));
-	div.appendChild(upvote);
-	div.appendChild(upvoteCount);
-	div.appendChild(download);
-	div.appendChild(downloadCount);
-
-	item.appendChild(div);
-	return item;
-}
-
 function initImageInfo() {
 	// Init image info
 	const image = document.getElementById('image');
@@ -2661,9 +2613,67 @@ function sortDropdownClick(e) {
 }
 
 async function loadPosts(start, count, sort) {
+	addCommunityItem(start, count, sort);
+}
+
+async function addCommunityItem(start, count, sort) {
+	let items = [];
+	let gallery = document.getElementById('gallery');
+
+	const item = document.createElement('div');
+	item.classList.add('item');
+	
+	const img = document.createElement('img');
+	const overlay = document.createElement('div');
+
+	item.appendChild(img);
+	item.appendChild(overlay);
+
 	for (let i = 0; i < count; i++) {
-		addCommunityItem(start + i, sort);
+		let node = item.cloneNode(true);
+		items.push(node);
+		gallery.appendChild(node);
 	}
+
+	let data = await post('/community/get', { start: start, count: count, sort: sort });
+
+	if (data == undefined) {
+		return;
+	}
+	
+	const div = document.createElement('div');
+	const titleEle = document.createElement('span');
+	titleEle.innerHTML = data.title;
+
+	const upvote = document.createElement('span');
+	upvote.classList.add('mingcute--thumb-up-2-line');
+	const upvoteCount = document.createElement('span');
+	upvoteCount.innerHTML = '0';
+
+	const download = document.createElement('span');
+	download.classList.add('mingcute--download-2-line');
+	const downloadCount = document.createElement('span');
+	downloadCount.innerHTML = '0';
+
+	div.appendChild(titleEle);
+	div.appendChild(document.createElement('br'));
+	div.appendChild(upvote);
+	div.appendChild(upvoteCount);
+	div.appendChild(download);
+	div.appendChild(downloadCount);
+
+	for (let i = 0; i < items.length; i++) {
+		items[i].appendChild(div.cloneNode(true));
+		items[i].children[0].src = data[i].img;
+		// Title
+		items[i].children[2].children[0].innerHTML = data[i].title;
+		// Upvote Count
+		items[i].children[2].children[3].innerHTML = data[i].upvote;
+		// Download Count
+		items[i].children[2].children[5].innerHTML = data[i].download;
+	}
+
+	return item;
 }
 
 function changeSort(s) {
