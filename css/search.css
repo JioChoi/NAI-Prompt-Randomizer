@@ -7,6 +7,8 @@
 
 	transition: transform 0.4s cubic-bezier(0, 0, 0.15, 1);
 	translate: translateX(0%);
+
+	background-color: #1F1F1F;
 }
 #search.animated {
 	transform: translateX(-40%);
