@@ -2745,9 +2745,10 @@ async function addCommunityItem(start, count, sort) {
 
 		items[i].addEventListener('click', async () => {
 			if (size.width < 100 || size.height < 100) {
+				document.getElementById('noise_overlay').style.display = 'block';
 			}
 			else {
-
+				document.getElementById('noise_overlay').style.display = 'none';
 			}
 
 			document.getElementById('post_title').innerText = data[i].title;

@@ -287,19 +287,40 @@
 	transform: translateX(0%);
 }
 
-#post_img {
+#post_img_container {
+	position: relative;
+
 	width: calc(100% - 10px);
 	aspect-ratio: 1/1;
 
 	border-radius: 7px;
 
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: center;
-
 	margin: 10px;
 	margin-right: 0px;
 	margin-bottom: 0px;
+
+	overflow: hidden;
+}
+
+#noise_overlay {
+	display: block;
+	position: absolute;
+
+	width: 100%;
+	aspect-ratio: 1/1;
+
+	background-image: url("/assets/noise2.png");
+
+	opacity: 0.4;
+}
+
+#post_img {
+	width: 100%;
+	height: 100%;
+
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
 
 	object-fit: cover;
 }
