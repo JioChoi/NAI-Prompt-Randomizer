@@ -2730,12 +2730,10 @@ async function addCommunityItem(start, count, sort) {
 
 		items[i].children[0].src = data[i].img;
 
-		if (data[i].img) {
-			size = await getImageSize(data[i].img);
-			// NSFW Image
-			if (size.width < 100 || size.height < 100) {
-				items[i].children[0].style.imageRendering = 'pixelated';
-			}
+		let size = await getImageSize(data[i].img);
+		// NSFW Image
+		if (size.width < 100 || size.height < 100) {
+			items[i].children[0].style.imageRendering = 'pixelated';
 		}
 
 		// Title
@@ -2746,6 +2744,13 @@ async function addCommunityItem(start, count, sort) {
 		items[i].children[2].children[5].innerText = data[i].download;
 
 		items[i].addEventListener('click', async () => {
+			if (size.width < 100 || size.height < 100) {
+				document.getElementById('post_img').style.imageRendering = 'pixelated';
+			}
+			else {
+				document.getElementById('post_img').style.imageRendering = 'auto';
+			}
+
 			document.getElementById('post_title').innerText = data[i].title;
 			document.getElementById('post_img').style.backgroundImage = 'url(' + data[i].img + ')';
 			document.getElementById('post_upvote').innerText = data[i].upvote;
