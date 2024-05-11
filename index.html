@@ -71,14 +71,14 @@
 	</div>
 	
 	<div id="header">
-		<div id="tab_generator" class="tab selected">Generator</div>
-		<div id="tab_search" class="tab">Community</div>
+		<div id="tab_generator" class="tab selected" onclick="setTab('generator')">Generator</div>
+		<div id="tab_search" class="tab" onclick="setTab('search')">Community</div>
 	</div>
 
 	<div class="container" id="search">
 		<div id="searchBar">
 			<input type="text" id="searchInput" placeholder="Search Tags">
-			<div id="searchButton"><span class="mingcute--search-line"></span></div>
+			<div id="searchButton" onclick="search()"><span class="mingcute--search-line"></span></div>
 		</div>
 	
 		<div id="contents">
@@ -94,16 +94,52 @@
 			</div>
 
 			<div id="tags">
-				<div class="selected">ALL</div>
-				<div>SFW</div>
-				<div>NSFW</div>
-				<div>GURO</div>
-				<div>FURRY</div>
+				<div id="filter_all" class="selected" onclick="setFilter('all')">ALL</div>
+				<div id="filter_sfw" onclick="setFilter('sfw')">SFW</div>
+				<div id="filter_nsfw" onclick="setFilter('nsfw')">NSFW</div>
+				<!-- <div>GURO</div>
+				<div>FURRY</div> -->
+			</div>
+
+			<div id="postloading">
+				<div class="spinner"></div>
 			</div>
 
 			<div id="gallery">
 				
 			</div>
+		</div>
+	</div>
+
+	<div class="container" id="post">
+		<div id="back" onclick="postAnimation(false)">
+			<span class="mingcute--left-line"></span>
+		</div>
+		<div class="contents">
+			<div id="post_img"></div>
+			<h2 id="post_title">Good Wallpaper</h2>
+			<div class="info">
+				<span class="mingcute--thumb-up-2-line"></span>
+				<span id="post_upvote">123</span>
+				<span class="mingcute--download-2-line"></span>
+				<span id="post_download">123</span>
+			</div>
+			<h3>Beginning Prompt</h3>
+			<p id="post_begprompt">1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfewfq fwef, fds asdf, efw, 1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfe,  wfq fwef, fds asdf, efw, 1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfewfq fwef, fds asdf, efw, 1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe</p>
+			
+			<h3>Prompt Search Options</h3>
+			<p id="post_including">1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfewfq fwef</p>
+
+			<h3>Ending Prompt</h3>
+			<p id="post_endprompt">1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfewfq fwef</p>
+
+			<h3>Negative Prompt</h3>
+			<p id="post_negprompt">1girl, sdfsd ewr, ewrwer, qwer, vcsfd wera, fdsfak, dsfsahg, wefeq, dsfasfsda, werqg, gfwe, ewfewfq fwef</p>
+		</div>
+
+		<div class="footer">
+			<button class="leftBtn" onclick="addCommunityPreset();">Add Preset</button>
+			<button class="rightBtn" onclick="alert('Not implemented yet!!')"><span class="mingcute--thumb-up-2-line"></span></button>
 		</div>
 	</div>
 

@@ -605,16 +605,46 @@ app.post('/community/post', async function (req, res, next) {
 	});
 });
 
+app.post('/community/download', function (req, res, next) {
+	let id = req.body.id;
+	if (id == undefined) {
+		res.send('Invalid data');
+		return;
+	}
+
+	pool.getConnection(function (err, connection) {
+		if (err) {
+			console.log('Error: ' + err);
+			return
+		}
+
+		connection.query('UPDATE Community SET download = download + 1 WHERE id = ?', [id], function (err, results, fields) {
+			if (err) {
+				console.log('Error: ' + err);
+				return;
+			}
+			connection.release();
+
+			res.send('OK');
+		});
+	});
+});	
+
 app.post('/community/get', function (req, res, next) {
 	let start = req.body.start;
 	let count = req.body.count;
 	let sort = req.body.sort;
+	let filter = req.body.filter;
 
 	// Create search query
 	let searchMode = true;
 	let searchKeywords = req.body.search;
 	if (searchKeywords == '' || searchKeywords == undefined) {
 		searchMode = false;
+	}
+
+	if (filter == undefined) {
+		filter = 'all';
 	}
 
 	if (start == undefined || count == undefined || start < 0 || count < 0 || count > 100 || sort == undefined) {
@@ -639,7 +669,23 @@ app.post('/community/get', function (req, res, next) {
 			return;
 	}
 
-	query = `SELECT * FROM Community ${sortQuery} LIMIT ?, ?`;
+	let filterQuery = '';
+	switch (filter) {
+		case 'all':
+			filterQuery = '1 = 1';
+			break;
+		case 'nsfw':
+			filterQuery = "rating = 'e'";
+			break;
+		case 'sfw':
+			filterQuery = "rating = 's'";
+			break;
+		default:
+			res.send('Invalid data');
+			return;
+	}
+
+	query = `SELECT * FROM Community WHERE ${filterQuery} ${sortQuery} LIMIT ?, ?`;
 	let search = '';
 
 	// Search
@@ -650,9 +696,8 @@ app.post('/community/get', function (req, res, next) {
 			search += '+"' + searchKeywords[i] + '" ';
 		}
 
-		query = `SELECT * FROM Community WHERE MATCH (title, prompt) AGAINST (? IN BOOLEAN MODE) ${sortQuery} LIMIT ?, ?`;
+		query = `SELECT * FROM Community WHERE MATCH (title, prompt) AGAINST (? IN BOOLEAN MODE) AND ${filterQuery} ${sortQuery} LIMIT ?, ?`;
 	}
-
 
 	pool.getConnection(function (err, connection) {
 		if (err) {
@@ -686,14 +731,54 @@ app.post('/community/get', function (req, res, next) {
 	});
 });
 
-app.get('/community/length', function (req, res, next) {
+app.post('/community/length', function (req, res, next) {
+	let searchKeywords = req.body.search;
+	let searchMode = true;
+
+	let filter = req.body.filter;
+	if (filter == undefined) {
+		filter = 'all';
+	}
+
+	if (searchKeywords == '' || searchKeywords == undefined) {
+		searchMode = false;
+	}
+
+	let filterQuery = '';
+	switch (filter) {
+		case 'all':
+			filterQuery = '1 = 1';
+			break;
+		case 'nsfw':
+			filterQuery = "rating = 'e'";
+			break;
+		case 'sfw':
+			filterQuery = "rating = 's'";
+			break;
+		default:
+			res.send('Invalid data');
+			return;
+	}
+
+	let search = '';
+	let query = `SELECT COUNT(*) as cnt FROM Community WHERE ${filterQuery}`;
+	if (searchMode) {
+		searchKeywords = searchKeywords.split(',');
+
+		for (let i = 0; i < searchKeywords.length; i++) {
+			search += '+"' + searchKeywords[i] + '" ';
+		}
+
+		query = `SELECT COUNT(*) as cnt FROM Community WHERE MATCH (title, prompt) AGAINST (? IN BOOLEAN MODE) AND ${filterQuery}`;
+	}
+
 	pool.getConnection(function (err, connection) {
 		if (err) {
 			console.log('Error: ' + err);
 			return
 		}
 
-		connection.query('SELECT COUNT(*) as cnt FROM Community', function (err, results, fields) {
+		connection.query(query, [search], function (err, results, fields) {
 			if (err) {
 				console.log('Error: ' + err);
 				return;

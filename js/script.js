@@ -1,7 +1,7 @@
 // Server HOST Address (Change this to your server address)
 let host = 'https://jio7-prombot.hf.space';
 
-host = 'http://127.0.0.1'; //// MUST BE CHANGED!!!!!!!!
+////host = 'http://127.0.0.1'; // MUST BE CHANGED!!!!!!!!
 
 let key = null;
 
@@ -19,6 +19,10 @@ let numberList;
 let qualityList;
 let attireList;
 let nsfwList;
+
+let filter = 'all'
+
+let searchText = '';
 
 let vibeImage = null;
 
@@ -51,6 +55,7 @@ let max = 0;
 let sort = "new";
 
 let currentOptions = null;
+let currentCommunityItem = null;
 
 // On page load
 window.onload = async function () {
@@ -80,14 +85,15 @@ window.onload = async function () {
 	addEventListeners();
 	checkDYN();
 
-	max = (await get(host + '/community/length'))[0].cnt;
-
 	// Remove Loading Screen
 	document.getElementById('loading').style.display = 'none';
 
+	max = (await post(host + '/community/length'))[0].cnt;
+	loadPosts(0, Math.min(max, 24), sort);
+	document.getElementById('postloading').classList.add('hidden');
+
 	/* TEMP */
-	document.getElementById('generator').style.display = 'none';
-	document.getElementById('search').style.display = 'flex';
+	////setTab('search');
 };
 
 // Init css elements
@@ -154,6 +160,12 @@ function addEventListeners() {
 		if (preventReload) {
 			e.preventDefault();
 			e.returnValue = true;
+		}
+	});
+
+	document.getElementById('searchInput').addEventListener('keypress', (e) => {
+		if (e.key === 'Enter') {
+			search();
 		}
 	});
 
@@ -304,23 +316,6 @@ function addEventListeners() {
 			a.download = 'image.png';
 			a.click();
 		}
-	});
-
-	// Tabs
-	document.getElementById('tab_generator').addEventListener('click', (e) => {
-		document.getElementById('generator').style.display = 'flex';
-		document.getElementById('search').style.display = 'none';
-		
-		document.getElementById('tab_generator').classList.add('selected');
-		document.getElementById('tab_search').classList.remove('selected');
-	});
-
-	document.getElementById('tab_search').addEventListener('click', (e) => {
-		document.getElementById('generator').style.display = 'none';
-		document.getElementById('search').style.display = 'flex';
-
-		document.getElementById('tab_generator').classList.remove('selected');
-		document.getElementById('tab_search').classList.add('selected');
 	});
 
 	let contents = document.getElementById('contents');
@@ -905,9 +900,6 @@ async function downloadLists() {
 
 			// Load wildcards
 			loadWildcards();
-
-			// Load posts
-			loadPosts(0, 24, sort);
 
 			for (let temp of whitelist) {
 				whitelistSeparated.push(temp.toLowerCase().split(' '));
@@ -1897,6 +1889,25 @@ worker.onmessage = function (e) {
 	}
 };
 
+function setTab(tab) {
+	switch (tab) {
+		case 'generator':
+			document.getElementById('generator').style.display = 'flex';
+			document.getElementById('search').style.display = 'none';
+			
+			document.getElementById('tab_generator').classList.add('selected');
+			document.getElementById('tab_search').classList.remove('selected');
+			break;
+		case 'search':
+			document.getElementById('generator').style.display = 'none';
+			document.getElementById('search').style.display = 'flex';
+
+			document.getElementById('tab_generator').classList.remove('selected');
+			document.getElementById('tab_search').classList.add('selected');
+			break;
+	}
+}
+
 function setProgressbar() {
 	let progressBar = document.getElementById('progressBar');
 	let image = document.getElementById('image');
@@ -2147,9 +2158,19 @@ function download(dataurl, filename) {
 	link.click();
 }
 
-function expand() {
-	document.getElementById('sidebar').classList.toggle('expanded');
-	document.getElementById('upico').classList.toggle('rotate');
+function expand(state = null) {
+	if (state == null) {
+		document.getElementById('sidebar').classList.toggle('expanded');
+		document.getElementById('upico').classList.toggle('rotate');
+	}
+	else if (state) {
+		document.getElementById('sidebar').classList.add('expanded');
+		document.getElementById('upico').classList.add('rotate');
+	}
+	else {
+		document.getElementById('sidebar').classList.remove('expanded');
+		document.getElementById('upico').classList.remove('rotate');
+	}
 }
 
 function hideTagSuggest() {
@@ -2562,6 +2583,7 @@ async function uploadCommunity(title, image, data, rating) {
 	prompt = prompt.replaceAll(']', '');
 
 	post(url, { title: title, img: result, data: JSON.stringify(data), uid: uid, rating: rating, prompt: prompt }, null, 'text');
+	alert('Upload successful!');
 }
 
 function blobToBase64(blob) {
@@ -2572,7 +2594,7 @@ function blobToBase64(blob) {
 	});
 }
 
-function setSort(sort) {
+async function setSort(sort) {
 	sort = sort;
 
 	switch (sort) {
@@ -2589,9 +2611,14 @@ function setSort(sort) {
 
 	window.removeEventListener('click', sortDropdownClick);
 	document.getElementById('sortDropdown').classList.remove('show');
+	document.getElementById('postloading').classList.remove('hidden');
 	document.getElementById('gallery').innerHTML = '';
 	document.getElementById('gallery').scrollTop = 0;
-	loadPosts(0, 24, sort);
+
+	max = (await post(host + '/community/length', { search: searchText, filter: filter }))[0].cnt;
+
+	loadPosts(0, Math.min(max, 24), sort);
+	document.getElementById('postloading').classList.add('hidden');
 }
 
 function showSortDropdown() {
@@ -2605,7 +2632,6 @@ function showSortDropdown() {
 }
 
 function sortDropdownClick(e) {
-	console.log(e.target);
 	if (!e.target.matches('#sortDropdown') && !e.target.parentNode.matches('#sort')) {
 		document.getElementById('sortDropdown').classList.remove('show');
 		window.removeEventListener('click', sortDropdownClick);
@@ -2614,6 +2640,30 @@ function sortDropdownClick(e) {
 
 async function loadPosts(start, count, sort) {
 	addCommunityItem(start, count, sort);
+}
+
+async function setFilter(op) {
+	document.getElementById('filter_' + filter).classList.remove('selected');
+	document.getElementById('filter_' + op).classList.add('selected');
+
+	filter = op;
+	document.getElementById('postloading').classList.remove('hidden');
+	document.getElementById('gallery').innerHTML = '';
+	document.getElementById('gallery').scrollTop = 0;
+
+	max = (await post(host + '/community/length', { search: searchText, filter: filter }))[0].cnt;
+	loadPosts(0, Math.min(max, 24), sort);
+	document.getElementById('postloading').classList.add('hidden');
+}
+
+async function search() {
+	document.getElementById('gallery').innerHTML = '';
+	document.getElementById('postloading').classList.remove('hidden');
+	searchText = document.getElementById('searchInput').value.trim();
+	max = (await post(host + '/community/length', {search: searchText, filter: filter}))[0].cnt;
+
+	loadPosts(0, Math.min(max, 24), sort);
+	document.getElementById('postloading').classList.add('hidden');
 }
 
 async function addCommunityItem(start, count, sort) {
@@ -2635,9 +2685,9 @@ async function addCommunityItem(start, count, sort) {
 		gallery.appendChild(node);
 	}
 
-	let data = await post('/community/get', { start: start, count: count, sort: sort });
+	let data = await post('/community/get', { start: start, count: count, sort: sort, search: searchText, filter: filter });
 
-	if (data == undefined) {
+	if (data == undefined || data.length == 0) {
 		return;
 	}
 	
@@ -2665,15 +2715,57 @@ async function addCommunityItem(start, count, sort) {
 	for (let i = 0; i < items.length; i++) {
 		items[i].appendChild(div.cloneNode(true));
 		items[i].children[0].src = data[i].img;
+
+		items[i].children[0].onerror = function () {
+			items[i].children[0].style.display = 'none';
+		};
+
 		// Title
 		items[i].children[2].children[0].innerHTML = data[i].title;
 		// Upvote Count
 		items[i].children[2].children[3].innerHTML = data[i].upvote;
 		// Download Count
 		items[i].children[2].children[5].innerHTML = data[i].download;
-	}
 
-	return item;
+		items[i].addEventListener('click', async () => {
+			document.getElementById('post_title').innerHTML = data[i].title;
+			document.getElementById('post_img').style.backgroundImage = 'url(' + data[i].img + ')';
+			document.getElementById('post_upvote').innerHTML = data[i].upvote;
+			document.getElementById('post_download').innerHTML = data[i].download;
+
+			try {
+				currentCommunityItem = data[i];
+				let promptData = await JSON.parse(currentCommunityItem.data);
+				document.getElementById('post_begprompt').innerHTML = promptData.begprompt;
+				document.getElementById('post_including').innerHTML = promptData.including;
+				document.getElementById('post_endprompt').innerHTML = promptData.endprompt;
+				document.getElementById('post_negprompt').innerHTML = promptData.negativePrompt;
+			} catch (e) {
+				console.log(e);
+			}
+
+			postAnimation(true);
+		});
+	}
+}
+
+function postAnimation(show) {
+	if (show) {
+		document.getElementById('post').classList.add('shown');
+		document.getElementById('search').classList.add('animated');
+	}
+	else {
+		document.getElementById('post').classList.remove('shown');
+		document.getElementById('search').classList.remove('animated');
+	}
+}
+
+function addCommunityPreset() {
+	post(host + '/community/download', { id: currentCommunityItem.id }, null, 'text');
+	setOptions(currentCommunityItem.data);
+	setTab('generator');
+	alert('Preset loaded!');
+	expand(true);
 }
 
 function changeSort(s) {
