@@ -2714,6 +2714,14 @@ async function addCommunityItem(start, count, sort) {
 
 	for (let i = 0; i < items.length; i++) {
 		items[i].appendChild(div.cloneNode(true));
+
+		items[i].children[0].onload = function () {
+			items[i].style.background = 'transparent';
+		};
+		items[i].children[0].onerror = function () {
+			items[i].children[0].style.display = 'none';
+		};
+
 		items[i].children[0].src = data[i].img;
 
 		if (data[i].img) {
@@ -2723,10 +2731,6 @@ async function addCommunityItem(start, count, sort) {
 				items[i].children[0].style.imageRendering = 'pixelated';
 			}
 		}
-
-		items[i].children[0].onerror = function () {
-			items[i].children[0].style.display = 'none';
-		};
 
 		// Title
 		items[i].children[2].children[0].innerHTML = data[i].title;
