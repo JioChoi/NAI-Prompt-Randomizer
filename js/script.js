@@ -2460,6 +2460,12 @@ async function upload() {
 		alert('Please generate an image first.');
 		return;
 	}
+
+	if (currentOptions.begprompt.includes("__") || currentOptions.including.includes("__") || currentOptions.endprompt.includes("__")) {
+		alert('Please remove all wildcards before uploading.');
+		return;
+	}
+
 	let image = document.getElementById("result").src;
 	let options = currentOptions;
 
@@ -2733,25 +2739,25 @@ async function addCommunityItem(start, count, sort) {
 		}
 
 		// Title
-		items[i].children[2].children[0].innerHTML = data[i].title;
+		items[i].children[2].children[0].innerText = data[i].title;
 		// Upvote Count
-		items[i].children[2].children[3].innerHTML = data[i].upvote;
+		items[i].children[2].children[3].innerText = data[i].upvote;
 		// Download Count
-		items[i].children[2].children[5].innerHTML = data[i].download;
+		items[i].children[2].children[5].innerText = data[i].download;
 
 		items[i].addEventListener('click', async () => {
-			document.getElementById('post_title').innerHTML = data[i].title;
+			document.getElementById('post_title').innerText = data[i].title;
 			document.getElementById('post_img').style.backgroundImage = 'url(' + data[i].img + ')';
-			document.getElementById('post_upvote').innerHTML = data[i].upvote;
-			document.getElementById('post_download').innerHTML = data[i].download;
+			document.getElementById('post_upvote').innerText = data[i].upvote;
+			document.getElementById('post_download').innerText = data[i].download;
 
 			try {
 				currentCommunityItem = data[i];
 				let promptData = await JSON.parse(currentCommunityItem.data);
-				document.getElementById('post_begprompt').innerHTML = promptData.begprompt;
-				document.getElementById('post_including').innerHTML = promptData.including;
-				document.getElementById('post_endprompt').innerHTML = promptData.endprompt;
-				document.getElementById('post_negprompt').innerHTML = promptData.negativePrompt;
+				document.getElementById('post_begprompt').innerText = promptData.begprompt;
+				document.getElementById('post_including').innerText = promptData.including;
+				document.getElementById('post_endprompt').innerText = promptData.endprompt;
+				document.getElementById('post_negprompt').innerText = promptData.negativePrompt;
 			} catch (e) {
 				console.log(e);
 			}
