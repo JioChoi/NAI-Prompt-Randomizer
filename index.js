@@ -595,7 +595,7 @@ app.post('/community/post', async function (req, res, next) {
 			return
 		}
 
-		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, time, ?)', [id, uid, data, result.secure_url, rating, title, prompt], function (err, results, fields) {
+		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [id, uid, data, result.secure_url, rating, title, time, prompt], function (err, results, fields) {
 			if (err) {
 				console.log('Error: ' + err);
 				return;
