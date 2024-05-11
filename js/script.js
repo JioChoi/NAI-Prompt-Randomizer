@@ -2745,10 +2745,9 @@ async function addCommunityItem(start, count, sort) {
 
 		items[i].addEventListener('click', async () => {
 			if (size.width < 100 || size.height < 100) {
-				document.getElementById('post_img').style.imageRendering = 'pixelated';
 			}
 			else {
-				document.getElementById('post_img').style.imageRendering = 'auto';
+
 			}
 
 			document.getElementById('post_title').innerText = data[i].title;
