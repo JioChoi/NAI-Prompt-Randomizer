@@ -2745,7 +2745,7 @@ async function addCommunityItem(start, count, sort) {
 
 		items[i].addEventListener('click', async () => {
 			if (size.width < 100 || size.height < 100) {
-				document.getElementById('noise_overlay').style.display = 'block';
+				document.getElementById('noise_overlay').style.display = 'none';
 			}
 			else {
 				document.getElementById('noise_overlay').style.display = 'none';
