@@ -558,7 +558,7 @@ app.post('/community/post', async function (req, res, next) {
 	let title = req.body.title;
 	let prompt = req.body.prompt;
 
-	let time = new Date().toISOString().substring(0, 19);
+	let time = new Date(new Date().toUTCString()).toISOString();
 
 	if (uid == undefined || data == undefined || img == undefined || rating == undefined || title == undefined || prompt == undefined) {
 		res.send('Invalid data');
