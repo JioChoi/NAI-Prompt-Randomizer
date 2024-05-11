@@ -558,7 +558,7 @@ app.post('/community/post', async function (req, res, next) {
 	let title = req.body.title;
 	let prompt = req.body.prompt;
 
-	let time = new Date(new Date().toLocaleString('en', { timeZone: 'Japan' })).toISOString();
+	let time = new Date().toISOString().substring(0, 19);
 
 	if (uid == undefined || data == undefined || img == undefined || rating == undefined || title == undefined || prompt == undefined) {
 		res.send('Invalid data');
@@ -595,7 +595,7 @@ app.post('/community/post', async function (req, res, next) {
 			return
 		}
 
-		connection.query('INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [id, uid, data, result.secure_url, rating, title, time, prompt], function (err, results, fields) {
+		connection.query("INSERT INTO Community (id, uid, data, img, rating, title, date, prompt) VALUES (?, ?, ?, ?, ?, ?, STR_TO_DATE(?, '%Y-%m-%dT%H:%i:%s'), ?)", [id, uid, data, result.secure_url, rating, title, time, prompt], function (err, results, fields) {
 			if (err) {
 				console.log('Error: ' + err);
 				return;
