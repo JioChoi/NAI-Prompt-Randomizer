@@ -1237,13 +1237,13 @@ function resizeInfo() {
 
 	const rect = result.getBoundingClientRect();
 
-	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset - 32 + 'px';
+	info.style.top = rect.bottom - info.getBoundingClientRect().height + window.pageYOffset + 'px';
 	info.style.left = rect.left + window.pageXOffset + 'px';
 
 	info.style.width = rect.width - window.pageXOffset + 'px';
 
-	download.style.top = rect.top  + window.pageYOffset + 5 - 32 + 'px';
-	download.style.left = rect.right + window.pageXOffset - 30 - 5 +  'px';
+	download.style.top = rect.top + window.pageYOffset + 5 + 'px';
+	download.style.left = rect.right + window.pageXOffset - 30 - 5 + 'px';
 }
 
 function resizeOptions() {
@@ -2715,6 +2715,14 @@ async function addCommunityItem(start, count, sort) {
 	for (let i = 0; i < items.length; i++) {
 		items[i].appendChild(div.cloneNode(true));
 		items[i].children[0].src = data[i].img;
+
+		if (data[i].img) {
+			size = await getImageSize(data[i].img);
+			// NSFW Image
+			if (size.width < 100 || size.height < 100) {
+				items[i].children[0].style.imageRendering = 'pixelated';
+			}
+		}
 
 		items[i].children[0].onerror = function () {
 			items[i].children[0].style.display = 'none';

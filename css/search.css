@@ -206,8 +206,6 @@
 	width: 100%;
 	height: -webkit-fill-available;
 	object-fit: cover;
-	image-rendering: pixelated;
-	image-rendering: -moz-crisp-edges;
 }
 
 #gallery .item div:nth-of-type(1) {
