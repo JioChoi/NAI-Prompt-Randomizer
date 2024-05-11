@@ -2699,17 +2699,17 @@ async function addCommunityItem(start, count, sort) {
 	
 	const div = document.createElement('div');
 	const titleEle = document.createElement('span');
-	titleEle.innerHTML = data.title;
+	titleEle.innerText = data.title;
 
 	const upvote = document.createElement('span');
 	upvote.classList.add('mingcute--thumb-up-2-line');
 	const upvoteCount = document.createElement('span');
-	upvoteCount.innerHTML = '0';
+	upvoteCount.innerText = '0';
 
 	const download = document.createElement('span');
 	download.classList.add('mingcute--download-2-line');
 	const downloadCount = document.createElement('span');
-	downloadCount.innerHTML = '0';
+	downloadCount.innerText = '0';
 
 	div.appendChild(titleEle);
 	div.appendChild(document.createElement('br'));
