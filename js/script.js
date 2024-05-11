@@ -2685,7 +2685,7 @@ async function addCommunityItem(start, count, sort) {
 		gallery.appendChild(node);
 	}
 
-	let data = await post('/community/get', { start: start, count: count, sort: sort, search: searchText, filter: filter });
+	let data = await post(host + '/community/get', { start: start, count: count, sort: sort, search: searchText, filter: filter });
 
 	if (data == undefined || data.length == 0) {
 		return;
