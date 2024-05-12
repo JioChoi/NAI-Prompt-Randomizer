@@ -231,4 +231,9 @@ body {
 	#tab_generator.selected {
 		background-color: #181818;
 	}
+
+	#wildcardsList {
+		margin-left: 20px;
+		margin-right: 20px;
+	}
 }

@@ -565,6 +565,8 @@ app.post('/community/post', async function (req, res, next) {
 		return;
 	}
 
+	title = title.trim();
+
 	let id = crypto.createHash('sha256').update(img).digest('hex');
 
 	if (uid.length != 64 || data.length == 0 || img.length == 0 || title.length == 0 || rating.length != 1 || prompt.length == 0) {
@@ -742,7 +744,7 @@ app.post('/community/length', function (req, res, next) {
 		filter = 'all';
 	}
 
-	if (searchKeywords == '' || searchKeywords == undefined) {
+	if (searchKeywords == undefined || searchKeywords == '') {
 		searchMode = false;
 	}
 

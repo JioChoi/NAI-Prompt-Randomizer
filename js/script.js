@@ -205,6 +205,7 @@ function addEventListeners() {
 		for (let i = 0; i < files.length; i++) {
 			const name = files[i].name.substring(0, files[i].name.length - 4);
 			const reader = new FileReader();
+
 			reader.onload = (e) => {
 				let data = reader.result;
 				data = data.replace(/\r/g, '');
@@ -223,6 +224,8 @@ function addEventListeners() {
 				wildcards[name] = data;
 				whitelist.push('__' + name + '__');
 				whitelistSeparated.push(('__' + name + '__').toLowerCase().split(' '));
+
+				initWildcardsList();
 			};
 
 			reader.readAsText(files[i]);
@@ -900,6 +903,7 @@ async function downloadLists() {
 
 			// Load wildcards
 			loadWildcards();
+			initWildcardsList();
 
 			for (let temp of whitelist) {
 				whitelistSeparated.push(temp.toLowerCase().split(' '));
@@ -2149,6 +2153,50 @@ async function generate() {
 	}
 
 	return result;
+}
+
+function initWildcardsList() {
+	let list = document.getElementById('wildcardsList');
+	list.innerHTML = '';
+
+	if (Object.entries(wildcards).length == 0) {
+		list.style.display = 'none';
+		document.getElementById('wildcardsListTitle').style.display = 'none';
+	}
+	else {
+		list.style.display = 'block';
+		document.getElementById('wildcardsListTitle').style.display = 'block';
+	}
+
+	for (let data in wildcards) {
+		let item = document.createElement('h3');
+		item.innerText = data;
+		if (data == "") {
+			item.innerHTML = '&nbsp';
+		}
+
+		item.addEventListener('click', (e) => {
+			let ok = window.confirm(`Delete wildcard "${data}"?`);
+			if (ok) {
+				delete wildcards[data];
+				localStorage.removeItem('wildcard_' + data);
+				whitelist.splice(whitelist.indexOf("__" + data + "__"), 1);
+
+				let index = whitelistSeparated.findIndex((element) => {
+					return element.toString() == (("__" + data + "__").toLowerCase().split(' ').toString());
+				});
+
+				if (index != -1) {
+					whitelistSeparated.splice(index, 1);
+					console.log(index);
+				}
+					
+				initWildcardsList();
+			}
+		});
+
+		list.appendChild(item);
+	}
 }
 
 function download(dataurl, filename) {
