@@ -2058,7 +2058,7 @@ async function generate() {
 	let result = null;
 
 	generateTime = new Date().getTime();
-	let eta = (await get(host + '/stat')).avgTime + 2000;
+	let eta = (await get(host + '/stat')).avgTime;
 
 	const interval = setInterval(async () => {
 		let time = new Date().getTime() - generateTime;
