@@ -33,6 +33,10 @@ body {
 	margin: 0;
 }
 
+#generator {
+	background-color: #181818;
+}
+
 #header {
 	position: fixed;
 	display: flex;
