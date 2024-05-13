@@ -16,10 +16,12 @@
 
 	height: calc(100% - 32px);
 	background-color: #181818;
+	background-color: transparent;
 }
 
 #image.top {
 	outline: none;
+	z-index: 9999;
 }
 
 #image.shown {

@@ -1,0 +1,11 @@
+Database connected as id 249145
+BadRequestError: request aborted
+    at IncomingMessage.onAborted (/app/node_modules/express/node_modules/raw-body/index.js:238:10)
+    at IncomingMessage.emit (node:events:519:28)
+    at IncomingMessage._destroy (node:_http_incoming:224:10)
+    at _destroy (node:internal/streams/destroy:121:10)
+    at IncomingMessage.destroy (node:internal/streams/destroy:83:5)
+    at abortIncoming (node:_http_server:797:9)
+    at socketOnClose (node:_http_server:791:3)
+    at Socket.emit (node:events:531:35)
+    at TCP.<anonymous> (node:net:338:12)
