@@ -489,6 +489,7 @@ function initLoginScreen() {
 
 			document.getElementById('generate').innerHTML = 'Generate';
 			document.getElementById('sidebar').classList.remove('hidden');
+			document.getElementById('tab_search').style.display = 'flex';
 			logined = true;
 			setAnals();
 			migratePresets();
@@ -911,9 +912,11 @@ async function downloadLists() {
 
 			if (logined) {
 				document.getElementById('generate').innerHTML = "Generate";
+				document.getElementById('tab_search').style.display = 'flex';
 			}
 			else {
 				document.getElementById('generate').innerHTML = "Continue with NAI Account";
+				document.getElementById('tab_search').style.display = 'none';
 			}
 			document.getElementById('generate').disabled = false;
 		}
