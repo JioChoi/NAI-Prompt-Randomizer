@@ -1538,7 +1538,7 @@ function applyDynamicPrompt(prompt) {
 }
 
 function applyWildcards(prompt) {
-	let regex = /__.+__/g;
+	let regex = /__[^,]*__/g;
 	let match = prompt.match(regex);
 
 	if (match == null) {
@@ -1548,6 +1548,9 @@ function applyWildcards(prompt) {
 	for (let i = 0; i < match.length; i++) {
 		let name = match[i].substring(2, match[i].length - 2);
 		let data = wildcards[name];
+
+		console.log(name);
+		console.log(data);
 		if (data != null) {
 			let index = Math.floor(Math.random() * data.length);
 			prompt = prompt.replace(match[i], data[index]);
