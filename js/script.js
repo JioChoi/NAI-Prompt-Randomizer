@@ -1538,7 +1538,7 @@ function applyDynamicPrompt(prompt) {
 }
 
 function applyWildcards(prompt) {
-	let regex = /__\w+__/g;
+	let regex = /__.+__/g;
 	let match = prompt.match(regex);
 
 	if (match == null) {
