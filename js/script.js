@@ -1549,8 +1549,6 @@ function applyWildcards(prompt) {
 		let name = match[i].substring(2, match[i].length - 2);
 		let data = wildcards[name];
 
-		console.log(name);
-		console.log(data);
 		if (data != null) {
 			let index = Math.floor(Math.random() * data.length);
 			prompt = prompt.replace(match[i], data[index]);
