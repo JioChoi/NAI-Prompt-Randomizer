@@ -200,6 +200,33 @@ app.get('/error', function (req, res, next) {
 	res.send(str);
 });
 
+app.post('/proxy', function (req, res, next) {
+	if (checkBlacklist(req, res)) {
+		return;
+	}
+
+	let url = req.body.url;
+	if (url == undefined) {
+		res.send('Invalid data');
+		return;
+	}
+
+	request(
+		{
+			method: 'GET',
+			url: url,
+			headers: {
+				'Content-Type': 'image/png',
+			}
+		},
+		function (error, response, body) {
+			if (response && response.statusCode != 200) {
+				log(String(response.statusCode) + ') ' + url + ' error: ' + body.message);
+			}
+		},
+	).pipe(res);
+});
+
 app.post('/api*', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
 		return;
