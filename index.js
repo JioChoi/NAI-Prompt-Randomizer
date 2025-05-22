@@ -232,13 +232,18 @@ app.post('/api*', function (req, res, next) {
 		return;
 	}
 
+	authorization = req.body.authorization;
+	if (req.body.authorization) {
+		delete req.body.authorization;
+	}
+
 	request(
 		'https://api.novelai.net' + req.url.substring(4),
 		{
 			method: 'POST',
 			json: req.body,
 			headers: {
-				Authorization: req.headers.authorization,
+				Authorization: authorization,
 				'Content-Type': 'application/json',
 			},
 		},
@@ -540,13 +545,17 @@ app.get('/api*', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
 		return;
 	}
-	console.log(req.headers.authorization)
+	
+	authorization = req.body.authorization;
+	if (req.body.authorization) {
+		delete req.body.authorization;
+	}
 	
 	request(
 		{
 			url: 'https://api.novelai.net' + req.url.substring(4),
 			headers: {
-				Authorization: req.headers.authorization,
+				Authorization: authorization,
 			},
 		},
 		function (error, response, body) {
