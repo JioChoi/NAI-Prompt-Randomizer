@@ -30,7 +30,9 @@ app.use(
 );
 
 app.post('/generate-image', function (req, res, next) {
-	que.push({ json: req.body, authorization: req.headers.authorization, res: res, prompt: req.body.input });
+	authorization = req.body.authorization;
+	delete req.body.authorization;
+	que.push({ json: req.body, authorization: authorization, res: res, prompt: req.body.input });
 });
 
 app.get('/', function(req, res) {
