@@ -540,6 +540,7 @@ app.get('/api*', function (req, res, next) {
 	if (checkBlacklist(req, res)) {
 		return;
 	}
+	console.log(req.headers.authorization)
 	
 	request(
 		{
