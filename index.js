@@ -486,6 +486,11 @@ async function checkDisabled(server) {
 }
 
 app.post('/generate-image', async function (req, res, next) {
+	authorization = req.body.authorization;
+	if (req.body.authorization) {
+		delete req.body.authorization;
+	}
+
 	let now = new Date().getTime();
 
 	// Remove old status
@@ -528,7 +533,7 @@ app.post('/generate-image', async function (req, res, next) {
 		method: 'POST',
 		json: req.body,
 		headers: {
-			Authorization: req.headers.authorization,
+			Authorization: authorization,
 			'Content-Type': 'application/json',
 		},
 	}, function (error, response, body) {
