@@ -546,9 +546,9 @@ app.get('/api*', function (req, res, next) {
 		return;
 	}
 	
-	authorization = req.params.authorization;
-	if (req.params.authorization) {
-		delete req.params.authorization;
+	authorization = req.query.authorization;
+	if (req.query.authorization) {
+		delete req.query.authorization;
 	}
 	
 	request(
